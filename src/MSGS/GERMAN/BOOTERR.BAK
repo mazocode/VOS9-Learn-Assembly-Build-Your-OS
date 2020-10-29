@@ -1,0 +1,56 @@
+; VOS/9 Kernel Bootup Panic Messages
+; (c)(r) 1995 by MZ Computer Systems
+; 
+;
+kernel_panic	db '旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커'
+        	db '�      VOS/9 BOOTUP-PANIC: Es ist ein schwerwiegender Fehler aufgetreten!      �'
+		db '읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸$'
+
+panic_help	db '   Es ist ein Fehler aufgetreten, welcher die weitere Verarbeitung unm봥lich    '
+		db '   macht und von VOS/9 nicht behoben werden kann. Einen detailierten Hinweis    '
+		db '   finden Sie in Ihrem Handbuch unter der unten angegebenen Referenz-Nr.  im    '
+		db '   Kapitel Systemfehler.  Sollten Sie das Problem selbst nicht l봲en k봭nen,    '
+		db '   notieren Sie bitte die Fehlerbeschreibung und zeigen Sie diese Ihrem         '
+		db '   System-Verwalter oder Computerh꼗dler.$'
+
+panic_err	db 'Fehlerbeschreibung $'
+panic_exp	db 'Fehler-Ursache: $'
+panic_ref	db 'Referenz-Nr.  : $'
+panic_locate	db 'Lokalisierung : $'
+panic_howto	db 'Behebung      : $'
+
+
+panic_adios	db 'Das System wurde angehalten. Sie k봭nen das System nun abschalten. $'
+
+
+; UNKNOWN
+	panic_msg000	db	'Der Fehlergrund ist unbekannt!$'
+	panic_msg001	db	'??????????????$'
+	panic_msg002	db	'Siehe Handbuch$'
+
+; Gate A20
+	panic_msg003	db	'Die Adressleitung A20 konnte nicht freigegeben werden! $'
+	panic_msg004	db	'System Hauptplatine Port 60h $'
+	panic_msg005	db	'Wechseln Sie die System-Hauptlatine oder den Port-Baustein $'
+
+; Protected
+	panic_msg006	db	'Die CPU befindet sich im gesch걎zten Modus! $'
+	panic_msg007	db	'Speichermanager (z.B. EMM386.EXE), DOS-Extender$'
+	panic_msg008	db	'Starten Sie DOS ohne einen EMS-Manager/DOS-Extender$'
+
+; Bios Read Error
+	panic_msg009	db	'Das Lesen von dem Laufwerk ist Fehlgeschlagen! $'
+	panic_msg010	db	'Konfiguration des Laufwerks; Kontroller oder Laufwerk defekt $'
+	panic_msg011	db	'Pr갽en Sie die BIOS-Parameter und die Laufwerke$'
+
+; Kernel not present
+	panic_msg012	db	'Das Kernel Image ist besch꼋igt oder nicht vorhanden!$'
+	panic_msg013	db	'Fehlerhafte Systemdateien oder defektes Dateisystem$'
+	panic_msg014	db	'쉇ertragen Sie das Kernel Image von einer System-Diskette$'
+	
+panic_list	dw	panic_msg000 , panic_msg001 , panic_msg002
+		dw	panic_msg003 , panic_msg004 , panic_msg005
+		dw	panic_msg006 , panic_msg007 , panic_msg008
+		dw	panic_msg009 , panic_msg010 , panic_msg011
+		dw	panic_msg012 , panic_msg013 , panic_msg014
+		

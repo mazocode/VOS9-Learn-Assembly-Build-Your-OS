@@ -1,0 +1,111 @@
+;컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+; VOS9 - The Virtual Operating System
+; (c)(r) 1995 by MZ Computer Systems
+;
+; 	File		SYSTEM.DEF
+;			VOS9.ASM
+; 	Funktion	System Descriptoren
+; 	Erstellt	17.07.1995
+; 	Update		26.09.1995
+; 	Autor		Marcus Zoller
+;컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+; 	! Never touch this unless you know what you are doing !
+;컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+	
+	IDT_SIZE		=	800h		; 256 Eintr꼏e
+							; a 8 Bytes
+	FULL_TSS_SIZE		=	2069h		; 1 TSS mit IO Perm.
+							; anh꼗gend
+	IO_BITMAP_SIZE		= 	2000h		; IO Perm. Bitmap
+							; gr붳e
+							
+; Vorl꼞fige GDT
+	NULL_SEL		=	 0h		; GDT Entry  0 RPL 0
+	RAM_SEL			=	 8h		; GDT Entry  1 RPL 0					
+	KERNEL_CS_SEL		=	10h		; GDT Entry  2 RPL 0
+	KERNEL_DS_SEL		=	18h		; GDT Entry  3 RPL 0
+	VRAM_SEL		=	20h		; GDT Entry  4 RPL 0
+	TMP_TSS_SEL		=	28h		; GDT Entry  5 RPL 0
+		
+	GDT_SIZE		=	30h		; 6 Eintr꼏e	
+
+; Kernel Datensegment Adressen
+
+	KERNEL_TSS_START	=	100000h
+	KERNEL_TSS_SIZE		=	2000h
+	
+; TSS Offset Positionen	
+	TSS_BACKLINK		=	0
+	TSS_ESP0		=	4
+	TSS_SS0			=	8
+	TSS_ESP1		=	12
+	TSS_SS1			=	16
+	TSS_ESP2		=	20
+	TSS_SS2			=	24
+	TSS_CR3			=	28
+	TSS_EIP			=	32
+	TSS_EFLAGS		=	36
+	TSS_EAX			=	40
+	TSS_ECX			=	44
+	TSS_EDX			=	48
+	TSS_EBX			=	52
+	TSS_ESP			=	56
+	TSS_EBP			=	60
+	TSS_ESI			=	64
+	TSS_EDI			=	68
+	TSS_ES			=	72
+	TSS_CS			=	76
+	TSS_SS			=	80
+	TSS_DS			=	84
+	TSS_FS			=	88
+	TSS_GS			=	92
+	TSS_LDTR		=	96
+	TSS_TRAP		=	100
+	TSS_IO			=	102		; Kein EA = 0xFF
+	TSS_PAGES		=	104		; 4 Byte
+	; Process Name (20 Byte Text)
+	TSS_PROC_NAME		=	108		; 21 Byte
+	; Pagedirectory des Prozesses
+	TSS_PAGEDIR		=	1000h
+	
+; TSS Konstanten
+	TSS_NO_IO_MAP		=	0FFFFh
+		
+; Kernel Data
+; Offset Add ab KERNEL_DATA_START
+
+		
+; Pagetabel Konstanten
+
+	PAGES_PER_DIRECTORY	=	1024
+	PAGES_PER_TABEL		=	1024
+	PAGE_SIZE		=	4096
+
+	PGDIR_ENTRY_SIZE	=	4
+	PGTAB_ENTRY_SIZE	=	4
+	
+	KERNEL_PGDIR_START	=	110000h		
+	KERNEL_PGTAB_START	=	KERNEL_PGDIR_START+1000h
+	
+	IO_AREA_START		=	0A0000h
+	IO_AREA_END		=	0FFFFFh
+	
+; Seiten Attribute
+
+	PG_PRESENT		=	1h
+	PG_RW			=	2h
+	PG_USER_LEVEL		=	4h
+	PG_WRITE_TROUGH		=	8h
+	PG_NON_CACHEABLE	=	10h
+	PG_ACCESSED		=	20h
+	PG_DIRTY		=	40h
+	PG_USED	 		=	200h
+	PG_LEND			=	400h
+	PG_FIXED		=	800h	
+	
+; Deskriptor Daten
+	; Byte 5
+	
+	DES_PRESENT		=	80h
+	DES_TSS			=	9h
+	

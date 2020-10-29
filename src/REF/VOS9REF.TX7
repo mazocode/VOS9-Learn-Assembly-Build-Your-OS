@@ -1,0 +1,699 @@
+{\rtf1\ansi \deff4\deflang1033{\fonttbl{\f0\froman\fcharset0\fprq2 Tms Rmn{\*\falt Times New Roman};}{\f1\froman\fcharset2\fprq2 Symbol;}{\f2\fswiss\fcharset0\fprq2 Helv{\*\falt Arial};}{\f3\fmodern\fcharset0\fprq1 Courier;}
+{\f4\froman\fcharset0\fprq2 Times New Roman;}{\f5\fswiss\fcharset0\fprq2 Arial;}{\f6\froman\fcharset0\fprq2 MS Serif;}{\f7\fswiss\fcharset0\fprq2 MS Sans Serif;}{\f8\froman\fcharset0\fprq2 Times{\*\falt Times New Roman};}
+{\f9\fswiss\fcharset0\fprq2 Helvetica{\*\falt Arial};}{\f10\fswiss\fcharset0\fprq2 System;}{\f11\fmodern\fcharset0\fprq1 Courier New;}{\f12\fmodern\fcharset0\fprq1 LinePrinter;}{\f13\fnil\fcharset2\fprq2 Wingdings;}{\f14\froman\fcharset2\fprq2 MT Extra;}
+{\f15\fmodern\fcharset2\fprq1 MS LineDraw;}{\f16\fdecor\fcharset0\fprq2 Algerian;}{\f17\fswiss\fcharset0\fprq2 Arial Rounded MT Bold;}{\f18\froman\fcharset0\fprq2 Bookman Old Style;}{\f19\fdecor\fcharset0\fprq2 Braggadocio;}
+{\f20\fswiss\fcharset0\fprq2 Britannic Bold;}{\f21\fscript\fcharset0\fprq2 Brush Script MT;}{\f22\fswiss\fcharset0\fprq2 Century Gothic;}{\f23\fdecor\fcharset0\fprq2 Colonna MT;}{\f24\fdecor\fcharset0\fprq2 Desdemona;}
+{\f25\froman\fcharset0\fprq2 Footlight MT Light;}{\f26\fswiss\fcharset0\fprq2 Impact;}{\f27\fdecor\fcharset0\fprq2 Kino MT;}{\f28\froman\fcharset0\fprq2 Wide Latin;}{\f29\fscript\fcharset0\fprq2 Matura MT Script Capitals;}
+{\f30\fdecor\fcharset0\fprq2 Playbill;}{\f31\froman\fcharset0\fprq2 Book Antiqua;}{\f32\fnil\fcharset2\fprq2 Monotype Sorts;}{\f33\fswiss\fcharset0\fprq2 Arial Narrow;}{\f34\fscript\fcharset0\fprq2 Monotype Corsiva;}
+{\f35\froman\fcharset0\fprq2 Century Schoolbook;}{\f36\froman\fcharset255\fprq2 Roman;}{\f37\fscript\fcharset255\fprq2 Script;}{\f38\fmodern\fcharset255\fprq2 Modern;}{\f39\fswiss\fcharset0\fprq1 MS Dialog;}{\f40\fnil\fcharset0\fprq1 Small Fonts;}}
+{\colortbl;\red0\green0\blue0;\red0\green0\blue255;\red0\green255\blue255;\red0\green255\blue0;\red255\green0\blue255;\red255\green0\blue0;\red255\green255\blue0;\red255\green255\blue255;\red0\green0\blue128;\red0\green128\blue128;\red0\green128\blue0;
+\red128\green0\blue128;\red128\green0\blue0;\red128\green128\blue0;\red128\green128\blue128;\red192\green192\blue192;}{\stylesheet{\f4\fs20\lang1031 \snext0 Normal;}{\*\cs10 \additive Default Paragraph Font;}{\s15\tqc\tx4536\tqr\tx9072 \f4\fs20\lang1031 
+\sbasedon0\snext15 header;}{\s16\tqc\tx4536\tqr\tx9072 \f4\fs20\lang1031 \sbasedon0\snext16 footer;}{\*\cs17 \additive\sbasedon10 page number;}}{\info{\title VOS/9\'e4}{\author Helmut Zoller}{\operator Helmut Zoller}{\creatim\yr1996\mo4\dy3\hr18\min30}
+{\revtim\yr1996\mo4\dy4\hr23\min54}{\printim\yr1996\mo4\dy4\hr22\min51}{\version44}{\edmins0}{\nofpages0}{\nofwords0}{\nofchars0}{\vern49205}}\paperw11906\paperh16838\margl1417\margr1417\margt1417\margb1134 
+\deftab708\widowctrl\ftnbj\aenddoc\hyphhotz425\formshade \fet0\sectd \linex0\headery709\footery709\colsx709\endnhere {\header \pard\plain \qc \f4\fs20\lang1031 {\b\f5 VOS/9 Programing Reference - }{\field{\*\fldinst {\b\f5  DATE  \\l }}{\fldrslt {\b\f5 
+05.04.1996}}}{\b\f5 
+\par }\pard\plain \s15\tqc\tx4536\tqr\tx9072 \f4\fs20\lang1031 {\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12288\dpline\dpptx0\dppty0\dpptx9072\dppty0\dpx24\dpy63\dpxsize9073\dpysize1\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew40}}
+\par }{\footer \pard\plain \s16\tqc\tx4536\tqr\tx9072 \f4\fs20\lang1031 {\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12289\dpline\dpptx0\dppty0\dpptx9072\dppty0\dpx24\dpy183\dpxsize9073\dpysize1\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew40}}{\b\f5 
+
+\par \'a9 \'ae 1996 by MZ Computer Systems                                                                                     }{\f5 Page }{\field{\*\fldinst {\cs17  PAGE }}{\fldrslt {\cs17 7}}}
+\par }{\*\pnseclvl1\pnucrm\pnstart1\pnindent720\pnhang{\pntxta .}}{\*\pnseclvl2\pnucltr\pnstart1\pnindent720\pnhang{\pntxta .}}{\*\pnseclvl3\pndec\pnstart1\pnindent720\pnhang{\pntxta .}}{\*\pnseclvl4\pnlcltr\pnstart1\pnindent720\pnhang{\pntxta )}}{\*\pnseclvl5
+\pndec\pnstart1\pnindent720\pnhang{\pntxtb (}{\pntxta )}}{\*\pnseclvl6\pnlcltr\pnstart1\pnindent720\pnhang{\pntxtb (}{\pntxta )}}{\*\pnseclvl7\pnlcrm\pnstart1\pnindent720\pnhang{\pntxtb (}{\pntxta )}}{\*\pnseclvl8\pnlcltr\pnstart1\pnindent720\pnhang
+{\pntxtb (}{\pntxta )}}{\*\pnseclvl9\pnlcrm\pnstart1\pnindent720\pnhang{\pntxtb (}{\pntxta )}}\pard\plain \qc \f4\fs20\lang1031 {\b\f5 
+\par }\pard \qc {\b\f5\fs200 
+\par }\pard \qc {\b\f5\fs200 VOS/9}{\f5\fs200\super {\field{\*\fldinst SYMBOL 228 \\f "Symbol" \\s 100}{\fldrslt\f1\fs200}}}{\f5 
+\par }\pard {\f5 
+\par }\pard \qc {\b\f5\fs44 Programing Reference
+\par }\pard \qc {\f5\fs36 
+\par \'a9 \'ae 1995-1996 by MZ Computer Systems
+\par }\pard {\f5 
+\par }\pard {\f5 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par }\pard \qc {\f5 \page }{\b\f5\fs32 I n h a l t
+\par }\pard {\f5 
+\par }\trowd \trgaph70\trleft-70 \cellx8222\cellx9142 \pard \intbl {\f5 Plattformspezifische Daten, Formate, Register\cell }\pard \qc\intbl {\f5 3\cell }\pard \intbl {\f5 \row }\trowd \trgaph70\trleft-70 \cellx8222\cellx9142 \pard \intbl {\f5 
+Volume Information Sector (VIS)\cell }\pard \qc\intbl {\f5 5\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 Inode Struktur\cell }\pard \qc\intbl {\f5 6\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 Object Data Table (ODT) Entrys\cell }\pard \qc\intbl {
+\f5 7\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 Inode Object Attributes\cell }\pard \qc\intbl {\f5 7\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl 
+{\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard 
+\intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard 
+\intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell 
+}\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 
+\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {
+\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {
+\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard 
+\qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell 
+}\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row 
+}\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 
+\cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {
+\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl 
+{\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl 
+{\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard 
+\qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell 
+}\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row 
+}\trowd \trgaph70\trleft-70 \cellx8222\cellx9142 \pard \intbl {\f5 \cell }\pard \qc\intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard {\b\f5 Plattformspezifische Daten, Formate (Intel)
+\par }\pard {\f5 
+\par 
+\par Programmsegmentdeskriptor:
+\par }\pard {\fs16\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12289\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 15\tab L\'e4nge\tab \tab \tab \tab                 0}
+\par }\dpx4344\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12288\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 15         Basisadresse                                                                          0}
+\par }\dpx24\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5\fs16 31\tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab 0}{\f5 
+\par }\pard {\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12304\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 23   Basisadresse                   16}
+\par }\dpx6648\dpy73\dpxsize2017\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12303\dpline\dpptx0\dppty144\dpptx0\dppty0
+\dpx6072\dpy217\dpxsize1\dpysize145\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12302\dpline\dpptx0\dppty144\dpptx0\dppty0\dpx4920\dpy217\dpxsize1\dpysize145
+\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12301\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 A}
+\par }\dpx6360\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12297\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 D P L}
+\par }\dpx4632\dpy73\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12298\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 1}
+\par }\dpx5208\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12299\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5496\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12300\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 C   R}
+\par }\dpx5784\dpy72\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12296\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 P}
+\par }\dpx4344\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12295\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 19      L\'e4nge                      16}
+\par }\dpx2472\dpy73\dpxsize1873\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12294\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs12 verf.
+\par }}\dpx2184\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12293\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1896\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12292\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 D}
+\par }\dpx1608\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12291\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 G}
+\par }\dpx1320\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12290\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 31 Basisadresse  24}
+\par }\dpx24\dpy73\dpxsize1297\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par 
+\par Datensegmentdeskriptor:
+\par }\pard {\fs16\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12289\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 15\tab L\'e4nge\tab \tab \tab \tab                 0}
+\par }\dpx4344\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12288\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 15         Basisadresse                                                                          0}
+\par }\dpx24\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5\fs16 31\tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab 0}{\f5 
+\par }\pard {\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12304\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 23   Basisadresse                   16}
+\par }\dpx6648\dpy73\dpxsize2017\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12303\dpline\dpptx0\dppty144\dpptx0\dppty0
+\dpx6072\dpy217\dpxsize1\dpysize145\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12302\dpline\dpptx0\dppty144\dpptx0\dppty0\dpx4920\dpy217\dpxsize1\dpysize145
+\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12301\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 A}
+\par }\dpx6360\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12297\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 D P L}
+\par }\dpx4632\dpy73\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12298\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 1}
+\par }\dpx5208\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12299\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5496\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12300\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 E   W}
+\par }\dpx5784\dpy72\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12296\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 P}
+\par }\dpx4344\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12295\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 19      L\'e4nge                      16}
+\par }\dpx2472\dpy73\dpxsize1873\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12294\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs12 verf.
+\par }}\dpx2184\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12293\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1896\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12292\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 B}
+\par }\dpx1608\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12291\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 G}
+\par }\dpx1320\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12290\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 31 Basisadresse  24}
+\par }\dpx24\dpy73\dpxsize1297\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par 
+\par Task-Gate-Deskriptor:
+\par }\pard {\fs16\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12289\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 reserviert}
+\par }\dpx4344\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12288\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 15    Segmentselektor f\'fcr TSS                                                            0}
+\par }\dpx24\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5\fs16 31\tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab 0}{\f5 
+\par }\pard {\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12305\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 reserviert}
+\par }\dpx24\dpy62\dpxsize4321\dpysize290\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12304\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 reserviert}
+\par }\dpx6648\dpy73\dpxsize2017\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12303\dpline\dpptx0\dppty144\dpptx0\dppty0
+\dpx6072\dpy217\dpxsize1\dpysize145\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12302\dpline\dpptx0\dppty144\dpptx0\dppty0\dpx4920\dpy217\dpxsize1\dpysize145
+\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12301\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 1}
+\par }\dpx6360\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12297\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 D P L}
+\par }\dpx4632\dpy73\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12298\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5208\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12299\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5496\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12300\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 1   0}
+\par }\dpx5784\dpy72\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12296\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 P}
+\par }\dpx4344\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par 
+\par Interrupt Gate / Trap Gate Deskriptor:
+\par }\pard {\fs16\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12289\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 15                             Offset                                                                 0}
+\par }\dpx4344\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12288\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 15    Segmentselektor                                                                         0}
+\par }\dpx24\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5\fs16 31\tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab 0}{\f5 
+\par }\pard {\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12300\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 1   1}
+\par }\dpx5784\dpy101\dpxsize577\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12305\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 31              Offset                                                                              16}
+\par }\dpx24\dpy62\dpxsize4321\dpysize290\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12304\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 reserviert (alles 0)}
+\par }\dpx6648\dpy73\dpxsize2017\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12303\dpline\dpptx0\dppty144\dpptx0\dppty0
+\dpx6072\dpy217\dpxsize1\dpysize145\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12302\dpline\dpptx0\dppty144\dpptx0\dppty0\dpx4920\dpy217\dpxsize1\dpysize145
+\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12301\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 T}
+\par }\dpx6360\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12297\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 D P L}
+\par }\dpx4632\dpy73\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12298\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5208\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12299\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 1}
+\par }\dpx5496\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12296\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 P}
+\par }\dpx4344\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par 
+\par Call-Gate-Deskriptor
+\par }\pard {\fs16\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12289\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 15\tab Offset\tab \tab \tab \tab                 0}
+\par }\dpx4344\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12288\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 15        Segmentselektor                                                                     0}
+\par }\dpx24\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5\fs16 31\tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab 0}{\f5 
+\par }\pard {\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12310\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 4parameterzahl 0}
+\par }\dpx7512\dpy87\dpxsize1153\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12309\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx7224\dpy87\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12308\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx6936\dpy87\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12307\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx6648\dpy87\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12306\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 31                 Offset                                                                          16}
+\par }\dpx24\dpy87\dpxsize4321\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12303\dpline\dpptx0\dppty144\dpptx0\dppty0
+\dpx6072\dpy217\dpxsize1\dpysize145\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12302\dpline\dpptx0\dppty144\dpptx0\dppty0\dpx4920\dpy217\dpxsize1\dpysize145
+\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12301\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 0}
+\par }\dpx6360\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12297\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 D P L}
+\par }\dpx4632\dpy73\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12298\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5208\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12299\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 1}
+\par }\dpx5496\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12300\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 1   0}
+\par }\dpx5784\dpy72\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12296\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 P}
+\par }\dpx4344\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }\pard {\f5 
+\par }\pard {\f5\fs16 \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab         (anzahl doppelworte)}{\f5 
+\par }\pard {\f5 
+\par TSS-Deskriptor
+\par }\pard {\fs16\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12289\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 15\tab L\'e4nge\tab \tab \tab \tab                 0}
+\par }\dpx4344\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12288\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 15         Basisadresse                                                                          0}
+\par }\dpx24\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5\fs16 31\tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab 0}{\f5 
+\par }\pard {\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12304\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 23   Basisadresse                   16}
+\par }\dpx6648\dpy73\dpxsize2017\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12303\dpline\dpptx0\dppty144\dpptx0\dppty0
+\dpx6072\dpy217\dpxsize1\dpysize145\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12302\dpline\dpptx0\dppty144\dpptx0\dppty0\dpx4920\dpy217\dpxsize1\dpysize145
+\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12301\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 1}
+\par }\dpx6360\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12297\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 D P L}
+\par }\dpx4632\dpy73\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12298\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5208\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12299\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 1}
+\par }\dpx5496\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12300\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0   busy}
+\par }\dpx5784\dpy72\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12296\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 P}
+\par }\dpx4344\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12295\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 19      L\'e4nge                      16}
+\par }\dpx2472\dpy73\dpxsize1873\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12294\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}{\fs12 .
+\par }}\dpx2184\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12293\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1896\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12292\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1608\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12291\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 G}
+\par }\dpx1320\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12290\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 31 Basisadresse  24}
+\par }\dpx24\dpy73\dpxsize1297\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par 
+\par LDT-Deskriptor
+\par }\pard {\fs16\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12289\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 15\tab L\'e4nge\tab \tab \tab \tab                 0}
+\par }\dpx4344\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12288\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 15         Basisadresse                                                                          0}
+\par }\dpx24\dpy194\dpxsize4321\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5\fs16 31\tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab 0}{\f5 
+\par }\pard {\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12304\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 23   Basisadresse                   16}
+\par }\dpx6648\dpy73\dpxsize2017\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12303\dpline\dpptx0\dppty144\dpptx0\dppty0
+\dpx6072\dpy217\dpxsize1\dpysize145\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12302\dpline\dpptx0\dppty144\dpptx0\dppty0\dpx4920\dpy217\dpxsize1\dpysize145
+\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10}{\*\do\dobxcolumn\dobypara\dodhgt12301\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 0}
+\par }\dpx6360\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12297\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 X   X}
+\par }\dpx4632\dpy73\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12298\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5208\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12299\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5496\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12300\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0  1}
+\par }\dpx5784\dpy72\dpxsize577\dpysize288\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12296\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 P}
+\par }\dpx4344\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12295\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 19      L\'e4nge                      16}
+\par }\dpx2472\dpy73\dpxsize1873\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12294\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}{\fs12 
+\par }}\dpx2184\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12293\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1896\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12292\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1608\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12291\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 G}
+\par }\dpx1320\dpy73\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12290\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain 
+\f4\fs20\lang1031 {\fs16 31 Basisadresse  24}
+\par }\dpx24\dpy73\dpxsize1297\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par 
+\par 
+\par }\trowd \trgaph70\trleft-70 \clbrdrt\brdrs\brdrw15 \clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw15 \clbrdrr\brdrs\brdrw15 \cellx567\clbrdrt\brdrs\brdrw15 \clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw15 \clbrdrr\brdrs\brdrw15 \cellx2101\clbrdrt\brdrs\brdrw15 
+\clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw15 \clbrdrr\brdrs\brdrw15 \cellx9140 \pard \intbl {\f5 Kurz\cell }\pard \intbl {\f5 Name\cell }\pard \intbl {\f5 Beschreibung\cell }\pard \intbl {\f5 \row }\trowd \trgaph70\trleft-70 \cellx567\cellx2101\cellx9140
+ \pard \intbl {\f5 \cell }\pard \intbl {\f5 \cell }\pard \intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 G\cell }\pard \intbl {\f5 Granularity\cell }\pard \intbl {\f5 G=0: L\'e4ngenangabe in Byte (max. 1 Mbyte)
+\par G=1: L\'e4ngenangabe in Seiten zu je 4K (max. 4GByte)\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 A\cell }\pard \intbl {\f5 Accessed\cell }\pard \intbl {\f5 A=0: Zum Segment wurde nicht zugegriffen
+\par A=1: Zum Segment wurde zugegriffen\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 W\cell }\pard \intbl {\f5 Write Enabled\cell }\pard \intbl {\f5 W=0: Read Only Segment
+\par W=1: Read & Write possible\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 B\cell }\pard \intbl {\f5 Stackpointer (Big)\cell }\pard \intbl {\f5 B=0: SP wird verwendet (max. 64K Stack)
+\par B=1: ESP wird verwendet (max. 4GB)\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 E\cell }\pard \intbl {\f5 Expansion Direction\cell }\pard \intbl {\f5 E=0: Aufw\'e4rtserweiterung, Basisadresse=niedrigste Byte des Segmentes
+\par E=1: Abw\'e4rtserweiterung, Basisadresse=h\'f6chstwertiges Byte des Segmentes\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 R\cell }\pard \intbl {\f5 Readable\cell }\pard \intbl {\f5 R=0: Execute Only Codesegment
+\par R=1 Execute/Read\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 C\cell }\pard \intbl {\f5 Conforming\cell }\pard \intbl {\f5 C=0 Non Conforming CPL=DPL!
+\par C=1 Conforming DPL<=CPL!\cell }\pard \intbl {\f5 \row }\pard \intbl {\f5 \cell }\pard \intbl {\f5 \cell }\pard \intbl {\f5 \cell }\pard \intbl {\f5 \row }\trowd \trgaph70\trleft-70 \clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw30 \clbrdrb\brdrs\brdrw30 
+\clbrdrr\brdrs\brdrw15 \cellx567\clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw15 \cellx2101\clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw30 \cellx9140 \pard \intbl {\f5 
+Kurz\cell }\pard \intbl {\f5 Name\cell }\pard \intbl {\f5 Beschreibung\cell }\pard \intbl {\f5 \row }\trowd \trgaph70\trleft-70 \cellx567\cellx2101\cellx9140 \pard \intbl {\f5 \cell }\pard \intbl {\f5 \cell }\pard \intbl {\f5 \cell }\pard \intbl {\f5 
+\row }\pard \intbl {\f5 D\cell }\pard \intbl {\f5 Default Operand Size\cell }\pard \intbl {\f5 D=0: Operandengr\'f6\'dfe und Adre\'dfl\'e4nge von 16 Bit
+\par D=1: Operandengr\'f6\'dfe und Adre\'dfl\'e4nge von 32 Bit\cell }\pard \intbl {\f5 \row }\trowd \trgaph70\trleft-70 \cellx567\cellx2101\cellx9140 \pard \intbl {\f5 \cell }\pard \intbl {\f5 \cell }\pard \intbl {\f5 \cell }\pard \intbl {\f5 \row }\pard {\f5 
+
+\par }\pard {\f5 TSS-Aufbau:
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12289\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 R\'fcckverweis\tab }
+\par }\dpx3336\dpy116\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12288\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy116\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12290\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 ESP 0 + 4}
+\par }\dpx1032\dpy178\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12292\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 SS 0 + 8}
+\par }\dpx3336\dpy15\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12291\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy15\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }\pard {\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12296\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 ESP 2 + 20}
+\par }\dpx1032\dpy653\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12294\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy365\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12295\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 SS 1 + 16}
+\par }\dpx3336\dpy365\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12293\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 ESP 1 + 12}
+\par }\dpx1032\dpy77\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5\fs24 \tab \tab \tab \tab \tab \tab \tab \tab \tab }{\f5 \tab \tab \tab \tab \tab \tab 
+\tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par }\pard {\f5 \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12297\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy39\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12298\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 SS 2 + 24}
+\par }\dpx3336\dpy39\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12299\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 CR 3 + 28}
+\par }\dpx1032\dpy101\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12300\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 EIP + 32}
+\par }\dpx1032\dpy164\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12301\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 EFLAGS + 36 }
+\par }\dpx1032\dpy0\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12302\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 EAX + 40}
+\par }\dpx1032\dpy63\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12303\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 ECX + 44}
+\par }\dpx1032\dpy125\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12304\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 EDX + 48}
+\par }\dpx1032\dpy188\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12305\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 EBX + 52}
+\par }\dpx1032\dpy24\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 \tab \tab \tab \tab \tab \tab \tab \tab \tab 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12306\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 ESP + 56}
+\par }\dpx1032\dpy86\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12307\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 EBP + 60}
+\par }\dpx1032\dpy149\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12308\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 ESI + 64}
+\par }\dpx1032\dpy212\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12309\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 EDI + 68}
+\par }\dpx1032\dpy48\dpxsize4753\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12311\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 ES + 72}
+\par }\dpx3336\dpy111\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12310\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy110\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12313\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 CS + 76}
+\par }\dpx3336\dpy173\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12312\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy173\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12315\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 SS + 80}
+\par }\dpx3336\dpy10\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12314\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy10\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12317\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 DS + 84}
+\par }\dpx3336\dpy73\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12316\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy72\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12319\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 FS + 88}
+\par }\dpx3336\dpy135\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12318\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy134\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12321\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 GS + 92}
+\par }\dpx3336\dpy197\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12320\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy197\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12323\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 LDT-Selektor + 96}
+\par }\dpx3336\dpy34\dpxsize2449\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12322\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx1032\dpy34\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12326\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 T+100}
+\par }\dpx5208\dpy97\dpxsize577\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12325\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 0}
+\par }\dpx3336\dpy97\dpxsize1873\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}{\*\do\dobxcolumn\dobypara\dodhgt12324\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 Zeiger auf E/A-Liste}
+\par }\dpx1032\dpy97\dpxsize2305\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12327\dpcallout\dpcotdouble\dpcosmarta\dpcobestfit\dpcoborder\dpcodabs\dpcodescent198\dpcooffset119\dpcolength-2\dpx1752\dpy159\dpxsize4031\dpysize1442\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc 
+\f4\fs20\lang1031 {\fs16 E/A- Erlaubnisbitliste max. 8K}
+\par }\dpx551\dpy522\dpxsize3480\dpysize920\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1
+\dppolyline\dppolycount3\dpptx0\dppty0\dpptx216\dppty720\dpptx432\dppty720\dpx0\dpy0\dpxsize433\dpysize721\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr0\dpfillfgcg0\dpfillfgcb0\dpfillbgcr0\dpfillbgcg0\dpfillbgcb0\dpfillpat0}}{\f5 
+
+\par 
+\par 
+\par 
+\par 
+\par 
+\par 
+\par }{\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12328\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 FFh-Abschlu\'dfbyte}
+\par }\dpx4200\dpy20\dpxsize1585\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbggray60\dpfillpat0}}{\f5 
+\par 
+\par 
+\par 
+\par EFLAGS
+\par }\pard {\f5\fs16 31                             19  18  17   16  15   14  13   12  11   10    9     8     7    6     5    4     3     2     1     0}{\f5 
+\par }\pard {\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12347\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 CF}
+\par }\dpx6792\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12346
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 1}
+\par }\dpx6504\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12345
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 PF}
+\par }\dpx6216\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12344
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5928\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12343
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 AF}
+\par }\dpx5640\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12342
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 0}
+\par }\dpx5352\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12341
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 ZF}
+\par }\dpx5064\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12340
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 SF}
+\par }\dpx4776\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12339
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 TF}
+\par }\dpx4488\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12338
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 1F}
+\par }\dpx4200\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12337
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 DF}
+\par }\dpx3912\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12336
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 OF}
+\par }\dpx3624\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12335
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 I O P L}
+\par }\dpx3048\dpy106\dpxsize577\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12334
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 NT}
+\par }\dpx2760\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12333
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 0}
+\par }\dpx2472\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12332
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 RF}
+\par }\dpx2184\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12331
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs14 VM}
+\par }\dpx1896\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12330
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 AC}
+\par }\dpx1608\dpy106\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12329
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 0  reserviert         0}
+\par }\dpx24\dpy106\dpxsize1585\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}}{\f5 
+\par 
+\par 
+\par CR0
+\par }\pard {\f5\fs16     31    30   29  28                 19  18   17  16   15                     6    5    4     3    2     1     0  }{\f5 
+\par }\pard {\lang1024 {\*\do\dobxcolumn\dobypara\dodhgt12361\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 PE}
+\par }\dpx5784\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12360
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 MP}
+\par }\dpx5496\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12359
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 EM}
+\par }\dpx5208\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12358
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 TS}
+\par }\dpx4920\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12357
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 1}
+\par }\dpx4632\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12356
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 NE}
+\par }\dpx4344\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12355
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 reserviert}
+\par }\dpx3048\dpy173\dpxsize1297\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12354
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 WP}
+\par }\dpx2760\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12353
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 
+\par }\dpx2472\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12352
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs14 AM}
+\par }\dpx2184\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12351
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \qc \f4\fs20\lang1031 {\fs16 reserviert}
+\par }\dpx1032\dpy173\dpxsize1153\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12350
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs14 NW}
+\par }\dpx744\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12349
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 CD}
+\par }\dpx456\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}{\*\do\dobxcolumn\dobypara\dodhgt12348
+\dptxbx\dptxbxmar20{\dptxbxtext \pard\plain \f4\fs20\lang1031 {\fs16 PG}
+\par }\dpx168\dpy173\dpxsize289\dpysize289\dplinesolid\dplinecor0\dplinecog0\dplinecob0\dplinew10\dpfillfgcr255\dpfillfgcg255\dpfillfgcb255\dpfillbgcr255\dpfillbgcg255\dpfillbgcb255\dpfillpat1}}{\f5 
+\par 
+\par 
+\par 
+\par 
+\par }\pard \qc {\b\f5\fs36 Volume Information Sektor (VIS)
+\par }\pard \qc {\f5\fs16 
+\par }\trowd \trgaph70\trleft-70 \clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw30 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw15 \cellx567\clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw15 \cellx1985\clbrdrt\brdrs\brdrw30 
+\clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw30 \cellx9141 \pard \intbl {\f5\fs16 Byte\cell }\pard \intbl {\f5\fs16 Gr\'f6\'dfe (Byte)\cell }\pard \intbl {\f5\fs16 Funktion\cell }\pard \intbl {\f5\fs16 \row }\trowd 
+\trgaph70\trleft-70 \cellx567\cellx1985\cellx9141 \pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 0\cell }\pard \intbl {\f5\fs16 1\cell }\pard \intbl {\f5\fs16 
+VOLUME_BLOCK_SIZE
+\par }\pard \intbl {\f5\fs16 Anzahl der Sektoren, welche einen Block bilden. 1 Block besteht aus 2 Sektoren (0=1 Block = 1 Sektor) => max. Blockgr\'f6\'dfe von 64 KByte\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 1\cell }\pard \intbl {\f5\fs16 2
+\cell }\pard \intbl {\f5\fs16 VOLUME_MAGIC_ID
+\par Eindeutige Identifizierung des Datentr\'e4gers\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 3\cell }\pard \intbl {\f5\fs16 1\cell }\pard \intbl {\f5\fs16 VOLUME_FLAGS
+\par Bit Description
+\par 7    Volume Added/Mounted
+\par 6    Volume Write Protected
+\par 5    Auto-check-enabled
+\par 4    Removeable Media
+\par 3    Volume Defective
+\par 2..0 Volume Type
+\par        0=unknown/unformated
+\par        1=Root
+\par        2=Add-On Root
+\par        3=Mount
+\par        4..7=reserved\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 1\cell }\pard \intbl {\f5\fs16 RESERVED_FLAGS\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 5\cell }\pard \intbl {\f5\fs16 1\cell 
+}\pard \intbl {\f5\fs16 VOL_MOUNTS
+\par Anzahl der seit der letzten Pr\'fcfung vergangenen mounts\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 6\cell }\pard \intbl {\f5\fs16 1\cell }\pard \intbl {\f5\fs16 VOL_CHECKMOUNTS
+\par Nach wieviel mounts eine autom. pr\'fcfung stattfindet\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 7\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 VOL_MOUNT_TIME (TIMEMARK)
+\par Zeitpunkt letzter mount\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 11\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 VOL_MOUNT_ID 
+\par Letzter mount von User x\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 13\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 VOL_DISMOUNT_TIME (TIMEMARK)
+\par }\pard \intbl {\f5\fs16 Zeitpunkt letzter dismount\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 17\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 VOL_DISMOUNT_ID
+\par Letzter dismount durch User xx\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 19\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 VOLUME_CHECK_TIME (TIMEMARK)
+\par Zeitpunkt letzte Pr\'fcfung\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 23\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 VOLUME_CHECK_ID
+\par Letzte pr\'fcfung durch\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 25\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 VOL_CREATE_TIME (TIMEMARK)
+\par Zeitpunkt erstellung des Volumes\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 29\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 VOL_CREATE_ID
+\par Erstellt duch User x\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 31\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 BOOT_INODE
+\par INODE_BLOCK des SYSTEM-SELECT Managers\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 35\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BOOT_INODE_SELECT
+\par Auswahl INODE\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 37\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 KERNEL_INODE
+\par INODE_BLOCK des KERNEL-Images\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 41\cell 2\cell }\pard \intbl {\f5\fs16 KERNEL_INODE_SELECT
+\par Auswahl INODE\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 43\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 DEVICE_INODE
+\par INODE_BLOCK des BOOT-Ger\'e4tetreiber \cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 47\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 DEVICE_INODE_SELECT
+\par Auswahl INODE\cell }\pard \intbl {\f5\fs16 \row }\trowd \trgaph70\trleft-70 \cellx567\cellx1985\cellx9141 \pard \intbl {\f5\fs16 49\cell }\pard \intbl {\f5\fs16 255\cell }\pard \intbl {\f5\fs16 VOLUME_LABEL
+\par Name des Datentr\'e4gers. Maximal 254 Zeichen + Terminierung\cell }\pard \intbl {\f5\fs16 \row }\pard {\f5\fs16 
+\par }\pard {\f5 
+\par 
+\par 
+\par 
+\par }\pard \qc {\b\f5\fs36 
+\par 
+\par 
+\par 
+\par 
+\par I N O D E - E n t r y
+\par }\pard {\f5 
+\par }\trowd \trgaph70\trleft-70 \clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw30 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw15 \cellx567\clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw15 \cellx1985\clbrdrt\brdrs\brdrw30 
+\clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw30 \cellx9141 \pard \intbl {\f5\fs16 Byte\cell }\pard \intbl {\f5\fs16 Gr\'f6\'dfe (Byte)\cell }\pard \intbl {\f5\fs16 Funktion\cell }\pard \intbl {\f5\fs16 \row }\trowd 
+\trgaph70\trleft-70 \cellx567\cellx1985\cellx9141 \pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 0\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 
+FLAGS_TYPE
+\par Typ des INODES und Attribute\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 RESERVED_FLAGS\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 4
+\cell }\pard \intbl {\f5\fs16 OBJECT_BLOCKS
+\par Gr\'f6\'dfe des Beschriebenen Objektes in BLOCKS
+\par => max. Dateigr\'f6\'dfe bei Blockgr\'f6\'dfe von 64K = 256 TerraByte!\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 8\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 OBJECT_SIZE
+\par Restlicher Byte-Wert des Objektes\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 10\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 CREATION_TIME
+\par Zeitpunkt erstellung des objektes\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 14\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 OWNER_ID
+\par Eigent\'fcmer des objektes\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 16\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 MODIFY_TIME
+\par Zeitpunkt letzte \'e4nderung\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 20\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 MODIFY_ID
+\par Letzte \'c4nderung durch Benutzer x\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 22\cell 4\cell }\pard \intbl {\f5\fs16 ACCESS_TIME
+\par Zeitpunkt letzter zugriff\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 26\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 ACCESS_ID
+\par Letzter Zugriff durch benutzer x\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 28\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 ARCHIVE_TIME
+\par Zeitpunkt letzte sicherung\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 32\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 ARCHIVE_ID
+\par Letzte sicherung durch User x\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 34\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 OWNER_BLOCK
+\par INODE_BLOCK des Eigent\'fcmer INODES (Falls indirekter Block)
+\par Zeigt im ersten Inode auf den INODE des Directory-Eintrages\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 38\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 OWNER_SELECT
+\par Nummer des INODE-Eintrages. Zeigt im ersten Inode auf den INODE des Directory-Eintrages\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 40\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 LINK_BLOCK
+\par INODE_BLOCK, welcher den INODE f\'fcr die Link-Liste auf das Objekt enth\'e4lt\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 44\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 LINK_SELECT
+\par Nummer des INODE-Eintrages\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 46\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 GROUP_BLOCK
+\par }\pard \intbl {\f5\fs16 Block, welcher den INODE f\'fcr die Liste der Gruppenzugeh\'f6rigkeit dieses Objektes enth\'e4lt\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 50\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 GROUP_SELECT
+
+\par Auswahl des INODEs (der Gruppe), welcher dieses Objekt angeh\'f6rt\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 52\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 INDIRECT_BLOCK
+\par Zeiger auf indirekten (erweiterten) Inode\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 56\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_1
+\par Position des ersten Datenblocks dieses Objektes\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 60\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BLOCKS_1
+\par L\'e4nge des ertsten Datenblocks in Blocks\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 62\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_2\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 66\cell }\pard \intbl 
+{\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BLOCKS_2\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 68\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_3\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 72\cell }\pard 
+\intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BLOCKS_3\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 74\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_4\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 78\cell 
+2\cell }\pard \intbl {\f5\fs16 BLOCKS_4\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 80\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_5\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 84\cell }\pard \intbl {
+\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BLOCKS_5\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 86\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_6\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 90\cell }\pard 
+\intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BLOCKS_6\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 92\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_7\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 96\cell 
+}\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BLOCKS_7\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 98\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_8\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 
+102\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BLOCKS_8\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 104\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_9\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {
+\f5\fs16 108\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BLOCKS_9\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 110\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_10\cell }\pard \intbl {\f5\fs16 \row 
+}\pard \intbl {\f5\fs16 114\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BLOCKS_10\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 116\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 STARTPOS_11\cell }\pard \intbl {
+\f5\fs16 \row }\pard \intbl {\f5\fs16 120\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 BLOCKS_11\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 122\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 RESERVED_INODE_DATA
+\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 124\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 TOTAL_BLOCKS
+\par Anzahl Datenblocks\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 128\cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\trowd \trgaph70\trleft-70 \cellx567\cellx1985\cellx9141 \pard \intbl {
+\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\pard {\f5 
+\par }\pard {\f5 
+\par 
+\par }\pard \qc {\b\f5\fs36 OBJECT-DATA-TABEL (ODT) Entry}{\f5 
+\par }\pard {\f5 
+\par }\trowd \trgaph70\trleft-70 \clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw30 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw15 \cellx567\clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw15 \cellx1985\clbrdrt\brdrs\brdrw30 
+\clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw30 \cellx9141 \pard \intbl {\f5\fs16 Byte\cell }\pard \intbl {\f5\fs16 Gr\'f6\'dfe (Byte)\cell }\pard \intbl {\f5\fs16 Funktion\cell }\pard \intbl {\f5\fs16 \row }\trowd 
+\trgaph70\trleft-70 \cellx567\cellx1985\cellx9141 \pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 0\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 
+DATA_BLOCK
+\par Block, welcher den INODE der zu Beschreibenden Daten enth\'e4lt\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 DATA_SELECT
+\par Auswahl des INODES f\'fcr die zu Beschreibenden Daten\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 6\cell }\pard \intbl {\f5\fs16 1\cell }\pard \intbl {\f5\fs16 DATA_TYPE
+\par Typ des Beschriebenen Objektes
+\par 0h: EMPTY_ODT
+\par       Eintrag ist verf\'fcgbar (frei)
+\par 1h: OBJECT_NAME
+\par       Eintrag enth\'e4lt den Namen zu einem Objekt
+\par       DATA_BLOCK & DATA_SELECT zeigen auf den INODE des    
+\par       Beschriebenen Objektes. Der Name/Restliche Objekt-Name ist nicht
+\par       l\'e4nger als DESCRIPTION-Terminierung.
+\par 2h: EXTENDED_NAME
+\par       Eintrag enth\'e4lt den Namen zu einem Objekt.
+\par       DATA_BLOCK & DATA_SELECT zeigen auf einen weiteren Namens-
+\par       bestandteil (ein weiterer Eintrag vom Typ ODT- 2h oder 1h) oder auf
+\par       einen Kommentar (3h, 4h) zu diesem Objekt. Im Falle eines Kommentares
+\par       endet hier die Objektbezeichnung durch das Term-Zeichen.
+\par 3h: OBJECT_COMMENT
+\par       Eintrag enth\'e4lt einen Kommentar zu dem Objekt
+\par       DATA_BLOCK & DATA_SELECT zeigen auf den INODE des 
+\par       Beschriebenen Objektes. Der Kommentar endet an DESCRIPTION-Term.
+\par 4h: EXTENDED_COMMENT
+\par       Eintrag enth\'e4lt Kommentar zu einem Objekt.
+\par }\pard \intbl {\f5\fs16       DATA_BLOCK & DATA_SELECT zeigen auf einen weiteren Kommentar-
+\par }\pard \intbl {\f5\fs16       bestandteil (ein weiterer Eintrag vom Typ ODT 3h, 4h).
+\par ...   reserviert (z.B. f\'fcr Object_Data - Daten zu einem Object wie z.B. ein Icon, ... )\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 7\cell }\pard \intbl {\f5\fs16 25\cell }\pard \intbl {\f5\fs16 DESCRIPTION
+\par Beschreibung/Erweiterte Daten zu dem Objekt\cell }\pard \intbl {\f5\fs16 \row }\trowd \trgaph70\trleft-70 \cellx567\cellx1985\cellx9141 \pard \intbl {\f5\fs16 31\cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 
+\row }\pard {\f5\fs16 
+\par }\pard \qc {\b\f5\fs36 
+\par }\pard \qc {\b\f5\fs36 I N O D E - O b j e k t - A t t r i b u t e s
+\par }\pard {\f5 
+\par }\trowd \trgaph70\trleft-70 \clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw30 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw15 \cellx567\clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw15 \cellx1125\clbrdrt\brdrs\brdrw30 
+\clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw15 \cellx2659\clbrdrt\brdrs\brdrw30 \clbrdrl\brdrs\brdrw15 \clbrdrb\brdrs\brdrw30 \clbrdrr\brdrs\brdrw30 \cellx9141 \pard \intbl {\f5\fs16 Attr.\cell }\pard \intbl {\f5\fs16 Wert\cell 
+}\pard \intbl {\f5\fs16 Name\cell }\pard \intbl {\f5\fs16 Beschreibung\cell }\pard \intbl {\f5\fs16 \row }\trowd \trgaph70\trleft-70 \cellx567\cellx1125\cellx2659\cellx9141 \pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 hex\cell }\pard \intbl {
+\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 File\cell }\pard \intbl {\f5\fs16 0\cell }\pard \intbl {\f5\fs16 Datei\cell }\pard \intbl {\f5\fs16 Objekt beschreibt eine Datei\cell }\pard \intbl {
+\f5\fs16 \row }\pard \intbl {\f5\fs16 Dir\cell }\pard \intbl {\f5\fs16 1\cell }\pard \intbl {\f5\fs16 Directory\cell }\pard \intbl {\f5\fs16 Objekt beschreibt ein Directory\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Group\cell }\pard 
+\intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 Gruppe\cell }\pard \intbl {\f5\fs16 Objekt beschreibt eine Gruppe von Dateien oder Verzeichnissen\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Link\cell }\pard \intbl {\f5\fs16 4\cell }\pard 
+\intbl {\f5\fs16 Link\cell }\pard \intbl {\f5\fs16 Objekt beschreibt ein Link auf eine andere Datei/Verzeichnis\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {
+\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 D\cell }\pard \intbl {\f5\fs16 8\cell }\pard \intbl {\f5\fs16 Deleted\cell }\pard \intbl {\f5\fs16 Das Objekt wurde gel\'f6scht\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 M
+\cell }\pard \intbl {\f5\fs16 10\cell }\pard \intbl {\f5\fs16 Moved\cell }\pard \intbl {\f5\fs16 Das Objekt wurde ausgelagert un mu\'df vor dem zugriff wieder eingelagert werden\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 S\cell }\pard 
+\intbl {\f5\fs16 20\cell }\pard \intbl {\f5\fs16 System\cell }\pard \intbl {\f5\fs16 Das Objekt geh\'f6rt dem System und unterliegt dessen Kontrolle\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 C\cell }\pard \intbl {\f5\fs16 40\cell }\pard 
+\intbl {\f5\fs16 Compressed\cell }\pard \intbl {\f5\fs16 Das Objekt wurde komprimiert\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 A\cell }\pard \intbl {\f5\fs16 80\cell }\pard \intbl {\f5\fs16 Archived\cell }\pard \intbl {\f5\fs16 
+Das Objekt ist seit seiner letzten \'c4nderung nicht mehr archiviert worden\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 H\cell }\pard \intbl {\f5\fs16 1\cell }\pard \intbl {\f5\fs16 Hidden\cell }\pard \intbl {\f5\fs16 
+Das Objekt ist im Directory versteckt\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 F\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 Fixed\cell }\pard \intbl {\f5\fs16 
+Das Objekt darf vom System nicht auf der Platte umbewegt werden\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 E\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 Executable\cell }\pard \intbl {\f5\fs16 Das Objekt ist eine Ausf\'fc
+hrbare Datei\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Sh\cell }\pard \intbl {\f5\fs16 8\cell }\pard \intbl {\f5\fs16 Shareable\cell }\pard \intbl {\f5\fs16 Das Objekt unterliegt dem Record-Locking verfahren\cell }\pard \intbl {\f5\fs16 
+\row }\pard \intbl {\f5\fs16 Di\cell }\pard \intbl {\f5\fs16 10\cell }\pard \intbl {\f5\fs16 Delete Inhibit\cell }\pard \intbl {\f5\fs16 Das L\'f6schen des Objektes ist verboten\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Ci\cell }\pard 
+\intbl {\f5\fs16 20\cell }\pard \intbl {\f5\fs16 Compress Inhibit\cell }\pard \intbl {\f5\fs16 Das Komprimieren des Objektes durch das System ist verboten\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Mi\cell }\pard \intbl {\f5\fs16 40\cell 
+}\pard \intbl {\f5\fs16 Move Inhibit\cell }\pard \intbl {\f5\fs16 Das Auslagern der Datei durch das System ist verboten\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Li\cell }\pard \intbl {\f5\fs16 80\cell }\pard \intbl {\f5\fs16 Link Inhibit
+\cell }\pard \intbl {\f5\fs16 Von diesem Objekt darf kein Link erstellt werden\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Ri\cell }\pard \intbl {\f5\fs16 1\cell }\pard \intbl {\f5\fs16 Rename Inhibit\cell }\pard \intbl {\f5\fs16 
+Das Umbenennen des Objektes ist verboten\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Lo\cell }\pard \intbl {\f5\fs16 2\cell }\pard \intbl {\f5\fs16 Local Only\cell }\pard \intbl {\f5\fs16 Das Objekt ist nur f\'fcr lokale Benutzer zug\'e4
+nglich\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Eo\cell }\pard \intbl {\f5\fs16 4\cell }\pard \intbl {\f5\fs16 Execute Only\cell }\pard \intbl {\f5\fs16 Das Objekt darf ausschlie\'dflich ausgef\'fchrt werden.\cell }\pard \intbl {\f5\fs16 
+\row }\pard \intbl {\f5\fs16 Ro\cell }\pard \intbl {\f5\fs16 8\cell }\pard \intbl {\f5\fs16 Read Only\cell }\pard \intbl {\f5\fs16 Das Objekt kann nur gelesen werden\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Wo\cell }\pard \intbl {
+\f5\fs16 10\cell }\pard \intbl {\f5\fs16 Write only\cell }\pard \intbl {\f5\fs16 Das Objekt kann nur beschrieben werden\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Ao\cell }\pard \intbl {\f5\fs16 20\cell }\pard \intbl {\f5\fs16 Add only
+\cell }\pard \intbl {\f5\fs16 An das Objekt k\'f6nnen nur Daten angef\'fcgt werden\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Dd\cell }\pard \intbl {\f5\fs16 40\cell }\pard \intbl {\f5\fs16 Delete data by over.\cell }\pard \intbl {\f5\fs16 
+Wird das Objekt gel\'f6scht, werden die Datenblocks mit Zufallswerten \'fcberschrieben\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 Si\cell }\pard \intbl {\f5\fs16 80\cell }\pard \intbl {\f5\fs16 Subdirs Inhibit\cell }\pard \intbl {\f5\fs16 
+Unterverzeichnisse sind verboten\cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 \cell \cell 
+}\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\trowd 
+\trgaph70\trleft-70 \cellx567\cellx1125\cellx2659\cellx9141 \pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \cell }\pard \intbl {\f5\fs16 \row }\pard {\f5 
+\par }\pard \qc {\b\f5\fs36 VOS/9 Master-Boot-Record (MBR)
+\par }\pard {\f5 
+\par }\pard {\b\f5\ul Kompatibilit\'e4ts-Fragen:
+\par }\pard {\f5 
+\par }\pard {\f5 VOS/9 kann von jedem beliebigen MBR oder Boot-Manager gestartet werden. Dazu mu\'df VOS/9 jedoch eine aktive Partition auf der 1. Festplatte sein. Der MBR erm\'f6glich folgende M\'f6glichkeiten:
+\par }\pard {\f5 
+\par \tab - Starten von VOS/9 bis von der 8. Festplatte
+\par \tab   (Auch bei SCSI-Festplatten wenn das Adapter-Bios aktiv ist.)
+\par \tab - Aufrufen des VOS/9 System-Select Programms mit frei w\'e4hlbarer Tastenkombination
+\par 
+\par }\pard {\b\f5\ul Bootstrap:
+\par }\pard {\f5 
+\par }\pard {\f5 Nach dem Laden des MBR an die Adresse 7c00h kopiert sich der Code an die Adresse 60h um selbst den BootStrap Code des zu startenden Betriebssystems an 7c00h laden zu k\'f6nnen. Zun\'e4chst w
+erden ab dem Laufwerk 80h (1. HD) alle Partitionstabellen nach einer g\'fcltigen (aktiven) Startpartition durchsucht. Zuvor wird gepr\'fcft ob die Aktivierungstaste f\'fcr den BootManager gedr\'fcckt wurde. Ist dies der Fall wird ausschlie\'df
+lich nach einer aktiven Partition vom Typ 0Dh (VOS/9) gesucht. Beim starten des Bootstrap-Codes werden dem Betriebssystem Laufwerk, Cylinder, Sektor und Kopf \'fcbergeben.
+\par }\pard {\f5 
+\par }\pard {\b\f5\ul Registerinhalte nach dem Laden des Bootstrap-Codes:
+\par }\pard {\f5 
+\par DL\tab \tab =\tab \tab Laufwerk, von welchem der BootstrapCode geladen wurde
+\par ES\tab \tab =\tab \tab 700h
+\par BX\tab \tab =\tab \tab 0C000h
+\par DS\tab \tab =\tab \tab 60h
+\par DH\tab \tab =\tab \tab Kopf Partitionsstart
+\par CX\tab \tab =\tab \tab Sektor/Zylinder Partitionsstart
+\par 
+\par rest\tab \tab =\tab \tab undefiniert
+\par 
+\par }\pard {\b\f5\ul \'c4nderbare Parameter des MBRs durch SYSTEM-SELECT:
+\par }\pard {\f5 
+\par VOS\tab \tab db\tab \tab Offset 1bbh
+\par \tab \tab \tab \tab 0     = Regul\'e4rer Boot
+\par \tab \tab \tab \tab 0ffh = Suche nach VOS/9 wurde angefordert (Aktivierungstaste 
+\par  \tab \tab \tab \tab gedr\'fcckt)
+\par BOOTKEY\tab dw\tab \tab Offset 1bch
+\par \tab \tab \tab \tab 0ffh = Bootmanager immer starten
+\par \tab \tab \tab \tab Ansonsten = Bios Extended Key Data Bits (ALT Left, Right, ...)
+\par 
+\par 
+\par 
+\par }}

@@ -1,0 +1,86 @@
+VOS/9 Speicherverwaltung
+
+Direktiven:
+
+1. Ein Prozess darf in seinem Speicherbedarf, soweit es physik. m”glich ist
+nicht eingeschr„nkz werden.
+
+2. Um die performance zu erh”hen muá es einem Prozess jederzeit m”glich sein,
+Speicher nachtr„glich anzufordern und abzugeben. Ein Editor z.B. muá je nach 
+Text-L„nge seinen Speicherbereich erweitern k”nnen.
+
+3. Code-Segmente mssen nicht erweitert werden.
+
+4. Bei berschreitung des Stack bereiches sollte dies nicht zu Terminierung
+des Prozesses fhren, sondern das System sollte den zus„tzlich ben”tigten
+Bereich erweitern k”nnen.
+
+5. Es muá m”glich sein, einen gemeinsam, von mehreren Prozessen verwendeten
+Speicherbereich zu deklarieren
+
+6. Seiten mssen vor dem auslagern bzw. umgestalten geschtzt werden k”nnen.
+
+7. Ein Prozess muá einen eigenen Adressraum anfordern k”nnen (z.B. V86 Task)
+
+8. Weitere Segmente mssen nach bedarf anforderbar sein.
+
+9. Der Zugriff auf ein fremdes Segment sollte nicht zur Terminierung, sondern
+zu einem Warn-Signal fhren.
+
+10. Das Betriebsystem muá die M”glichkeit haben, einzelne Seiten zum Umlagern
+zurckzuhalten/zu reservieren.
+
+11. Freie Seiten mssen grunds„tlich dem Cache zur verfgung stehen, welcher
+jedoch auch ein minimum an n”tigen Seiten anfordern k”nnen muá.
+
+12. Wenn freie Seiten dem Cache bergeben werden, muá gew„hrleistet sein,
+das dieser keine logischen Seiten erh„lt (sonst sinnlos!)
+
+
+Verwirklichung:
+
+Um dies zu Verwicklichen bestehen zwei M”glichkeiten:
+
+1. Jeder Prozess erh„lt sein eigenes Page-Directory und seine Eigenen Seiten-
+Tabellen
+=> Minimal w„hren 2x4K zu belegen + TSS, ...
+
+Bsp. Ein Prozess hat 2 DATA Segm. a 8K, 1 CODE Segm. 10K + StackSeg 4K
+
+Fr jedes Segment wird eine PG-TAB eingerichtet:
+
+	DATA_1	= TAB_A	 Start  0 MB, 2 Seiten ( 8K)
+	DATA_2  = TAB_B	 Start  4 MB, 2 Seiten ( 8K)
+	STACK_1 = TAB_C  Start  8 MB, 1 Seite  ( 4K)
+	CODE_1	= TAB_D  Start 12 MB, 3 Seiten (12K)
+
+	Die Segmente werden in der Eigenen LDT gesichert
+
+	LDT_1	= TAB_E  Start 16 MB, 1 Seite  ( 4K)
+
+
+=> Es sind 5 Tabellen a 4K n”tig sowie 8 Seiten a 4K = 52K
+   + 1 TSS 4K					     = 56K
+
+  30K Ben”tigt : 56 K Verbraucht - div. =  26K!
+
+Vorteil : Flexibel, schnell Verwaltbar
+Nachteil: Speicherbedarf!
+
+2. ... und noch viel mehr...
+
+Der Kernel wird eine Liste mit PG-Dirs unterhalten. Ein PG-Dir wird solange
+gefllt, bis kein Platz mehr vorhanden ist. Es ist lediglich darauf zu Achten,
+daá sich alle Segmente eines Prozesses in einem PG-Dir befinden und der Prozess
+den richtigen Eintrag in CR3 erh„lt. 
+
+1. PG-Dir fr Level 0 - Kernel
+2. PG-Dir fr Level 1 - API/Treiber
+3. PG-Dir fr Level 3 - Anwendungen
+
+PG-Dir 1 wird die 1:1 Belegung des RAM enthalten, alle TSS und sonst. Verwalt.
+Strukturen.
+
+Bei der initialisierung eines Prozessen werden diesem die n„chsten freien
+Seiten in dem dem Level zugeh”rigen PG-Dir zugewiesen. Dieses Directory wird
+m”glichst lckenlos gefllt. Soll ein Segment angepasst werden

@@ -1,0 +1,125 @@
+# *******************************************************
+# *							*
+# *	MZ Computer Systems				*
+# *	VOS/9 MAKE script				*
+# *							*
+# *	Copyright (C) 1995 MZ Computer Systems		*
+# *							*
+# *******************************************************
+
+# Basis-Directory
+!if !$d(VOS9)
+VOS9 = \PROJECT\VOS9
+!endif
+
+# Makros fÅr alle benîtigten Directorys
+BIN     = $(VOS9)\BIN
+FILESYS = $(VOS9)\FILESYS
+BOOT	= $(VOS9)\BOOT
+KERNEL  = $(VOS9)\KERNEL
+
+# Definition aller Compiler (abhÑngig von DEBUG)
+
+!if $d(DEBUG)
+BPC   = @tpc -$d+,l+
+TLINK = @tlink /m /l /i /3 /s
+!if $d(DOSSYS)
+MAKEX = @make -s -dDEBUG -dDOSSYS -f$(VOS9)\makefile
+TASM  = @tasm -t -w- -z -zd -la -m10 -dDEBUG=TRUE -dDOSSYS=TRUE -dDEBUG
+!else
+MAKEX = @make -s -dDEBUG -f$(VOS9)\makefile
+TASM  = @tasm -t -w- -z -zd -la -m10 -dDEBUG=TRUE -dDEBUG
+!endif
+!else
+BPC   = @tpc -$d-,l-
+TLINK = @tlink /i /3
+!if $d(DOSSYS)
+MAKEX = @make -s -dDOSSYS -dDEBUG  -f$(VOS9)\makefile
+TASM  = @tasm -t -w- -z -la -m10 -dDOSSYS=TRUE -dDEBUG
+!else
+MAKEX = @make -s -dDEBUG -f$(VOS9)\makefile
+TASM  = @tasm -t -w- -z -la -m10 -dDEBUG
+!endif
+!endif
+
+FILESYS_OBJ = MAKEROOT.OBJ+ZAHLEN.OBJ
+
+.asm.obj:
+ $(TASM) $*, $*.OBJ 
+
+.obj.exe:
+ $(TLINK) $*, $*.EXE 
+
+INFO:
+ @echo VOS/9 Kernel Makescript Version 1.0 Release 0
+ @echo (c)(r) 1995 by MZ Computer Systems
+ @echo All rights reserved.
+ @echo Optionen:
+ @echo  ALL ........ Gib alles
+ @echo  FILESYS .... Bastelt das Filesystem
+ @echo  BOOT ....... Kernel Loader, System Select, MBR, ...
+ @echo  KERNEL ..... KERNEL IMAGE
+ @echo.
+
+ALL:
+ $(MAKEX) BOOT
+ $(MAKEX) FILESYS
+ $(MAKEX) KERNEL
+
+COPY:
+ @cd $(VOS9)
+ @XCOPY C:\VOS9\*.* G:\VOS9\*.* /M/E/S
+ 
+KERNEL:
+ @cd $(KERNEL)
+ $(TASM) $(KERNEL)\VOS9.ASM
+ $(TLINK) $(KERNEL)\VOS9.OBJ
+ @EXE2BIN $(KERNEL)\VOS9.EXE
+ @move VOS9.BIN $(BIN)
+ @del VOS9.EXE
+ @if exist *.LST move *.LST $(KERNEL)\INFO
+ @if exist *.XRF move *.XRF $(KERNEL)\INFO
+ @if exist *.MAP move *.MAP $(KERNEL)\INFO
+ @if exist *.BAK move *.BAK $(KERNEL)\BAK
+ @if exist *.OBJ DEL *.OBJ
+ @cd $(VOS9)
+
+BOOT:
+ @cd $(BOOT)
+ $(TASM) $(BOOT)\VOSBOOT.ASM
+ $(TLINK) $(BOOT)\VOSBOOT.OBJ
+ @EXE2BIN $(BOOT)\VOSBOOT.EXE
+ @move VOSBOOT.BIN $(BIN)
+ @del vosboot.exe
+ $(TASM) $(BOOT)\SYS_SEL.ASM
+ $(TLINK) $(BOOT)\SYS_SEL.OBJ
+ @EXE2BIN $(BOOT)\SYS_SEL.EXE
+ @move SYS_SEL.BIN $(BIN)
+ @del sys_sel.exe
+ $(TASM) $(BOOT)\BOOTSEC.ASM
+ $(TLINK) $(BOOT)\BOOTSEC.OBJ
+ @EXE2BIN $(BOOT)\BOOTSEC.EXE 
+ @move BOOTSEC.BIN $(BIN)
+ @del BOOTSEC.EXE
+ $(BPC) $(BOOT)\MBR.PAS
+ @move MBR.EXE $(BIN)
+ @if exist *.LST move *.LST $(BOOT)\INFO
+ @if exist *.XRF move *.XRF $(BOOT)\INFO
+ @if exist *.MAP move *.MAP $(BOOT)\INFO
+ @if exist *.BAK move *.BAK $(BOOT)\BAK
+ @if exist *.OBJ DEL *.OBJ
+ @cd $(VOS9)
+  
+FILESYS:
+ @cd $(FILESYS)
+ $(TASM) $(FILESYS)\MAKEROOT.ASM
+ $(TASM) $(FILESYS)\ZAHLEN.ASM
+ $(TLINK) $(FILESYS)\MAKEROOT.OBJ+$(FILESYS)\ZAHLEN.OBJ
+ @move makeroot.exe $(BIN)
+ @if exist *.LST move *.LST $(FILESYS)\INFO
+ @if exist *.XRF move *.XRF $(FILESYS)\INFO
+ @if exist *.MAP move *.MAP $(FILESYS)\INFO
+ @if exist *.BAK move *.BAK $(FILESYS)\BAK
+ @if exist *.OBJ DEL *.OBJ
+ @cd $(VOS9)
+ @echo READY!

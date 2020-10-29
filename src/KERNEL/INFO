@@ -1,0 +1,9 @@
+
+ Start  Stop   Length Name               Class
+
+ 00000H 0599FH 059A0H SETUP              CODE
+ 059A0H 0696FH 00FD0H KERNEL_CODE        CODE
+
+Program entry point at 0000:0000
+Warning: No stack
+

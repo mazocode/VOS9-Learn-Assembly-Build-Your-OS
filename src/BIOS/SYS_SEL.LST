@@ -1,0 +1,3406 @@
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 1
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+      1					 ;	 Project	 VOS/9
+      2					 ;	 File name	 SYS_SEL.ASM	 24.11.1995
+      3					 ;	 File type	 Assembly
+      4					 ;
+      5					 ;	 (c)(r)	1995 by	MZ Computer Systems
+      6					 ;
+      7					 ;	 Version	 Gamma		 24.11.1995
+      8					 ;	 Release	 0		 24.11.1995
+      9					 ;
+     10					 ;	 Autor		 Marcus	Zoller
+     11					 ;
+     12					 ;	 Description	 SYSTEM	SELECT
+     13					 ;
+     14					 ;	 Includes	 VIO.INC, STRG.INC, DISKIO.INC
+     15					 ;	 Link Objects	 -
+     16					 ;
+     17					 ;	 CPU Type	 x86
+     18					 ;	 CPU Mode	 Real/V86
+     19					 ;
+     20					 ;	 Functions Used	 System	BIOS, Disk BIOS, Video BIOS, Keyboard BIOS
+     21					 ;
+     22					 ;	 Bugfix	List ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+     23					 ;
+     24					 ;	 Release Comments ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+     25					 ;
+     26					 ;	 Function Ref ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+     27					 ;
+     28
+     29	    0000			 SYS_SEL SEGMENT PARA USE16 'CODE'
+     30						 assume	 cs:sys_sel, ds:sys_sel
+     31						 org	 0000h
+     32						 .386P
+     33						 LOCALS
+     34
+     35						 ;====================================================================
+     36	    0000				 STARTUP_IP:
+     37	    0000  B8 1000				 mov	 ax, 1000h
+     38	    0003  FA					 cli
+     39	    0004  8E D8					 mov	 ds, ax
+     40	    0006  8E C0					 mov	 es, ax
+     41	    0008  8E D0					 mov	 ss, ax
+     42	    000A  B8 9000				 mov	 ax, 9000h
+     43	    000D  8B E0					 mov	 sp, ax
+     44	    000F  FB					 sti
+     45
+     46	    0010  2E: 89 1E 0BFBr			 mov	 word ptr cs:[BOOTMAN_SEKS], bx
+     47	    0015  2E: 89 0E 0BF8r			 mov	 word ptr cs:[BOOTMAN_SEKZYL], cx
+     48	    001A  2E: 88 36 0BFAr			 mov	 byte ptr cs:[BOOTMAN_HEADZYL],	dh
+     49	    001F  2E: 88 16 0BF7r			 mov	 byte ptr cs:[BOOT_DRIVE], dl
+     50
+     51	    0024  E8 164A				 call	 SET_DRIVE_DATA
+     52
+     53							 ; OS/2	benîtigt Spezialbehandlung. Wir	OS/2 mit einem
+     54							 ; FAT FS eingerichtet und es ist noch eine andere Prim. FAT
+     55							 ; Partition vorhanden,	versteckt sich OS/2. Sollten wir
+     56							 ; unter diesen	Bedingungen zuvor eine OS/2 Part gestartet
+     57							 ; haben, ist KEY_BACKUP>0 und im MBR wurde Autostart
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 2
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+     58							 ; eingestellt.	Wir setzen dann	alles wie zuvor, verstecken
+     59							 ; OS/2	wieder und lassen werden den MBR neu Starten!
+     60
+     61	    0027  2E: 83 3E 0C03r 00			 cmp	 word ptr cs:[KEY_BACKUP], 0
+     62	    002D  74 64					 je	 @@SYSSEL
+     63
+     64							 ; ZunÑchst verstecken wir OS/2	wieder...
+     65
+     66	    002F  B8 07C0				 mov	 ax, 7c0h
+     67	    0032  8E C0					 mov	 es, ax
+     68	    0034  33 DB					 xor	 bx, bx
+     69	    0036  32 F6					 xor	 dh, dh
+     70	    0038  2E: 8A 16 0C05r			 mov	 dl, byte ptr cs:[BACKUP_DRIVE]
+     71	    003D  B9 0001				 mov	 cx, 1
+     72	    0040  E8 16B6				 call	 READ
+     73	    0043  72 49					 jc	 @@STARTUP_FAILED
+     74	    0045  2E: 8B 1E 0C06r			 mov	 bx, word ptr cs:[BACKUP_PART]
+     75	    004A  26: C6 47 04 16			 mov	 byte ptr es:[bx+4], 16h	 ; OS/2	Typ 16h
+     76	    004F  33 DB					 xor	 bx, bx
+     77	    0051  E8 16C3				 call	 WRITE
+     78	    0054  72 38					 jc	 @@STARTUP_FAILED
+     79
+     80							 ; Nun mÅssen wir alle Einstellungen wiederherstellen
+     81
+     82	    0056  33 C0					 xor	 ax, ax
+     83	    0058  2E: A3 0C06r				 mov	 word ptr cs:[BACKUP_PART], ax
+     84	    005C  2E: A2 0C05r				 mov	 byte ptr cs:[BACKUP_DRIVE], al
+     85	    0060  2E: 8B 1E 0C03r			 mov	 bx, word ptr cs:[KEY_BACKUP]
+     86	    0065  2E: 89 1E 0C01r			 mov	 word ptr cs:[BOOTMAN_KEY], bx
+     87	    006A  2E: A3 0C03r				 mov	 word ptr cs:[KEY_BACKUP], ax
+     88
+     89							 ; Und die Konfig. zurÅckschreiben!
+     90	    006E  E8 02CE				 call	 WRITE_CFG
+     91	    0071  72 1B					 jc	 @@STARTUP_FAILED
+     92
+     93							 ; Nun noch den	MBR neu	laden!
+     94
+     95	    0073  B8 07C0				 mov	 ax, 7c0h
+     96	    0076  8E C0					 mov	 es, ax
+     97	    0078  33 DB					 xor	 bx, bx
+     98	    007A  32 F6					 xor	 dh, dh
+     99	    007C  B2 80					 mov	 dl, 80h
+    100	    007E  B9 0001				 mov	 cx, 1
+    101	    0081  E8 1675				 call	 READ
+    102	    0084  72 08					 jc	 @@STARTUP_FAILED
+    103	    0086  E8 1596				 call	 CLEAR
+    104	    0089  EA 00	7C 00 00			 db	 0eah,00h,7ch,00h,00h
+    105
+    106	    008E				 @@STARTUP_FAILED:
+    107							 ; Hier	kommen wir an, wenn der	irgend etwas beim Starten
+    108							 ; schiefgegangen ist -	sprich ein Lese/Schreib	Fehler!
+    109
+    110	    008E  E8 158E				 call	 CLEAR
+    111	    0091  EB FE					 jmp	 short $
+    112
+    113	    0093				 @@SYSSEL:
+    114							 ; ZunÑchst benîtigen wir die Aufruf-Taste. Wir	holen Sie
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 3
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    115							 ; aus dem MBR,	welcher	sich zur Zeit noch im RAM an
+    116							 ; 060h:0 befindet.
+    117
+    118	    0093  B8 0060				 mov	 ax, 060h
+    119	    0096  8E C0					 mov	 es, ax
+    120	    0098  BB 01BC				 mov	 bx, 1bch		 ; Position der	Taste!
+    121	    009B  26: 8B 07				 mov	 ax, word ptr es:[bx]
+    122	    009E  2E: A3 0C01r				 mov	 word ptr cs:[BOOTMAN_KEY], ax
+    123
+    124	    00A2  E8 0942				 call	 BUILD_SCREEN		 ; Die elementare Optik!
+    125											 ;     ^-- schînes Wort!
+    126
+    127	    00A5  2E: 80 3E 0C1Ar 02			 cmp	 byte ptr cs:[PASSWORT_STATUS],	2
+    128	    00AB  75 05					 jne	 @@START
+    129	    00AD				 @@NeedPass:
+    130	    00AD  E8 02EE				 call	 GET_PASS
+    131	    00B0  72 FB					 jc	 @@NeedPass
+    132	    00B2				 @@START:
+    133	    00B2  E8 0994				 call	 CLEAR_FRAME
+    134							 ; Das Laufwerk	mit der	Primary-Part wird als Default
+    135							 ; angezeigt!
+    136	    00B5  E8 0390				 call	 GET_PRIMARY
+    137	    00B8  EB 00					 jmp	 BOOTMANAGER
+    138
+    139						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    140						 ; BOOTMANAGER:	Gibt dem Benutzer die mîglichkeit eine andere Partition
+    141						 ;		zum Starten auszuwÑhlen
+    142						 ; Input : -
+    143						 ; Output: -
+    144						 ;
+    145	    00BA				 BOOTMANAGER PROC NEAR
+    146	    00BA  B6 05					 mov	 dh, 5
+    147	    00BC  B2 15					 mov	 dl, 21
+    148	    00BE  52					 push	 dx
+    149	    00BF				 @@Redraw:
+    150	    00BF  E8 0987				 call	 CLEAR_FRAME
+    151	    00C2  BE 0EA6r				 mov	 si, offset cs:MSG_0003
+    152	    00C5  E8 099B				 call	 SHOW_INFO
+    153	    00C8  B6 04					 mov	 dh, 4
+    154	    00CA  B2 41					 mov	 dl, 65
+    155	    00CC  E8 149D				 call	 SET_CURPOS
+    156	    00CF  BE 0DE4r				 lea	 si, cs:MSG_1027
+    157	    00D2  B4 1F					 mov	 ah, 1fh
+    158	    00D4  E8 1427				 call	 PRINT
+    159	    00D7  2E: 8A 16 0C00r			 mov	 dl, byte ptr cs:[CURRENT_DRIVE]
+    160	    00DC  E8 0164				 call	 SHOW_TABEL
+    161							 ; Nun noch den	Arrow auf den ersten Eintrag
+    162	    00DF  5A					 pop	 dx
+    163	    00E0  52					 push	 dx
+    164	    00E1  E8 1488				 call	 set_curpos
+    165	    00E4  BE 0E1Ar				 lea	 si, cs:MSG_1031
+    166	    00E7  B4 70					 mov	 ah, 70h
+    167	    00E9  E8 1412				 call	 PRINT
+    168	    00EC  B6 05					 mov	 dh, 5
+    169	    00EE  B2 3E					 mov	 dl, 62
+    170	    00F0  E8 1479				 call	 set_curpos
+    171	    00F3  33 C0					 xor	 ax, ax
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 4
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    172	    00F5  2E: A0 0C1Dr				 mov	 al, byte ptr cs:[PRIMARY_TIMEOUT]
+    173	    00F9  FE C0					 inc	 al
+    174	    00FB  2E: A3 0C1Br				 mov	 word ptr cs:[TIMING], ax
+    175	    00FF  3C 01					 cmp	 al, 1
+    176	    0101  75 0A					 jne	 @@TimeActive
+    177	    0103  BE 0E1Dr				 lea	 si, cs:MSG_1032
+    178	    0106  B4 1F					 mov	 ah, 1fh
+    179	    0108  E8 13F3				 call	 PRINT
+    180	    010B  EB 08					 jmp	 @@WaitKey
+    181	    010D				 @@TImeActive:
+    182	    010D  BE 0DEEr				 lea	 si, cs:MSG_1028
+    183	    0110  B4 1F					 mov	 ah, 1fh
+    184	    0112  E8 13E9				 call	 PRINT
+    185	    0115				 @@WaitKey:
+    186	    0115  2E: 80 3E 0C1Dr 00			 cmp	 byte ptr cs:[PRIMARY_TIMEOUT],	0
+    187	    011B  0F 85	00D8				 jne	 @@DecTimeout
+    188	    011F				 @@Wait_noTime:
+    189	    011F  B4 01					 mov	 ah, 1
+    190	    0121  CD 16					 int	 16h
+    191	    0123  74 F0					 jz	 @@WaitKey
+    192	    0125  33 C0					 xor	 ax, ax
+    193	    0127  CD 16					 int	 16h
+    194	    0129  3C 00					 cmp	 al, 0
+    195	    012B  74 06					 je	 @@NonASC
+    196	    012D  3C 0D					 cmp	 al, 13
+    197	    012F  74 21					 je	 @@BootThis
+    198	    0131  EB E2					 jmp	 @@WaitKey
+    199	    0133				 @@NonASC:
+    200	    0133  80 FC	3D				 cmp	 ah, 61			 ; F3
+    201	    0136  0F 84	00B7				 je	 @@Options
+    202	    013A  80 FC	48				 cmp	 ah, 48h		 ; UP
+    203	    013D  74 69					 je	 @@MoveUp
+    204	    013F  80 FC	50				 cmp	 ah, 50h		 ; DOWN
+    205	    0142  0F 84	007F				 je	 @@MoveDown
+    206	    0146  80 FE	4B				 cmp	 dh, 4bh		 ; LEFT
+    207	    0149  74 26					 je	 @@DriveLeft
+    208	    014B  80 FE	4D				 cmp	 dh, 4dh		 ; RIGHT
+    209	    014E  74 3B					 je	 @@DriveRight
+    210	    0150  EB C3					 jmp	 @@WaitKey
+    211	    0152				 @@BootThis:
+    212	    0152  5A					 pop	 dx
+    213	    0153  52					 push	 dx
+    214	    0154  B8 0010				 mov	 ax, 10h
+    215	    0157  33 DB					 xor	 bx, bx
+    216	    0159  8A DE					 mov	 bl, dh
+    217	    015B  80 EB	05				 sub	 bl, 5
+    218	    015E  33 D2					 xor	 dx, dx
+    219	    0160  F7 E3					 mul	 bx
+    220	    0162  05 01BE				 add	 ax, 1beh
+    221	    0165  8B D8					 mov	 bx, ax
+    222	    0167  2E: 8A 16 0C00r			 mov	 dl, byte ptr cs:[CURRENT_DRIVE]
+    223	    016C  E8 0150				 call	 BOOT_PART
+    224	    016F  EB A4					 jmp	 @@WaitKey
+    225	    0171				 @@DriveLeft:
+    226	    0171  2E: 8A 16 0C00r			 mov	 dl, byte ptr cs:[CURRENT_DRIVE]
+    227	    0176  80 FA	80				 cmp	 dl, 80h
+    228	    0179  74 9A					 je	 @@WaitKey
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 5
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    229	    017B  FE CA					 dec	 dl
+    230	    017D  E8 00C3				 call	 SHOW_TABEL
+    231	    0180  72 93					 jc	 @@WaitKey
+    232	    0182  2E: 8A 16 0C00r			 mov	 dl, byte ptr cs:[CURRENT_DRIVE]
+    233	    0187  FE CA					 dec	 dl
+    234	    0189  EB 15					 jmp	 @@NewTabel
+    235	    018B				 @@DriveRight:
+    236	    018B  2E: 8A 16 0C00r			 mov	 dl, byte ptr cs:[CURRENT_DRIVE]
+    237	    0190  FE C2					 inc	 dl
+    238	    0192  E8 00AE				 call	 SHOW_TABEL
+    239	    0195  0F 82	FF7C				 jc	 @@WaitKey
+    240	    0199  2E: 8A 16 0C00r			 mov	 dl, byte ptr cs:[CURRENT_DRIVE]
+    241	    019E  FE C2					 inc	 dl
+    242	    01A0				 @@NewTabel:
+    243	    01A0  2E: 88 16 0C00r			 mov	 byte ptr cs:[CURRENT_DRIVE], dl
+    244	    01A5  5A					 pop	 dx
+    245	    01A6  EB 3A					 jmp	 @@SetPos
+    246	    01A8				 @@MoveUp:
+    247	    01A8  5A					 pop	 dx
+    248	    01A9  52					 push	 dx
+    249	    01AA  E8 13BF				 call	 set_curpos
+    250	    01AD  B9 0002				 mov	 cx, 2
+    251	    01B0  B4 70					 mov	 ah, 70h
+    252	    01B2  B0 20					 mov	 al, ' '
+    253	    01B4  E8 1341				 call	 PRINT_LOOP
+    254	    01B7  5A					 pop	 dx
+    255	    01B8  80 FE	05				 cmp	 dh, 5
+    256	    01BB  74 04					 je	 @@LastPos
+    257	    01BD  FE CE					 dec	 dh
+    258	    01BF  EB 21					 jmp	 short @@SetPos
+    259	    01C1				 @@LastPos:
+    260	    01C1  B6 08					 mov	 dh, 8
+    261	    01C3  EB 1D					 jmp	 short @@SetPos
+    262	    01C5				 @@MoveDown:
+    263	    01C5  5A					 pop	 dx
+    264	    01C6  52					 push	 dx
+    265	    01C7  E8 13A2				 call	 set_curpos
+    266	    01CA  B9 0002				 mov	 cx, 2
+    267	    01CD  B4 70					 mov	 ah, 70h
+    268	    01CF  B0 20					 mov	 al, ' '
+    269	    01D1  E8 1324				 call	 PRINT_LOOP
+    270	    01D4  5A					 pop	 dx
+    271	    01D5  80 FE	08				 cmp	 dh, 8
+    272	    01D8  74 04					 je	 @@FirstPos
+    273	    01DA  FE C6					 inc	 dh
+    274	    01DC  EB 04					 jmp	 short @@SetPos
+    275	    01DE				 @@FirstPos:
+    276	    01DE  B6 05					 mov	 dh, 5
+    277	    01E0  EB 00					 jmp	 short @@SetPos
+    278	    01E2				 @@SetPos:
+    279	    01E2  52					 push	 dx
+    280	    01E3  E8 1386				 call	 set_curpos
+    281	    01E6  BE 0E1Ar				 lea	 si, cs:MSG_1031
+    282	    01E9  B4 70					 mov	 ah, 70h
+    283	    01EB  E8 1310				 call	 PRINT
+    284	    01EE  E9 FF24				 jmp	 @@WaitKey
+    285
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 6
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    286	    01F1				 @@Options:
+    287	    01F1  E8 02C6				 call	 BOOTMAN_OPTS
+    288	    01F4  E9 FEC8				 jmp	 @@Redraw		 ; Konfig. neu Lesen
+    289
+    290	    01F7				 @@DecTimeout:
+    291							 ; Wir verwenden zur komp. nicht die Wait-Event	Funk.
+    292							 ; da diese von	einigen	PS/2s nicht unterstÅtzt	wird!
+    293	    01F7  B4 02					 mov	 ah, 2
+    294	    01F9  CD 1A					 int	 1Ah
+    295	    01FB  72 FA					 jc	 @@DecTimeout
+    296							 ; DH hÑlt die Sekunden	in BCD
+    297	    01FD  2E: A1 0C1Br				 mov	 ax, word ptr cs:[TIMING]
+    298	    0201  3A E6					 cmp	 ah, dh
+    299	    0203  0F 84	FF18				 je	 @@Wait_noTime
+    300	    0207  8A E6					 mov	 ah, dh
+    301	    0209  FE C8					 dec	 al
+    302	    020B  3C 00					 cmp	 al, 0
+    303	    020D  74 24					 je	 @@AutoBoot
+    304	    020F  2E: A3 0C1Br				 mov	 word ptr cs:[TIMING], ax
+    305							 ; Wir zeigen noch die verbleibende Zeit an...
+    306	    0213  50					 push	 ax
+    307	    0214  B6 05					 mov	 dh, 5
+    308	    0216  B2 42					 mov	 dl, 66
+    309	    0218  E8 1351				 call	 set_curpos
+    310	    021B  58					 pop	 ax
+    311	    021C  50					 push	 ax
+    312	    021D  3C 09					 cmp	 al, 9
+    313	    021F  7F 07					 jg	 @@SetTOK
+    314	    0221  B4 1F					 mov	 ah, 1fh
+    315	    0223  B0 20					 mov	 al, ' '
+    316	    0225  E8 128C				 call	 print_char
+    317	    0228				 @@SetTOK:
+    318	    0228  58					 pop	 ax
+    319	    0229  8A D8					 mov	 bl, al
+    320	    022B  B4 1F					 mov	 ah, 1fh
+    321	    022D  E8 12E0				 call	 PRINT_ZAHL
+    322	    0230  E9 FEEC				 jmp	 @@Wait_noTime
+    323	    0233				 @@AutoBoot:
+    324	    0233  2E: 8A 16 0BFDr			 mov	 dl, byte ptr cs:[PRIMARY_DRIVE]
+    325	    0238  2E: 8B 1E 0BFEr			 mov	 bx, word ptr cs:[PRIMARY_PART]
+    326	    023D  E8 007F				 call	 BOOT_PART
+    327	    0240  E9 FE7C				 jmp	 @@Redraw		 ; Nur bei Fehler!
+    328	    0243				 BOOTMANAGER ENDP
+    329
+    330						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    331						 ; SHOW_TABEL: Zeigt den Inhalt	der Partitionstabelle
+    332						 ; Input : DL =	Laufwerk
+    333						 ; Output: CF =	Laufgwerk existiert nicht oder defekt
+    334						 ;
+    335	    0243				 SHOW_TABEL PROC NEAR
+    336							 ; ZunÑchst holen wir die Tabelle!
+    337	    0243  B9 0001				 mov	 cx, 1
+    338	    0246  32 F6					 xor	 dh, dh
+    339	    0248  33 DB					 xor	 bx, bx
+    340	    024A  B8 07C0				 mov	 ax, 7c0h
+    341	    024D  8E C0					 mov	 es, ax
+    342	    024F  E8 14A7				 call	 READ
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 7
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    343	    0252  72 69					 jc	 @@Fehler
+    344							 ; Alles Roger - Wir zeigen zunÑchst welche Platte!
+    345	    0254  52					 push	 dx
+    346	    0255  B6 04					 mov	 dh, 4
+    347	    0257  B2 05					 mov	 dl, 5
+    348	    0259  E8 1310				 call	 set_curpos
+    349	    025C  BE 0E0Er				 lea	 si, cs:MSG_1030
+    350	    025F  B4 1F					 mov	 ah, 1fh
+    351	    0261  E8 129A				 call	 PRINT
+    352	    0264  B6 05					 mov	 dh, 5
+    353	    0266  B2 09					 mov	 dl, 9
+    354	    0268  E8 1301				 call	 set_curpos
+    355	    026B  5A					 pop	 dx
+    356	    026C  80 EA	7F				 sub	 dl, 7Fh
+    357	    026F  8A DA					 mov	 bl, dl
+    358	    0271  B4 1F					 mov	 ah, 1fh
+    359	    0273  E8 129A				 call	 PRINT_ZAHL
+    360							 ; Nun basteln wir einen Kasten	in den sowas wien Titel
+    361							 ; und der Text	reinpasst...
+    362	    0276  B4 04					 mov	 ah, 4
+    363	    0278  B0 13					 mov	 al, 19
+    364	    027A  B7 09					 mov	 bh, 9
+    365	    027C  B3 3B					 mov	 bl, 59
+    366	    027E  E8 12F8				 call	 DRAW_BOX
+    367	    0281  BB 01BE				 mov	 bx, 1beh
+    368	    0284  B8 07C0				 mov	 ax, 7c0h
+    369	    0287  8E C0					 mov	 es, ax
+    370	    0289  B6 05					 mov	 dh, 5
+    371	    028B  B2 1A					 mov	 dl, 26
+    372	    028D  06					 push	 es
+    373	    028E  53					 push	 bx
+    374	    028F				 @@PartLoop:
+    375	    028F  52					 push	 dx
+    376	    0290  E8 12D9				 call	 set_curpos
+    377	    0293  5A					 pop	 dx
+    378	    0294  5B					 pop	 bx
+    379	    0295  07					 pop	 es
+    380	    0296  B4 70					 mov	 ah, 70h
+    381	    0298  26: 8A 47 04				 mov	 al, byte ptr es:[bx+4]
+    382	    029C  26: 80 3F 80				 cmp	 byte ptr es:[bx], 80h
+    383	    02A0  75 02					 jne	 @@Normal
+    384	    02A2  B4 74					 mov	 ah, 74h
+    385	    02A4				 @@Normal:
+    386	    02A4  06					 push	 es
+    387	    02A5  53					 push	 bx
+    388	    02A6  52					 push	 dx
+    389	    02A7  E8 01EA				 call	 SHOW_PARTNAME
+    390	    02AA  5A					 pop	 dx
+    391	    02AB  FE C6					 inc	 dh
+    392	    02AD  5B					 pop	 bx
+    393	    02AE  81 FB	01EE				 cmp	 bx, 1eeh
+    394	    02B2  74 06					 je	 @@Roger
+    395	    02B4  83 C3	10				 add	 bx, 10h
+    396	    02B7  53					 push	 bx
+    397	    02B8  EB D5					 jmp	 @@PartLoop
+    398	    02BA				 @@Roger:
+    399	    02BA  07					 pop	 es
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 8
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    400	    02BB  F8					 clc
+    401	    02BC  C3					 ret
+    402	    02BD				 @@Fehler:
+    403	    02BD  F9					 stc
+    404	    02BE  C3					 ret
+    405	    02BF				 SHOW_TABEL ENDP
+    406
+    407						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    408						 ; BOOT_PART: Bootet von einer Partition
+    409						 ; Input : DL =	Laufwerk, BX = Offset Part-Eintrag
+    410						 ; Output: - (rÅckkehr bei Fehler)
+    411						 ;
+    412						 ; Problem mit OS/2: OS/2 "versteckt" sich als Typ 16h und lÑ·t	sich
+    413						 ; damit nicht starten (Nut bei	FAT Dateisys). Der Typ mu· also
+    414						 ; zuvor wieder	auf 6h gesetzt werden!
+    415						 ;
+    416	    02BF				 BOOT_PART PROC	NEAR
+    417							 ; ZunÑchst holen wir die Part-Tabelle des Laufwerks
+    418	    02BF  53					 push	 bx		 ; Offset merken!
+    419	    02C0  B8 07C0				 mov	 ax, 7c0h
+    420	    02C3  8E C0					 mov	 es, ax
+    421	    02C5  33 DB					 xor	 bx, bx
+    422	    02C7  32 F6					 xor	 dh, dh
+    423	    02C9  B9 0001				 mov	 cx, 1
+    424	    02CC				 @@ReadTab:
+    425	    02CC  E8 142A				 call	 READ
+    426	    02CF  72 FB					 jc	 @@ReadTab
+    427
+    428	    02D1  5B					 pop	 bx
+    429	    02D2  26: 80 7F 04 00			 cmp	 byte ptr es:[bx+4], 0
+    430	    02D7  75 02					 jne	 @@CheckOS2
+    431	    02D9  F9					 stc
+    432	    02DA  C3					 ret
+    433	    02DB				 @@CheckOS2:
+    434	    02DB  26: 80 7F 04 16			 cmp	 byte ptr es:[bx+4], 16h
+    435	    02E0  75 38					 jne	 @@Boot
+    436	    02E2  B0 06					 mov	 al, 6h
+    437	    02E4  26: 88 47 04				 mov	 byte ptr es:[bx+4], al
+    438	    02E8  53					 push	 bx
+    439	    02E9  33 DB					 xor	 bx, bx
+    440	    02EB  32 F6					 xor	 dh, dh
+    441	    02ED  B9 0001				 mov	 cx, 1
+    442	    02F0				 @@WriteTab:
+    443	    02F0  B8 0301				 mov	 ax, 0301h
+    444	    02F3  CD 13					 int	 13h
+    445	    02F5  72 F9					 jc	 @@WriteTab
+    446	    02F7  5B					 pop	 bx
+    447	    02F8  2E: A1 0C01r				 mov	 ax, word ptr cs:[BOOTMAN_KEY]
+    448	    02FC  2E: A3 0C03r				 mov	 word ptr cs:[KEY_BACKUP], ax
+    449	    0300  B8 FFFF				 mov	 ax, 0ffffh
+    450	    0303  2E: A3 0C01r				 mov	 word ptr cs:[BOOTMAN_KEY], ax
+    451	    0307  2E: 89 1E 0C06r			 mov	 word ptr cs:[BACKUP_PART], bx
+    452	    030C  2E: 88 16 0C05r			 mov	 byte ptr cs:[BACKUP_DRIVE], dl
+    453	    0311  53					 push	 bx
+    454	    0312  52					 push	 dx
+    455	    0313				 @@CFGFail:
+    456	    0313  E8 0029				 call	 WRITE_CFG
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 9
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    457	    0316  72 FB					 jc	 @@CFGFail
+    458	    0318  5A					 pop	 dx
+    459	    0319  5B					 pop	 bx
+    460	    031A				 @@Boot:
+    461	    031A  B8 07C0				 mov	 ax, 7c0h
+    462	    031D  8E C0					 mov	 es, ax
+    463	    031F  26: 8B 4F 02				 mov	 cx, word ptr es:[bx+2h]
+    464	    0323  26: 8A 77 01				 mov	 dh, byte ptr es:[bx+1h]
+    465	    0327  33 C0					 xor	 ax, ax
+    466	    0329  8E C0					 mov	 es, ax
+    467	    032B  BB 7C00				 mov	 bx, 7c00h
+    468	    032E  51					 push	 cx
+    469	    032F  52					 push	 dx
+    470	    0330				 @@ReadCode:
+    471	    0330  E8 13C6				 call	 READ
+    472	    0333  72 FB					 jc	 @@ReadCode
+    473	    0335  E8 12E7				 call	 CLEAR
+    474	    0338  5A					 pop	 dx
+    475	    0339  59					 pop	 cx
+    476							 ; UND AB!
+    477	    033A  EA 00	7C 00 00			 db	 0eah,00h,7ch,00h,00h
+    478	    033F				 BOOT_PART ENDP
+    479
+    480						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    481						 ; WRITE_CFG: Schreibt den gesamten Code zurÅck! (ACHTUNG! benîtigt
+    482						 ;	      die vom BOOTMANAGER geladenen Daten aus dem Bootstrap!)
+    483						 ; Input : -
+    484						 ; Output: - (abbruch bei Fehler)!
+    485						 ;
+    486	    033F				 WRITE_CFG PROC	NEAR
+    487	    033F  B8 1000				 mov	 ax, 1000h	 ; Hier	befinden wir uns!
+    488	    0342  8E C0					 mov	 es, ax
+    489	    0344  33 DB					 xor	 bx, bx
+    490	    0346  2E: 8A 36 0BFAr			 mov	 dh, byte ptr cs:[BOOTMAN_HEADZYL] ; Kopf Part start
+    491	    034B  2E: 8B 0E 0BF8r			 mov	 cx, word ptr cs:[BOOTMAN_SEKZYL]  ; Zylinder/Sektor Part start
+    492	    0350  2E: A1 0BFBr				 mov	 ax, word ptr cs:[BOOTMAN_SEKS]	; Anzal	zu les.	Sektoren
+    493	    0354  2E: 8A 16 0BF7r			 mov	 dl, byte ptr cs:[BOOT_DRIVE]
+    494	    0359  E8 07E8				 call	 WRITE_SEKTORS
+    495	    035C  72 3E					 jc	 @@Failed
+    496							 ; Wir laden den MBR neu, falls	was geÑndert wurde!
+    497	    035E  B8 0060				 mov	 ax, 060h
+    498	    0361  8E C0					 mov	 es, ax
+    499	    0363  33 DB					 xor	 bx, bx
+    500	    0365  BA 0080				 mov	 dx, 80h
+    501	    0368  B9 0001				 mov	 cx, 1
+    502	    036B  B8 0001				 mov	 ax, 1
+    503	    036E  E8 0731				 call	 READ_SEKTORS
+    504	    0371  72 29					 jc	 @@Failed
+    505	    0373  B8 0060				 mov	 ax, 60h
+    506	    0376  8E C0					 mov	 es, ax
+    507	    0378  BB 01BC				 mov	 bx, 1bch
+    508	    037B  2E: A1 0C01r				 mov	 ax, word ptr cs:[BOOTMAN_KEY]
+    509	    037F  26: 89 07				 mov	 word ptr es:[bx], ax
+    510	    0382  4B					 dec	 bx
+    511	    0383  32 C0					 xor	 al, al
+    512	    0385  26: 88 07				 mov	 byte ptr es:[bx], al
+    513							 ; und das ganze zurÅckschreiben!
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 10
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    514	    0388  B8 0060				 mov	 ax, 060h
+    515	    038B  8E C0					 mov	 es, ax
+    516	    038D  33 DB					 xor	 bx, bx
+    517	    038F  BA 0080				 mov	 dx, 80h	 ; Platte 0, Kopf 0
+    518	    0392  B9 0001				 mov	 cx, 1		 ; Sektor 1, Zylinder 0
+    519	    0395  B8 0001				 mov	 ax, 1		 ; 1 Sektor schreiben!
+    520	    0398  E8 07A9				 call	 WRITE_SEKTORS
+    521	    039B  C3					 ret
+    522	    039C				 @@Failed:
+    523	    039C  F9					 stc
+    524	    039D  C3					 ret
+    525	    039E				 WRITE_CFG ENDP
+    526
+    527						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    528						 ; GET_PASS: Abfrage des Master-Passwortes
+    529						 ; Input : -
+    530						 ; Output: Carry = Abbruch (ESC)
+    531						 ;
+    532	    039E				 GET_PASS PROC NEAR
+    533	    039E  BE 0E37r				 lea	 si, cs:MSG_0001
+    534	    03A1  E8 06BF				 call	 SHOW_INFO
+    535
+    536	    03A4				 @@RestartPass:
+    537	    03A4  B0 16					 mov	 al, 22
+    538	    03A6  B4 07					 mov	 ah, 7
+    539	    03A8  B3 3C					 mov	 bl, 60
+    540	    03AA  B7 0B					 mov	 bh, 11
+    541	    03AC  E8 11CA				 call	 DRAW_BOX
+    542	    03AF  B6 09					 mov	 dh, 9
+    543	    03B1  B2 1A					 mov	 dl, 26
+    544	    03B3  E8 11B6				 call	 set_curpos
+    545	    03B6  BE 0DD9r				 lea	 si, cs:MSG_1026
+    546	    03B9  B4 70					 mov	 ah, 70h
+    547	    03BB  E8 1140				 call	 PRINT
+    548	    03BE  B6 09					 mov	 dh, 9
+    549	    03C0  B2 24					 mov	 dl, 36
+    550	    03C2  BB 0C11r				 lea	 bx, cs:PASSINPUT
+    551	    03C5  2E: C6 07 24				 mov	 byte ptr cs:[bx], '$'
+    552	    03C9  2E: C6 47 01 20			 mov	 byte ptr cs:[bx+1], ' '
+    553	    03CE  52					 push	 dx
+    554	    03CF				 @@In_loop:
+    555	    03CF  33 C0					 xor	 ax, ax
+    556	    03D1  CD 16					 int	 16h
+    557	    03D3  3C 00					 cmp	 al, 0
+    558	    03D5  74 F8					 je	 @@In_Loop
+    559	    03D7  3C 0D					 cmp	 al, 13
+    560	    03D9  74 5A					 je	 short @@CheckPass
+    561	    03DB  3C 08					 cmp	 al, 8h
+    562	    03DD  74 2D					 je	 short @@Delete
+    563	    03DF  3C 1B					 cmp	 al, 27
+    564	    03E1  74 62					 je	 short @@DochNicht
+    565	    03E3  5A					 pop	 dx
+    566	    03E4  52					 push	 dx
+    567	    03E5  80 EA	24				 sub	 dl, 36
+    568	    03E8  80 FA	08				 cmp	 dl, 8
+    569	    03EB  74 E2					 je	 @@In_Loop
+    570	    03ED  BB 0C11r				 lea	 bx, cs:PASSINPUT
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 11
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    571	    03F0  5A					 pop	 dx
+    572	    03F1  FE C2					 inc	 dl
+    573	    03F3  52					 push	 dx
+    574	    03F4  32 F6					 xor	 dh, dh
+    575	    03F6  80 EA	25				 sub	 dl, 37
+    576	    03F9  03 DA					 add	 bx, dx
+    577	    03FB  2E: 88 07				 mov	 byte ptr cs:[bx], al
+    578	    03FE  2E: C6 47 01 24			 mov	 byte ptr cs:[bx+1], '$'
+    579	    0403  B4 74					 mov	 ah, 74h
+    580	    0405  B0 2A					 mov	 al, '*'
+    581	    0407  E8 10AA				 call	 PRINT_CHAR
+    582	    040A  EB C3					 jmp	 short @@In_loop
+    583	    040C				 @@Delete:
+    584	    040C  5A					 pop	 dx
+    585	    040D  52					 push	 dx
+    586	    040E  80 FA	24				 cmp	 dl, 36
+    587	    0411  74 BC					 je	 @@In_Loop
+    588	    0413  5A					 pop	 dx
+    589	    0414  FE CA					 dec	 dl
+    590	    0416  52					 push	 dx
+    591	    0417  32 F6					 xor	 dh, dh
+    592	    0419  BB 0C11r				 lea	 bx, cs:PASSINPUT
+    593	    041C  03 DA					 add	 bx, dx
+    594	    041E  2E: C6 07 24				 mov	 byte ptr cs:[bx], '$'
+    595	    0422  5A					 pop	 dx
+    596	    0423  52					 push	 dx
+    597	    0424  E8 1145				 call	 set_curpos
+    598	    0427  B4 70					 mov	 ah, 70h
+    599	    0429  B0 20					 mov	 al, ' '
+    600	    042B  E8 1086				 call	 PRINT_CHAR
+    601	    042E  5A					 pop	 dx
+    602	    042F  52					 push	 dx
+    603	    0430  E8 1139				 call	 set_curpos
+    604	    0433  EB 9A					 jmp	 @@In_Loop
+    605	    0435				 @@CheckPass:
+    606	    0435  5A					 pop	 dx
+    607	    0436  BE 0C08r				 lea	 si, cs:PASSWORT
+    608	    0439  BF 0C11r				 lea	 di, cs:PASSINPUT
+    609	    043C  E8 11FB				 call	 COMPARE
+    610	    043F  0F 83	FF61				 jnc	 @@RestartPass
+    611	    0443  F8					 clc
+    612	    0444  C3					 ret
+    613	    0445				 @@DochNicht:
+    614	    0445  5A					 pop	 dx
+    615	    0446  F9					 stc
+    616	    0447  C3					 ret
+    617	    0448				 GET_PASS ENDP
+    618
+    619						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    620						 ; GET_PRIMARY:	Sucht nach der Default-Partition
+    621						 ; Input : -
+    622						 ; Output: -
+    623						 ;
+    624	    0448				 GET_PRIMARY PROC NEAR
+    625	    0448  50 53	51 52				 push	 ax bx cx dx
+    626							 ; Prinzip: Wir	durchsuchen nun	alle Laufwerke,	bis wir
+    627							 ; einen Partition vom Typ BOOT	gefunden haben.	Sollten
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 12
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    628							 ; wir keine gefunden haben, stellen wir die Timeout-Zeit
+    629							 ; auf Null und	zeigen "KEINE" an.
+    630	    044C				 @@Faul:
+    631	    044C  B2 80					 mov	 dl, 80h	 ; 1. HD
+    632	    044E  B8 07C0				 mov	 ax, 7c0h
+    633	    0451  8E C0					 mov	 es, ax
+    634	    0453  B9 0001				 mov	 cx, 1		 ; Sektor 1, Zylinder 0
+    635	    0456  32 F6					 xor	 dh, dh		 ; Kopf	0
+    636	    0458  33 DB					 xor	 bx, bx
+    637
+    638	    045A				 @@SearchLoop:
+    639	    045A  E8 129C				 call	 READ
+    640	    045D  72 ED					 jc	 @@Faul
+    641
+    642							 ; Nun mÅssen wir Suchen, ob was schînes fÅr uns dabei ist!
+    643	    045F  BB 01BE				 mov	 bx, 1beh
+    644
+    645	    0462				 @@CheckLoop:
+    646	    0462  26: 80 3F 80				 cmp	 byte ptr es:[bx], 80h		 ; Bootbar ?
+    647	    0466  75 1B					 jne	 @@NextEntry
+    648	    0468  26: 80 7F 04 00			 cmp	 byte ptr es:[bx+4], 0		 ; Belegt?
+    649	    046D  74 14					 je	 @@NextEntry
+    650	    046F  2E: 89 1E 0BFEr			 mov	 word ptr cs:[PRIMARY_PART], bx
+    651	    0474  2E: 88 16 0BFDr			 mov	 byte ptr cs:[PRIMARY_DRIVE], dl
+    652	    0479  2E: 88 16 0C00r			 mov	 byte ptr cs:[CURRENT_DRIVE], dl
+    653	    047E  5A 59	5B 58				 pop	 dx cx bx ax
+    654	    0482  C3					 ret
+    655
+    656	    0483				 @@NextEntry:
+    657	    0483  81 FB	01FE				 cmp	 bx, 1feh
+    658	    0487  74 05					 je	 @@NextDrive
+    659	    0489  83 C3	10				 add	 bx, 10h
+    660	    048C  EB D4					 jmp	 @@CheckLoop
+    661
+    662	    048E				 @@NextDrive:
+    663	    048E  FE C2					 inc	 dl
+    664	    0490  33 DB					 xor	 bx, bx
+    665	    0492  EB C6					 jmp	 @@SearchLoop
+    666	    0494				 GET_PRIMARY ENDP
+    667
+    668						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    669						 ; SHOW_PARTNAME: Anzeigen eines Namens	fÅr eine Partition
+    670						 ;
+    671						 ; Input : ah =	Farbattribut, al = TYP
+    672						 ;
+    673						 ; Output: -
+    674						 ;
+    675	    0494				 SHOW_PARTNAME PROC NEAR
+    676	    0494  BE 1739r				 lea	 si, ds:DATABASE_START
+    677	    0497  BB 1BB9r				 lea	 bx, ds:DATABASE_END
+    678	    049A				 @@Suchen:
+    679	    049A  8A 14					 mov	 dl, byte ptr ds:[si]
+    680	    049C  3A D0					 cmp	 dl, al
+    681	    049E  74 15					 je	 @@Gefunden
+    682	    04A0  83 C6	20				 add	 si, 32		 ; 1 Eintrag = 22 Byte
+    683	    04A3  3B F3					 cmp	 si, bx
+    684	    04A5  75 F3					 jne	 @@Suchen
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 13
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    685	    04A7  50					 push	 ax
+    686	    04A8  BE 0DFEr				 lea	 si, MSG_1029
+    687	    04AB  E8 1050				 call	 PRINT
+    688	    04AE  58					 pop	 ax
+    689	    04AF  8A D8					 mov	 bl, al
+    690	    04B1  E8 105C				 call	 PRINT_ZAHL
+    691	    04B4  C3					 ret
+    692	    04B5				 @@Gefunden:
+    693	    04B5  46					 inc	 si
+    694	    04B6  E8 1045				 call	 PRINT
+    695	    04B9  C3					 ret
+    696	    04BA				 SHOW_PARTNAME ENDP
+    697
+    698						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    699						 ; BOOTMAN_OPTS: éndern	der Optionen des Boot-Managers...
+    700						 ; Input : -
+    701						 ; Output: -
+    702						 ;
+    703	    04BA				 BOOTMAN_OPTS PROC NEAR
+    704	    04BA  E8 058C				 call	 CLEAR_FRAME
+    705	    04BD  2E: 80 3E 0C1Ar 01			 cmp	 byte ptr cs:[PASSWORT_STATUS],	1
+    706	    04C3  75 06					 jne	 @@Restart_Bootman
+    707	    04C5  E8 FED6				 call	 GET_PASS
+    708	    04C8  73 01					 jnc	 @@Restart_Bootman
+    709	    04CA  C3					 ret
+    710	    04CB				 @@Restart_Bootman:
+    711	    04CB  B0 14					 mov	 al, 20
+    712	    04CD  B4 04					 mov	 ah, 4
+    713	    04CF  B3 3E					 mov	 bl, 62
+    714	    04D1  B7 0C					 mov	 bh, 12
+    715	    04D3  E8 10A3				 call	 DRAW_BOX
+    716	    04D6  BE 0E5Dr				 lea	 si, cs:MSG_0002
+    717	    04D9  E8 0587				 call	 show_info
+    718
+    719	    04DC  B6 05					 mov	 dh, 5		 ; Y
+    720	    04DE  B2 18					 mov	 dl, 24		 ; X
+    721	    04E0  E8 1089				 call	 set_curpos
+    722	    04E3  BE 0C84r				 lea	 si, cs:MSG_1004
+    723	    04E6  B4 71					 mov	 ah, 71h
+    724	    04E8  E8 1013				 call	 PRINT
+    725	    04EB  B6 07					 mov	 dh, 7
+    726	    04ED  B2 16					 mov	 dl, 22
+    727	    04EF  E8 107A				 call	 set_curpos
+    728	    04F2  BE 0CBBr				 lea	 si, cs:MSG_1008
+    729	    04F5  B4 70					 mov	 ah, 70h
+    730	    04F7  E8 1004				 call	 PRINT
+    731	    04FA  B6 08					 mov	 dh, 8
+    732	    04FC  B2 16					 mov	 dl, 22
+    733	    04FE  E8 106B				 call	 set_curpos
+    734	    0501  BE 0CD4r				 lea	 si, cs:MSG_1009
+    735	    0504  B4 70					 mov	 ah, 70h
+    736	    0506  E8 0FF5				 call	 PRINT
+    737	    0509  B6 09					 mov	 dh, 9
+    738	    050B  B2 16					 mov	 dl, 22
+    739	    050D  E8 105C				 call	 set_curpos
+    740	    0510  BE 0CEDr				 lea	 si, cs:MSG_1010
+    741	    0513  B4 70					 mov	 ah, 70h
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 14
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    742	    0515  E8 0FE6				 call	 PRINT
+    743	    0518  B6 09					 mov	 dh, 9
+    744	    051A  B2 32					 mov	 dl, 50
+    745	    051C  E8 104D				 call	 set_curpos
+    746	    051F  BE 0CB0r				 lea	 si, cs:MSG_1007
+    747	    0522  B4 70					 mov	 ah, 70h
+    748	    0524  E8 0FD7				 call	 PRINT
+    749	    0527  B6 0A					 mov	 dh, 10
+    750	    0529  B2 16					 mov	 dl, 22
+    751	    052B  E8 103E				 call	 set_curpos
+    752	    052E  BE 0D80r				 lea	 si, cs:MSG_1021
+    753	    0531  B4 70					 mov	 ah, 70h
+    754	    0533  E8 0FC8				 call	 PRINT
+    755	    0536  B6 0B					 mov	 dh, 11
+    756	    0538  B2 16					 mov	 dl, 22
+    757	    053A  E8 102F				 call	 set_curpos
+    758	    053D  BE 0DC0r				 lea	 si, cs:MSG_1025
+    759	    0540  B4 70					 mov	 ah, 70h
+    760	    0542  E8 0FB9				 call	 PRINT
+    761	    0545  E8 03C3				 call	 SHOW_OPTS
+    762	    0548  B6 07					 mov	 dh, 7
+    763	    054A  B2 2F					 mov	 dl, 47
+    764	    054C  52					 push	 dx
+    765							 ; Nun Warte man auf eine Eingabe vom User...
+    766	    054D				 @@Wait_Loop:
+    767	    054D  B0 02					 mov	 al, 2
+    768	    054F  B4 0E					 mov	 ah, 14
+    769	    0551  B3 4E					 mov	 bl, 78
+    770	    0553  B7 16					 mov	 bh, 22
+    771	    0555  E8 1021				 call	 DRAW_BOX
+    772	    0558  B6 0F					 mov	 dh, 15
+    773	    055A  B2 04					 mov	 dl, 4
+    774	    055C  E8 100D				 call	 set_curpos
+    775	    055F  5A					 pop	 dx
+    776	    0560  52					 push	 dx
+    777	    0561  80 FE	07				 cmp	 dh, 7
+    778	    0564  0F 84	00A9				 je	 @@HLP_AUTO
+    779	    0568  80 FE	08				 cmp	 dh, 8
+    780	    056B  0F 84	00E9				 je	 @@HLP_TASTE
+    781	    056F  80 FE	09				 cmp	 dh, 9
+    782	    0572  0F 84	0128				 je	 @@HLP_ZEIT
+    783	    0576  80 FE	0A				 cmp	 dh, 10
+    784	    0579  74 4F					 je	 @@HLP_STAT
+    785	    057B  80 FE	0B				 cmp	 dh, 11
+    786	    057E  74 03					 je	 @@HLP_PASS
+    787	    0580  E9 016E				 jmp	 @@Wait_Again
+    788	    0583				 @@HLP_PASS:
+    789	    0583  BE 1382r				 lea	 si, cs:HLP_1021
+    790	    0586  B4 74					 mov	 ah, 74h
+    791	    0588  E8 0F73				 call	 PRINT
+    792	    058B  B6 11					 mov	 dh, 17
+    793	    058D  B2 04					 mov	 dl, 4
+    794	    058F  E8 0FDA				 call	 set_curpos
+    795	    0592  BE 138Cr				 lea	 si, cs:HLP_1022
+    796	    0595  B4 70					 mov	 ah, 70h
+    797	    0597  E8 0F64				 call	 PRINT
+    798	    059A  B6 12					 mov	 dh, 18
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 15
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    799	    059C  B2 04					 mov	 dl, 4
+    800	    059E  E8 0FCB				 call	 set_curpos
+    801	    05A1  BE 13D3r				 lea	 si, cs:HLP_1023
+    802	    05A4  B4 70					 mov	 ah, 70h
+    803	    05A6  E8 0F55				 call	 PRINT
+    804	    05A9  B6 13					 mov	 dh, 19
+    805	    05AB  B2 04					 mov	 dl, 4
+    806	    05AD  E8 0FBC				 call	 set_curpos
+    807	    05B0  BE 141Ar				 lea	 si, cs:HLP_1024
+    808	    05B3  B4 70					 mov	 ah, 70h
+    809	    05B5  E8 0F46				 call	 PRINT
+    810	    05B8  B6 14					 mov	 dh, 20
+    811	    05BA  B2 04					 mov	 dl, 4
+    812	    05BC  E8 0FAD				 call	 set_curpos
+    813	    05BF  BE 1461r				 lea	 si, cs:HLP_1025
+    814	    05C2  B4 70					 mov	 ah, 70h
+    815	    05C4  E8 0F37				 call	 PRINT
+    816	    05C7  E9 0127				 jmp	 @@Wait_Again
+    817	    05CA				 @@HLP_STAT:
+    818	    05CA  BE 1272r				 lea	 si, cs:HLP_1016
+    819	    05CD  B4 74					 mov	 ah, 74h
+    820	    05CF  E8 0F2C				 call	 PRINT
+    821	    05D2  B6 10					 mov	 dh, 16
+    822	    05D4  B2 04					 mov	 dl, 4
+    823	    05D6  E8 0F93				 call	 set_curpos
+    824	    05D9  BE 1284r				 lea	 si, cs:HLP_1017
+    825	    05DC  B4 70					 mov	 ah, 70h
+    826	    05DE  E8 0F1D				 call	 PRINT
+    827	    05E1  B6 12					 mov	 dh, 18
+    828	    05E3  B2 04					 mov	 dl, 4
+    829	    05E5  E8 0F84				 call	 set_curpos
+    830	    05E8  BE 12BBr				 lea	 si, cs:HLP_1018
+    831	    05EB  B4 70					 mov	 ah, 70h
+    832	    05ED  E8 0F0E				 call	 PRINT
+    833	    05F0  B6 14					 mov	 dh, 20
+    834	    05F2  B2 04					 mov	 dl, 4
+    835	    05F4  E8 0F75				 call	 set_curpos
+    836	    05F7  BE 12F4r				 lea	 si, cs:HLP_1019
+    837	    05FA  B4 70					 mov	 ah, 70h
+    838	    05FC  E8 0EFF				 call	 PRINT
+    839	    05FF  B6 15					 mov	 dh, 21
+    840	    0601  B2 04					 mov	 dl, 4
+    841	    0603  E8 0F66				 call	 set_curpos
+    842	    0606  BE 133Ar				 lea	 si, cs:HLP_1020
+    843	    0609  B4 70					 mov	 ah, 70h
+    844	    060B  E8 0EF0				 call	 PRINT
+    845	    060E  E9 00E0				 jmp	 @@Wait_Again
+    846	    0611				 @@HLP_AUTO:
+    847	    0611  BE 0EF0r				 lea	 si, cs:HLP_1000
+    848	    0614  B4 74					 mov	 ah, 74h
+    849	    0616  E8 0EE5				 call	 PRINT
+    850	    0619  B6 10					 mov	 dh, 16
+    851	    061B  B2 04					 mov	 dl, 4
+    852	    061D  E8 0F4C				 call	 set_curpos
+    853	    0620  BE 0F05r				 lea	 si, cs:HLP_1001
+    854	    0623  B4 70					 mov	 ah, 70h
+    855	    0625  E8 0ED6				 call	 PRINT
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 16
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    856	    0628  B6 12					 mov	 dh, 18
+    857	    062A  B2 04					 mov	 dl, 4
+    858	    062C  E8 0F3D				 call	 set_curpos
+    859	    062F  BE 0F4Dr				 lea	 si, cs:HLP_1002
+    860	    0632  B4 70					 mov	 ah, 70h
+    861	    0634  E8 0EC7				 call	 PRINT
+    862	    0637  B6 14					 mov	 dh, 20
+    863	    0639  B2 04					 mov	 dl, 4
+    864	    063B  E8 0F2E				 call	 set_curpos
+    865	    063E  BE 0F91r				 lea	 si, cs:HLP_1003
+    866	    0641  B4 70					 mov	 ah, 70h
+    867	    0643  E8 0EB8				 call	 PRINT
+    868	    0646  B6 15					 mov	 dh, 21
+    869	    0648  B2 04					 mov	 dl, 4
+    870	    064A  E8 0F1F				 call	 set_curpos
+    871	    064D  BE 0FD7r				 lea	 si, cs:HLP_1004
+    872	    0650  B4 70					 mov	 ah, 70h
+    873	    0652  E8 0EA9				 call	 PRINT
+    874	    0655  E9 0099				 jmp	 @@Wait_Again
+    875	    0658				 @@HLP_TASTE:
+    876	    0658  BE 1001r				 lea	 si, cs:HLP_1005
+    877	    065B  B4 74					 mov	 ah, 74h
+    878	    065D  E8 0E9E				 call	 PRINT
+    879	    0660  B6 11					 mov	 dh, 17
+    880	    0662  B2 04					 mov	 dl, 4
+    881	    0664  E8 0F05				 call	 set_curpos
+    882	    0667  BE 1018r				 lea	 si, cs:HLP_1006
+    883	    066A  B4 70					 mov	 ah, 70h
+    884	    066C  E8 0E8F				 call	 PRINT
+    885	    066F  B6 12					 mov	 dh, 18
+    886	    0671  B2 04					 mov	 dl, 4
+    887	    0673  E8 0EF6				 call	 set_curpos
+    888	    0676  BE 105Dr				 lea	 si, cs:HLP_1007
+    889	    0679  B4 70					 mov	 ah, 70h
+    890	    067B  E8 0E80				 call	 PRINT
+    891	    067E  B6 13					 mov	 dh, 19
+    892	    0680  B2 04					 mov	 dl, 4
+    893	    0682  E8 0EE7				 call	 set_curpos
+    894	    0685  BE 10A2r				 lea	 si, cs:HLP_1008
+    895	    0688  B4 70					 mov	 ah, 70h
+    896	    068A  E8 0E71				 call	 PRINT
+    897	    068D  B6 14					 mov	 dh, 20
+    898	    068F  B2 04					 mov	 dl, 4
+    899	    0691  E8 0ED8				 call	 set_curpos
+    900	    0694  BE 10E7r				 lea	 si, cs:HLP_1009
+    901	    0697  B4 70					 mov	 ah, 70h
+    902	    0699  E8 0E62				 call	 PRINT
+    903	    069C  EB 53					 jmp	 short @@Wait_Again
+    904	    069E				 @@HLP_ZEIT:
+    905	    069E  BE 111Dr				 lea	 si, cs:HLP_1010
+    906	    06A1  B4 74					 mov	 ah, 74h
+    907	    06A3  E8 0E58				 call	 PRINT
+    908	    06A6  B6 11					 mov	 dh, 17
+    909	    06A8  B2 04					 mov	 dl, 4
+    910	    06AA  E8 0EBF				 call	 set_curpos
+    911	    06AD  BE 1131r				 lea	 si, cs:HLP_1011
+    912	    06B0  B4 70					 mov	 ah, 70h
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 17
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    913	    06B2  E8 0E49				 call	 PRINT
+    914	    06B5  B6 12					 mov	 dh, 18
+    915	    06B7  B2 04					 mov	 dl, 4
+    916	    06B9  E8 0EB0				 call	 set_curpos
+    917	    06BC  BE 1179r				 lea	 si, cs:HLP_1012
+    918	    06BF  B4 70					 mov	 ah, 70h
+    919	    06C1  E8 0E3A				 call	 PRINT
+    920	    06C4  B6 13					 mov	 dh, 19
+    921	    06C6  B2 04					 mov	 dl, 4
+    922	    06C8  E8 0EA1				 call	 set_curpos
+    923	    06CB  BE 11C1r				 lea	 si, cs:HLP_1013
+    924	    06CE  B4 70					 mov	 ah, 70h
+    925	    06D0  E8 0E2B				 call	 PRINT
+    926	    06D3  B6 14					 mov	 dh, 20
+    927	    06D5  B2 04					 mov	 dl, 4
+    928	    06D7  E8 0E92				 call	 set_curpos
+    929	    06DA  BE 1209r				 lea	 si, cs:HLP_1014
+    930	    06DD  B4 70					 mov	 ah, 70h
+    931	    06DF  E8 0E1C				 call	 PRINT
+    932	    06E2  B6 15					 mov	 dh, 21
+    933	    06E4  B2 04					 mov	 dl, 4
+    934	    06E6  E8 0E83				 call	 set_curpos
+    935	    06E9  BE 1252r				 lea	 si, cs:HLP_1015
+    936	    06EC  B4 70					 mov	 ah, 70h
+    937	    06EE  E8 0E0D				 call	 PRINT
+    938	    06F1				 @@Wait_Again:
+    939	    06F1  5A					 pop	 dx
+    940	    06F2  52					 push	 dx
+    941	    06F3  E8 0E76				 call	 set_curpos
+    942	    06F6  33 C0					 xor	 ax, ax		 ; Read	Keyb Input
+    943	    06F8  CD 16					 int	 16h
+    944
+    945							 ; Mal sehen was gepresst wurde!
+    946							 ; Non-ASC-II? (Sollte so sein...)
+    947	    06FA  3C 00					 cmp	 al, 0
+    948	    06FC  74 68					 je	 @@NonASC
+    949	    06FE  3C 1B					 cmp	 al, 27		 ; ESC
+    950	    0700  74 09					 je	 @@Zurueck
+    951	    0702  5A					 pop	 dx
+    952	    0703  52					 push	 dx
+    953	    0704  80 FE	0B				 cmp	 dh, 11
+    954	    0707  74 04					 je	 @@PassIn
+    955	    0709  EB E6					 jmp	 short @@Wait_Again
+    956	    070B				 @@Zurueck:
+    957	    070B  5A					 pop	 dx
+    958	    070C  C3					 ret
+    959	    070D				 @@PassIn:
+    960	    070D  3C 24					 cmp	 al, '$'
+    961	    070F  74 E0					 je	 @@Wait_Again
+    962	    0711  3C 0D					 cmp	 al, 13
+    963	    0713  74 DC					 je	 @@Wait_Again
+    964	    0715  3C 09					 cmp	 al, 9
+    965	    0717  74 D8					 je	 @@Wait_Again
+    966	    0719  3C 08					 cmp	 al, 8h
+    967	    071B  74 25					 je	 @@DelChar
+    968	    071D  8A CA					 mov	 cl, dl
+    969	    071F  80 E9	2F				 sub	 cl, 47
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 18
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+    970	    0722  80 F9	08				 cmp	 cl, 8
+    971	    0725  7D CA					 jge	 @@Wait_Again
+    972	    0727  BB 0C08r				 lea	 bx, cs:PASSWORT
+    973	    072A  32 F6					 xor	 dh, dh
+    974	    072C  03 DA					 add	 bx, dx
+    975	    072E  83 EB	2F				 sub	 bx, 47
+    976	    0731  2E: 88 07				 mov	 byte ptr cs:[bx], al
+    977	    0734  2E: C6 47 01 24			 mov	 byte ptr cs:[bx+1], '$'
+    978	    0739  E8 01CF				 call	 SHOW_OPTS
+    979	    073C  5A					 pop	 dx
+    980	    073D  FE C2					 inc	 dl
+    981	    073F  52					 push	 dx
+    982	    0740  EB AF					 jmp	 @@Wait_Again
+    983	    0742				 @@DelChar:
+    984	    0742  8A CA					 mov	 cl, dl
+    985	    0744  80 E9	2F				 sub	 cl, 47
+    986	    0747  80 F9	00				 cmp	 cl, 0
+    987	    074A  74 A5					 je	 @@Wait_Again
+    988	    074C  BB 0C08r				 lea	 bx, cs:PASSWORT
+    989	    074F  32 ED					 xor	 ch, ch
+    990	    0751  03 D9					 add	 bx, cx
+    991	    0753  4B					 dec	 bx
+    992	    0754  2E: C6 07 24				 mov	 byte ptr cs:[bx], '$'
+    993	    0758  2E: C6 47 01 20			 mov	 byte ptr cs:[bx+1], ' '
+    994	    075D  5A					 pop	 dx
+    995	    075E  FE CA					 dec	 dl
+    996	    0760  52					 push	 dx
+    997	    0761  E8 01A7				 call	 SHOW_OPTS
+    998	    0764  EB 8B					 jmp	 @@Wait_Again
+    999	    0766				 @@NonASC:
+   1000	    0766  80 FC	48				 cmp	 ah, 48h		 ; UP
+   1001	    0769  0F 84	012A				 je	 @@MoveUp
+   1002	    076D  80 FC	50				 cmp	 ah, 50h		 ; DOWN
+   1003	    0770  0F 84	0115				 je	 @@MoveDown
+   1004	    0774  80 FC	44				 cmp	 ah, 44h		 ; F10
+   1005	    0777  0F 84	0153				 je	 @@DoCFG
+   1006	    077B  80 FC	4B				 cmp	 ah, 4bh		 ; Left
+   1007	    077E  74 08					 je	 @@TogleLeft
+   1008	    0780  80 FC	4D				 cmp	 ah, 4dh
+   1009	    0783  74 20					 je	 @@TogleRight		 ; Right
+   1010	    0785  E9 FF69				 jmp	 @@Wait_Again
+   1011	    0788				 @@TogleLeft:
+   1012	    0788  5A					 pop	 dx
+   1013	    0789  52					 push	 dx
+   1014	    078A  80 FE	07				 cmp	 dh, 7
+   1015	    078D  0F 84	00DF				 je	 @@TogleAuto
+   1016	    0791  80 FE	08				 cmp	 dh, 8
+   1017	    0794  74 38					 je	 @@TogleKeyDown
+   1018	    0796  80 FE	09				 cmp	 dh, 9
+   1019	    0799  0F 84	00AD				 je	 @@TogleTimeDown
+   1020	    079D  80 FE	0A				 cmp	 dh, 10
+   1021	    07A0  74 20					 je	 @@TogleStatLeft
+   1022	    07A2  E9 FF4C				 jmp	 @@Wait_Again
+   1023	    07A5				 @@TogleRight:
+   1024	    07A5  5A					 pop	 dx
+   1025	    07A6  52					 push	 dx
+   1026	    07A7  80 FE	07				 cmp	 dh, 7
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 19
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1027	    07AA  0F 84	00C2				 je	 @@TogleAuto
+   1028	    07AE  80 FE	08				 cmp	 dh, 8
+   1029	    07B1  74 47					 je	 @@TogleKeyUp
+   1030	    07B3  80 FE	09				 cmp	 dh, 9
+   1031	    07B6  0F 84	009E				 je	 @@TogleTimeUp
+   1032	    07BA  80 FE	0A				 cmp	 dh, 10
+   1033	    07BD  74 73					 je	 @@TogleStatRight
+   1034	    07BF  E9 FF2F				 jmp	 @@Wait_Again
+   1035	    07C2				 @@TogleStatLeft:
+   1036	    07C2  2E: A0 0C1Ar				 mov	 al, byte ptr cs:[PASSWORT_STATUS]
+   1037	    07C6  3C 00					 cmp	 al, 0
+   1038	    07C8  74 64					 je	 @@StatLast
+   1039	    07CA  FE C8					 dec	 al
+   1040	    07CC  EB 72					 jmp	 short @@SetStat
+   1041	    07CE				 @@TogleKeyDown:
+   1042							 ; 10.11.95: Die Taste kann nur	geÑndert werden, wenn Auto-
+   1043							 ;	     Start=Nein	ist.
+   1044	    07CE  2E: A1 0C01r				 mov	 ax, word ptr cs:[BOOTMAN_KEY]
+   1045	    07D2  3D FFFF				 cmp	 ax, 0ffffh
+   1046	    07D5  0F 84	FF18				 je	 @@Wait_Again
+   1047	    07D9  3C 01					 cmp	 al, 1
+   1048	    07DB  74 08					 je	 @@ExtDown
+   1049	    07DD  3C 00					 cmp	 al, 0
+   1050	    07DF  74 0A					 je	 @@check_ExtDown
+   1051	    07E1  D0 E8					 shr	 al, 1
+   1052	    07E3  EB 3F					 jmp	 short @@DoKey
+   1053	    07E5				 @@ExtDown:
+   1054	    07E5  B4 08					 mov	 ah, 8
+   1055	    07E7  B0 00					 mov	 al, 0
+   1056	    07E9  EB 39					 jmp	 short @@DoKey
+   1057	    07EB				 @@check_ExtDown:
+   1058	    07EB  80 FC	01				 cmp	 ah, 1
+   1059	    07EE  74 04					 je	 @@ShiftLast
+   1060	    07F0  D0 EC					 shr	 ah, 1
+   1061	    07F2  EB 30					 jmp	 short @@DoKey
+   1062	    07F4				 @@ShiftLast:
+   1063	    07F4  B0 02					 mov	 al, 2
+   1064	    07F6  B4 00					 mov	 ah, 0
+   1065	    07F8  EB 2A					 jmp	 short @@DoKey
+   1066	    07FA				 @@TogleKeyUp:
+   1067							 ; 10.11.95: Die Taste kann nur	geÑndert werden, wenn Auto-
+   1068							 ;	     Start=Nein	ist.
+   1069	    07FA  2E: A1 0C01r				 mov	 ax, word ptr cs:[BOOTMAN_KEY]
+   1070	    07FE  3D FFFF				 cmp	 ax, 0ffffh
+   1071	    0801  0F 84	FEEC				 je	 @@Wait_Again
+   1072	    0805  3C 02					 cmp	 al, 2
+   1073	    0807  74 17					 je	 @@ExtUp
+   1074	    0809  3C 00					 cmp	 al, 0
+   1075	    080B  74 04					 je	 @@check_ExtUp
+   1076	    080D  D0 E0					 shl	 al, 1
+   1077	    080F  EB 13					 jmp	 short @@DoKey
+   1078	    0811				 @@Check_extUp:
+   1079	    0811  80 FC	08				 cmp	 ah, 8
+   1080	    0814  74 04					 je	 @@ExtFirst
+   1081	    0816  D0 E4					 shl	 ah, 1
+   1082	    0818  EB 0A					 jmp	 short @@DoKey
+   1083	    081A				 @@ExtFirst:
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 20
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1084	    081A  B0 01					 mov	 al, 1
+   1085	    081C  B4 00					 mov	 ah, 0
+   1086	    081E  EB 04					 jmp	 short @@DoKey
+   1087	    0820				 @@ExtUp:
+   1088	    0820  B0 00					 mov	 al, 0
+   1089	    0822  B4 01					 mov	 ah, 1
+   1090	    0824				 @@DoKey:
+   1091	    0824  2E: A3 0C01r				 mov	 word ptr cs:[BOOTMAN_KEY], ax
+   1092	    0828  E8 00E0				 call	 SHOW_OPTS
+   1093	    082B  E9 FEC3				 jmp	 @@Wait_Again
+   1094	    082E				 @@StatLast:
+   1095	    082E  B0 02					 mov	 al, 2
+   1096	    0830  EB 0E					 jmp	 short @@SetStat
+   1097	    0832				 @@TogleStatRight:
+   1098	    0832  2E: A0 0C1Ar				 mov	 al, byte ptr cs:[PASSWORT_STATUS]
+   1099	    0836  3C 02					 cmp	 al, 2
+   1100	    0838  74 04					 je	 @@StatFirst
+   1101	    083A  FE C0					 inc	 al
+   1102	    083C  EB 02					 jmp	 short @@SetStat
+   1103	    083E				 @@StatFirst:
+   1104	    083E  32 C0					 xor	 al, al
+   1105	    0840				 @@SetStat:
+   1106	    0840  2E: A2 0C1Ar				 mov	 byte ptr cs:[PASSWORT_STATUS],	al
+   1107	    0844  E8 00C4				 call	 SHOW_OPTS
+   1108	    0847  E9 FEA7				 jmp	 @@Wait_Again
+   1109
+   1110	    084A				 @@TogleTimeDown:
+   1111	    084A  2E: A0 0C1Dr				 mov	 al, byte ptr cs:[PRIMARY_TIMEOUT]
+   1112	    084E  3C 00					 cmp	 al, 0
+   1113	    0850  0F 84	FE9D				 je	 @@Wait_Again
+   1114	    0854  FE C8					 dec	 al
+   1115	    0856  EB 0E					 jmp	 short @@SetTime
+   1116	    0858				 @@TogleTimeUp:
+   1117	    0858  2E: A0 0C1Dr				 mov	 al, byte ptr cs:[PRIMARY_TIMEOUT]
+   1118	    085C  3C 3C					 cmp	 al, 60
+   1119	    085E  0F 84	FE8F				 je	 @@Wait_Again
+   1120	    0862  FE C0					 inc	 al
+   1121	    0864  EB 00					 jmp	 short @@SetTime
+   1122	    0866				 @@SetTime:
+   1123	    0866  2E: A2 0C1Dr				 mov	 byte ptr cs:[PRIMARY_TIMEOUT],	al
+   1124	    086A  E8 009E				 call	 SHOW_OPTS
+   1125	    086D  E9 FE81				 jmp	 @@Wait_Again
+   1126	    0870				 @@TogleAuto:
+   1127	    0870  B8 0200				 mov	 ax, 0200h
+   1128	    0873  2E: 81 3E 0C01r FFFF			 cmp	 word ptr cs:[BOOTMAN_KEY], 0ffffh
+   1129	    087A  74 03					 je	 @@SetAuto
+   1130	    087C  B8 FFFF				 mov	 ax, 0ffffh
+   1131	    087F				 @@SetAuto:
+   1132	    087F  2E: A3 0C01r				 mov	 word ptr cs:[BOOTMAN_KEY], ax
+   1133	    0883  E8 0085				 call	 SHOW_OPTS
+   1134	    0886  E9 FE68				 jmp	 @@Wait_Again
+   1135	    0889				 @@MoveDown:
+   1136	    0889  5A					 pop	 dx
+   1137	    088A  80 FE	0B				 cmp	 dh, 11
+   1138	    088D  74 04					 je	 @@MoveFirst
+   1139	    088F  FE C6					 inc	 dh
+   1140	    0891  EB 10					 jmp	 short @@SetPos
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 21
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1141	    0893				 @@MoveFirst:
+   1142	    0893  B6 07					 mov	 dh, 7
+   1143	    0895  EB 0C					 jmp	 short @@SetPos
+   1144	    0897				 @@MoveUp:
+   1145	    0897  5A					 pop	 dx
+   1146	    0898  80 FE	07				 cmp	 dh, 7
+   1147	    089B  74 04					 je	 @@MoveLast
+   1148	    089D  FE CE					 dec	 dh
+   1149	    089F  EB 02					 jmp	 short @@SetPos
+   1150	    08A1				 @@MoveLast:
+   1151	    08A1  B6 0B					 mov	 dh, 11
+   1152	    08A3				 @@SetPos:
+   1153	    08A3  B2 2F					 mov	 dl, 47
+   1154	    08A5  80 FE	0B				 cmp	 dh, 11
+   1155	    08A8  74 04					 je	 @@CheckPassSize
+   1156	    08AA  52					 push	 dx
+   1157	    08AB  E9 FC9F				 jmp	 @@Wait_Loop
+   1158	    08AE				 @@CheckPassSize:
+   1159							 ; Mal sehen wie lang das Passwd ist und den Cursor ans	Ende
+   1160							 ; setzen...
+   1161	    08AE  BB 0C08r				 lea	 bx, cs:PASSWORT
+   1162	    08B1				 @@CheckLoop:
+   1163	    08B1  2E: 80 3F 24				 cmp	 byte ptr cs:[bx], '$'
+   1164	    08B5  74 05					 je	 @@CheckEnde
+   1165	    08B7  FE C2					 inc	 dl
+   1166	    08B9  43					 inc	 bx
+   1167	    08BA  EB F5					 jmp	 short @@CheckLoop
+   1168	    08BC				 @@CheckEnde:
+   1169	    08BC  2E: 80 7F 01 24			 cmp	 byte ptr cs:[bx+1], '$'
+   1170	    08C1  75 07					 jne	 @@IstEnde
+   1171	    08C3  83 C3	02				 add	 bx, 2
+   1172	    08C6  FE C2					 inc	 dl
+   1173	    08C8  EB E7					 jmp	 short @@CheckLoop
+   1174	    08CA				 @@IstEnde:
+   1175	    08CA  52					 push	 dx
+   1176	    08CB  E9 FC7F				 jmp	 @@Wait_Loop
+   1177	    08CE				 @@DoCfg:
+   1178	    08CE  E8 FA6E				 call	 WRITE_CFG
+   1179	    08D1  72 11					 jc	 @@CfgFail
+   1180	    08D3  B6 08					 mov	 dh, 8
+   1181	    08D5  B2 1D					 mov	 dl, 29
+   1182	    08D7  E8 0C92				 call	 set_curpos
+   1183	    08DA  BE 0D46r				 lea	 si, cs:MSG_1018
+   1184	    08DD  B4 70					 mov	 ah, 70h
+   1185	    08DF  E8 0C1C				 call	 PRINT
+   1186	    08E2  EB 0F					 jmp	 short @@WaitOK
+   1187	    08E4				 @@CfgFail:
+   1188	    08E4  B6 08					 mov	 dh, 8
+   1189	    08E6  B2 1F					 mov	 dl, 31
+   1190	    08E8  E8 0C81				 call	 set_curpos
+   1191	    08EB  BE 0D5Fr				 lea	 si, cs:MSG_1019
+   1192	    08EE  B4 70					 mov	 ah, 70h
+   1193	    08F0  E8 0C0B				 call	 PRINT
+   1194	    08F3				 @@WaitOK:
+   1195	    08F3  B6 0A					 mov	 dh, 10
+   1196	    08F5  B2 23					 mov	 dl, 35
+   1197	    08F7  E8 0C72				 call	 set_curpos
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 22
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1198	    08FA  BE 0D74r				 lea	 si, cs:MSG_1020
+   1199	    08FD  B4 74					 mov	 ah, 74h
+   1200	    08FF  E8 0BFC				 call	 PRINT
+   1201	    0902  33 C0					 xor	 ax, ax
+   1202	    0904  CD 16					 int	 16h
+   1203	    0906  5A					 pop	 dx
+   1204	    0907  E9 FBC1				 jmp	 @@Restart_BootMan
+   1205	    090A  C3					 ret
+   1206	    090B				 BOOTMAN_OPTS ENDP
+   1207
+   1208						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1209						 ; SHOW_OPTS: Updatet die Option auf dem Bildschirm (fÅr BOOTMAN_OPTS)
+   1210						 ; Input : -
+   1211						 ; Output: -
+   1212						 ;
+   1213	    090B				 SHOW_OPTS PROC	NEAR
+   1214	    090B  B6 07					 mov	 dh, 7
+   1215	    090D  B2 2F					 mov	 dl, 47
+   1216	    090F  E8 0C5A				 call	 set_curpos
+   1217							 ; Mal nach den	Daten sehen...
+   1218	    0912  B4 70					 mov	 ah, 70h
+   1219	    0914  81 3E	0C01r FFFF			 cmp	 word ptr ds:[BOOTMAN_KEY], 0FFFFh
+   1220	    091A  74 05					 je	 @@Anzeigen
+   1221	    091C  BE 0CABr				 lea	 si, cs:MSG_1006
+   1222	    091F  EB 03					 jmp	 short @@LookTaste
+   1223	    0921				 @@Anzeigen:
+   1224	    0921  BE 0CA6r				 lea	 si, cs:MSG_1005
+   1225	    0924				 @@LookTaste:
+   1226	    0924  E8 0BD7				 call	 PRINT
+   1227	    0927  B6 08					 mov	 dh, 8
+   1228	    0929  B2 2F					 mov	 dl, 47
+   1229	    092B  E8 0C3E				 call	 set_curpos
+   1230	    092E  B4 71					 mov	 ah, 71h
+   1231	    0930  2E: 81 3E 0C01r FFFF			 cmp	 word ptr cs:[BOOTMAN_KEY], 0ffffh
+   1232	    0937  74 2A					 je	 @@LeftAlt
+   1233	    0939  B4 70					 mov	 ah, 70h
+   1234	    093B  2E: 8B 1E 0C01r			 mov	 bx, word ptr cs:[BOOTMAN_KEY]
+   1235	    0940  F6 C3	02				 test	 bl, 2
+   1236	    0943  75 32					 jnz	 @@LeftShift
+   1237	    0945  F6 C3	01				 test	 bl, 1
+   1238	    0948  75 28					 jnz	 @@RightShift
+   1239	    094A  F6 C7	08				 test	 bh, 8
+   1240	    094D  75 0F					 jnz	 @@RightAlt
+   1241	    094F  F6 C7	04				 test	 bh, 4
+   1242	    0952  75 14					 jnz	 @@RightCtrl
+   1243	    0954  F6 C7	02				 test	 bh, 2
+   1244	    0957  75 0A					 jnz	 @@LeftAlt
+   1245	    0959  F6 C7	01				 test	 bh, 1
+   1246	    095C  75 0F					 jnz	 @@LeftCtrl
+   1247	    095E				 @@RightAlt:
+   1248	    095E  BE 0D06r				 lea	 si, cs:MSG_1011
+   1249	    0961  EB 17					 jmp	 short @@LookTime
+   1250	    0963				 @@LeftAlt:
+   1251	    0963  BE 0D0Er				 lea	 si, cs:MSG_1012
+   1252	    0966  EB 12					 jmp	 short @@LookTime
+   1253	    0968				 @@RightCtrl:
+   1254	    0968  BE 0D16r				 lea	 si, cs:MSG_1013
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 23
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1255	    096B  EB 0D					 jmp	 short @@LookTime
+   1256	    096D				 @@LeftCtrl:
+   1257	    096D  BE 0D1Er				 lea	 si, cs:MSG_1014
+   1258	    0970  EB 08					 jmp	 short @@LookTime
+   1259	    0972				 @@RightShift:
+   1260	    0972  BE 0D26r				 lea	 si, cs:MSG_1015
+   1261	    0975  EB 03					 jmp	 short @@LookTime
+   1262	    0977				 @@LeftShift:
+   1263	    0977  BE 0D2Er				 lea	 si, cs:MSG_1016
+   1264	    097A				 @@LookTime:
+   1265	    097A  E8 0B81				 call	 PRINT
+   1266	    097D  B6 09					 mov	 dh, 9
+   1267	    097F  B2 2F					 mov	 dl, 47
+   1268	    0981  E8 0BE8				 call	 set_curpos
+   1269	    0984  2E: 8A 1E 0C1Dr			 mov	 bl, byte ptr cs:[PRIMARY_TIMEOUT]
+   1270	    0989  80 FB	09				 cmp	 bl, 9
+   1271	    098C  7F 07					 jg	 @@LosWochos
+   1272	    098E  B4 70					 mov	 ah, 70h
+   1273	    0990  B0 20					 mov	 al, ' '
+   1274	    0992  E8 0B1F				 call	 PRINT_CHAR
+   1275	    0995				 @@LosWochos:
+   1276	    0995  2E: 8A 1E 0C1Dr			 mov	 bl, byte ptr cs:[PRIMARY_TIMEOUT]
+   1277	    099A  B4 70					 mov	 ah, 70h
+   1278	    099C  E8 0B71				 call	 PRINT_ZAHL
+   1279	    099F  B6 0A					 mov	 dh, 10
+   1280	    09A1  B2 2F					 mov	 dl, 47
+   1281	    09A3  E8 0BC6				 call	 set_curpos
+   1282	    09A6  2E: A0 0C1Ar				 mov	 al, byte ptr cs:[PASSWORT_STATUS]
+   1283	    09AA  3C 00					 cmp	 al, 0
+   1284	    09AC  74 0E					 je	 @@NixPass
+   1285	    09AE  3C 01					 cmp	 al, 1
+   1286	    09B0  74 05					 je	 @@PassOpts
+   1287	    09B2  BE 0DB3r				 lea	 si, cs:MSG_1024
+   1288	    09B5  EB 0A					 jmp	 short @@ShowStat
+   1289	    09B7				 @@PassOpts:
+   1290	    09B7  BE 0DA6r				 lea	 si, cs:MSG_1023
+   1291	    09BA  EB 05					 jmp	 short @@ShowStat
+   1292	    09BC				 @@NixPass:
+   1293	    09BC  BE 0D99r				 lea	 si, cs:MSG_1022
+   1294	    09BF  EB 00					 jmp	 short @@ShowStat
+   1295	    09C1				 @@ShowStat:
+   1296	    09C1  B4 70					 mov	 ah, 70h
+   1297	    09C3  E8 0B38				 call	 PRINT
+   1298	    09C6  B6 0B					 mov	 dh, 11
+   1299	    09C8  B2 2F					 mov	 dl, 47
+   1300	    09CA  E8 0B9F				 call	 set_curpos
+   1301	    09CD  B9 0008				 mov	 cx, 8
+   1302	    09D0  B4 70					 mov	 ah, 70h
+   1303	    09D2  B0 20					 mov	 al, ' '
+   1304	    09D4  E8 0B21				 call	 PRINT_LOOP
+   1305	    09D7  B6 0B					 mov	 dh, 11
+   1306	    09D9  B2 2F					 mov	 dl, 47
+   1307	    09DB  E8 0B8E				 call	 set_curpos
+   1308	    09DE  BE 0C08r				 lea	 si, cs:PASSWORT
+   1309	    09E1  B4 70					 mov	 ah, 70h
+   1310	    09E3  E8 0B18				 call	 PRINT
+   1311	    09E6  C3					 ret
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 24
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1312	    09E7				 SHOW_OPTS ENDP
+   1313
+   1314						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1315						 ; BUILD_SCREEN: Lîscht	den Bildschirm (das VRAM) und bringt die VOS/9
+   1316						 ;		 MenÅ-Optik zum	vorschein...
+   1317						 ; Input : -
+   1318						 ; Output: -
+   1319						 ;
+   1320	    09E7				 BUILD_SCREEN PROC NEAR
+   1321	    09E7  50 53	51 52				 push	 ax bx cx dx
+   1322	    09EB  E8 0C31				 call	 CLEAR
+   1323							 ; Mal die VOS/9 MenÅ Optik zum	vorschein bringen...
+   1324	    09EE  33 D2					 xor	 dx, dx		 ; Cursorpos 0,	0
+   1325	    09F0  E8 0B79				 call	 SET_CURPOS
+   1326	    09F3  B8 70DA				 mov	 ax, 70DAh
+   1327	    09F6  E8 0ABB				 call	 PRINT_CHAR
+   1328	    09F9  B8 70C4				 mov	 ax, 70C4h
+   1329	    09FC  B9 004E				 mov	 cx, 78
+   1330	    09FF  E8 0AF6				 call	 PRINT_LOOP
+   1331	    0A02  B8 70BF				 mov	 ax, 70BFh
+   1332	    0A05  E8 0AAC				 call	 PRINT_CHAR
+   1333	    0A08  B8 70B3				 mov	 ax, 70B3h
+   1334	    0A0B  E8 0AA6				 call	 PRINT_CHAR
+   1335	    0A0E  B8 7020				 mov	 ax, 7020h
+   1336	    0A11  B9 004E				 mov	 cx, 78
+   1337	    0A14  E8 0AE1				 call	 PRINT_LOOP
+   1338	    0A17  B8 70B3				 mov	 ax, 70B3h
+   1339	    0A1A  E8 0A97				 call	 PRINT_CHAR
+   1340	    0A1D  B8 70C0				 mov	 ax, 70C0h
+   1341	    0A20  E8 0A91				 call	 PRINT_CHAR
+   1342	    0A23  B8 70C4				 mov	 ax, 70C4h
+   1343	    0A26  B9 004E				 mov	 cx, 78
+   1344	    0A29  E8 0ACC				 call	 PRINT_LOOP
+   1345	    0A2C  B8 70D9				 mov	 ax, 70D9h
+   1346	    0A2F  E8 0A82				 call	 PRINT_CHAR
+   1347	    0A32  E8 0014				 call	 CLEAR_FRAME
+   1348	    0A35  B6 01					 mov	 dh, 1
+   1349	    0A37  B2 03					 mov	 dl, 3
+   1350	    0A39  E8 0B30				 call	 SET_CURPOS
+   1351	    0A3C  B4 70					 mov	 ah, 70h
+   1352	    0A3E  BE 0C1Er				 mov	 si, offset cs:MSG_0000
+   1353	    0A41  E8 0ABA				 call	 PRINT
+   1354	    0A44  5A 59	5B 58				 pop	 dx cx bx ax
+   1355	    0A48  C3					 ret
+   1356	    0A49				 BUILD_SCREEN ENDP
+   1357
+   1358						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1359						 ; CLEAR_FRAME:	Lîscht den beschreibbaren Ausschnitt
+   1360						 ;
+   1361						 ; Input : -
+   1362						 ; Output: -
+   1363						 ;
+   1364	    0A49				 CLEAR_FRAME PROC NEAR
+   1365	    0A49  50 53	51 52				 push	 ax bx cx dx
+   1366	    0A4D  33 D2					 xor	 dx, dx
+   1367	    0A4F  B6 03					 mov	 dh, 3
+   1368	    0A51  E8 0B18				 call	 SET_CURPOS
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 25
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1369	    0A54  B4 10					 mov	 ah, 10h
+   1370	    0A56  B0 20					 mov	 al, ' '
+   1371	    0A58  B9 06E0				 mov	 cx, 1760		 ; Zeichen zu lîschen
+   1372	    0A5B  E8 0A9A				 call	 PRINT_LOOP
+   1373	    0A5E  5A 59	5B 58				 pop	 dx cx bx ax
+   1374	    0A62  C3					 ret
+   1375	    0A63				 CLEAR_FRAME ENDP
+   1376
+   1377						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1378						 ; SHOW_INFO: Zeigt die	Funktionstastenbelegung
+   1379						 ; Input : SI =	Offset des Funktions-Strings/CS=Seg
+   1380						 ; Output: -
+   1381						 ;
+   1382	    0A63				 SHOW_INFO PROC	NEAR
+   1383	    0A63  56					 push	 si
+   1384	    0A64  B6 18					 mov	 dh, 24
+   1385	    0A66  B2 01					 mov	 dl, 1
+   1386	    0A68  E8 0B01				 call	 SET_CURPOS
+   1387
+   1388	    0A6B  B8 7020				 mov	 ax, 7020h
+   1389	    0A6E  B9 004E				 mov	 cx, 78
+   1390	    0A71  E8 0A84				 call	 PRINT_LOOP
+   1391	    0A74  5E					 pop	 si
+   1392
+   1393	    0A75  B6 18					 mov	 dh, 24
+   1394	    0A77  B2 02					 mov	 dl, 2
+   1395	    0A79  E8 0AF0				 call	 SET_CURPOS
+   1396
+   1397	    0A7C  B4 70					 mov	 ah, 70h
+   1398	    0A7E				 @@ShowLoop:
+   1399	    0A7E  2E: 8A 04				 mov	 al, cs:[si]
+   1400	    0A81  3C 5B					 cmp	 al, '['
+   1401	    0A83  74 0E					 je	 @@RedFollows
+   1402	    0A85  3C 5D					 cmp	 al, ']'
+   1403	    0A87  74 14					 je	 @@RedEnds
+   1404	    0A89  3C 24					 cmp	 al, '$'
+   1405	    0A8B  74 14					 je	 @@ShowEnds
+   1406	    0A8D				 @@NextInfo:
+   1407	    0A8D  E8 0A24				 call	 print_char
+   1408	    0A90  46					 inc	 si
+   1409	    0A91  EB EB					 jmp	 short @@ShowLoop
+   1410	    0A93				 @@RedFollows:
+   1411	    0A93  B4 70					 mov	 ah, 70h
+   1412	    0A95  E8 0A1C				 call	 print_char
+   1413	    0A98  B4 74					 mov	 ah, 74h
+   1414	    0A9A  46					 inc	 si
+   1415	    0A9B  EB E1					 jmp	 short @@ShowLoop
+   1416	    0A9D				 @@RedEnds:
+   1417	    0A9D  B4 70					 mov	 ah, 70h
+   1418	    0A9F  EB EC					 jmp	 short @@NextInfo
+   1419	    0AA1				 @@ShowEnds:
+   1420	    0AA1  C3					 ret
+   1421	    0AA2				 SHOW_INFO ENDP
+   1422
+   1423						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1424						 ; READ_SEKTORS: Liest einen Sektor oder mehrere Sektoren
+   1425						 ; Input : es:bx = seg/off Buffer
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 26
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1426						 ;	   cx =	SekZyl
+   1427						 ;	   dh =	HeadZyl
+   1428						 ;	   dl =	Laufwerk
+   1429						 ;	   al =	Anzahl Sektoren
+   1430						 ; Output: Carry 1 = Failed
+   1431						 ;
+   1432	    0AA2				 READ_SEKTORS PROC NEAR
+   1433	    0AA2  52					 push	 dx		 ; Alles sichern!
+   1434	    0AA3  51					 push	 cx
+   1435	    0AA4  50					 push	 ax
+   1436	    0AA5  06					 push	 es
+   1437	    0AA6  53					 push	 bx
+   1438	    0AA7  B0 16					 mov	 al, 22
+   1439	    0AA9  B4 07					 mov	 ah, 7
+   1440	    0AAB  B3 3C					 mov	 bl, 60
+   1441	    0AAD  B7 0C					 mov	 bh, 12
+   1442	    0AAF  E8 0AC7				 call	 DRAW_BOX
+   1443	    0AB2  B6 09					 mov	 dh, 9
+   1444	    0AB4  B2 22					 mov	 dl, 34
+   1445	    0AB6  E8 0AB3				 call	 set_curpos
+   1446	    0AB9  BE 0D36r				 lea	 si, ds:MSG_1017
+   1447	    0ABC  B4 74					 mov	 ah, 74h
+   1448	    0ABE  E8 0A3D				 call	 PRINT
+   1449	    0AC1  B6 0A					 mov	 dh, 10
+   1450	    0AC3  B2 29					 mov	 dl, 41
+   1451	    0AC5  E8 0AA4				 call	 set_curpos
+   1452	    0AC8  A0 0E2Dr				 mov	 al, byte ptr ds:[SYMBOLIC]
+   1453	    0ACB  B4 70					 mov	 ah, 70h
+   1454	    0ACD  E8 09E4				 call	 PRINT_CHAR
+   1455	    0AD0  5B					 pop	 bx
+   1456	    0AD1  07					 pop	 es
+   1457	    0AD2  58					 pop	 ax
+   1458	    0AD3  59					 pop	 cx
+   1459	    0AD4  5A					 pop	 dx
+   1460	    0AD5  66| 33 F6				 xor	 esi, esi	 ; Symbol 0 Aktiv
+   1461	    0AD8				 @@Read_Loop:
+   1462	    0AD8  50					 push	 ax
+   1463	    0AD9  E8 0C1D				 call	 READ
+   1464	    0ADC  72 54					 jc	 @@Failed
+   1465	    0ADE  58					 pop	 ax
+   1466	    0ADF  FE C8					 dec	 al
+   1467	    0AE1  3C 00					 cmp	 al, 0
+   1468	    0AE3  74 3C					 je	 @@IstOK
+   1469	    0AE5  8A E2					 mov	 ah, dl		 ; Laufwerk sichern
+   1470	    0AE7  53					 push	 bx		 ; Offset
+   1471	    0AE8  50					 push	 ax
+   1472	    0AE9  66| BB 00000001			 mov	 ebx, 1
+   1473	    0AEF  E8 0BA3				 call	 ADD_SEK
+   1474	    0AF2  58					 pop	 ax
+   1475	    0AF3  8A D4					 mov	 dl, ah		 ; Laufwerk zurÅck
+   1476	    0AF5  5B					 pop	 bx		 ; Offset ZurÅck
+   1477	    0AF6  83 FE	03				 cmp	 si, 3		 ; Wieder erstes Symbol
+   1478	    0AF9  74 03					 je	 @@First_Sym
+   1479	    0AFB  46					 inc	 si
+   1480	    0AFC  EB 02					 jmp	 short @@ShowSym
+   1481	    0AFE				 @@First_Sym:
+   1482	    0AFE  33 F6					 xor	 si, si
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 27
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1483	    0B00				 @@ShowSym:
+   1484	    0B00  06					 push	 es
+   1485	    0B01  53					 push	 bx
+   1486	    0B02  57					 push	 di
+   1487	    0B03  56					 push	 si
+   1488	    0B04  50					 push	 ax
+   1489	    0B05  51					 push	 cx
+   1490	    0B06  52					 push	 dx
+   1491	    0B07  B6 0A					 mov	 dh, 10
+   1492	    0B09  B2 29					 mov	 dl, 41
+   1493	    0B0B  E8 0A5E				 call	 set_curpos
+   1494	    0B0E  2E: 8A 84 0E2Dr			 mov	 al, byte ptr cs:[SYMBOLIC+si]
+   1495	    0B13  B4 70					 mov	 ah, 70h
+   1496	    0B15  E8 099C				 call	 PRINT_CHAR
+   1497	    0B18  5A					 pop	 dx
+   1498	    0B19  59					 pop	 cx
+   1499	    0B1A  58					 pop	 ax
+   1500	    0B1B  5E					 pop	 si
+   1501	    0B1C  5F					 pop	 di
+   1502	    0B1D  5B					 pop	 bx
+   1503	    0B1E  07					 pop	 es
+   1504	    0B1F  EB B7					 jmp	 @@Read_Loop
+   1505	    0B21				 @@IstOK:
+   1506							 ; Alles gelesen...
+   1507	    0B21  B6 09					 mov	 dh, 9
+   1508	    0B23  B2 22					 mov	 dl, 34
+   1509	    0B25  E8 0A44				 call	 set_curpos
+   1510	    0B28  BE 0D36r				 lea	 si, cs:MSG_1017
+   1511	    0B2B  B4 77					 mov	 ah, 77h
+   1512	    0B2D  E8 09CE				 call	 PRINT
+   1513	    0B30  F8					 clc
+   1514	    0B31  C3					 ret
+   1515	    0B32				 @@Failed:
+   1516	    0B32  B6 09					 mov	 dh, 9
+   1517	    0B34  B2 22					 mov	 dl, 34
+   1518	    0B36  E8 0A33				 call	 set_curpos
+   1519	    0B39  BE 0D36r				 lea	 si, cs:MSG_1017
+   1520	    0B3C  B4 77					 mov	 ah, 77h
+   1521	    0B3E  E8 09BD				 call	 PRINT
+   1522	    0B41  58					 pop	 ax
+   1523	    0B42  F9					 stc
+   1524	    0B43  C3					 ret
+   1525	    0B44				 READ_SEKTORS ENDP
+   1526
+   1527						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1528						 ; WRITE_SEKTORS: Schreibt einen Sektor	oder mehrere Sektoren
+   1529						 ; Input : es:bx = seg/off Buffer
+   1530						 ;	   cx =	SekZyl
+   1531						 ;	   dh =	HeadZyl
+   1532						 ;	   dl =	Laufwerk
+   1533						 ;	   al =	Anzahl Sektoren
+   1534						 ; Output: Carry 1 = Failed
+   1535						 ;
+   1536	    0B44				 WRITE_SEKTORS PROC NEAR
+   1537	    0B44  52					 push	 dx		 ; Alles sichern!
+   1538	    0B45  51					 push	 cx
+   1539	    0B46  50					 push	 ax
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 28
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1540	    0B47  06					 push	 es
+   1541	    0B48  53					 push	 bx
+   1542	    0B49  B0 16					 mov	 al, 22
+   1543	    0B4B  B4 07					 mov	 ah, 7
+   1544	    0B4D  B3 3C					 mov	 bl, 60
+   1545	    0B4F  B7 0C					 mov	 bh, 12
+   1546	    0B51  E8 0A25				 call	 DRAW_BOX
+   1547	    0B54  B6 09					 mov	 dh, 9
+   1548	    0B56  B2 22					 mov	 dl, 34
+   1549	    0B58  E8 0A11				 call	 set_curpos
+   1550	    0B5B  BE 0D36r				 lea	 si, ds:MSG_1017
+   1551	    0B5E  B4 74					 mov	 ah, 74h
+   1552	    0B60  E8 099B				 call	 PRINT
+   1553	    0B63  B6 0A					 mov	 dh, 10
+   1554	    0B65  B2 29					 mov	 dl, 41
+   1555	    0B67  E8 0A02				 call	 set_curpos
+   1556	    0B6A  A0 0E2Dr				 mov	 al, byte ptr ds:[SYMBOLIC]
+   1557	    0B6D  B4 70					 mov	 ah, 70h
+   1558	    0B6F  E8 0942				 call	 PRINT_CHAR
+   1559	    0B72  5B					 pop	 bx
+   1560	    0B73  07					 pop	 es
+   1561	    0B74  58					 pop	 ax
+   1562	    0B75  59					 pop	 cx
+   1563	    0B76  5A					 pop	 dx
+   1564	    0B77  66| 33 F6				 xor	 esi, esi	 ; Symbol 0 Aktiv
+   1565	    0B7A  66| BF 00000004			 mov	 edi, 4		 ; 4 Versuche
+   1566	    0B80				 @@Read_Loop:
+   1567	    0B80  50					 push	 ax
+   1568	    0B81  B8 0301				 mov	 ax, 0301h
+   1569	    0B84  CD 13					 int	 13h
+   1570	    0B86  72 57					 jc	 @@Failed
+   1571	    0B88  58					 pop	 ax
+   1572	    0B89  FE C8					 dec	 al
+   1573	    0B8B  3C 00					 cmp	 al, 0
+   1574	    0B8D  74 3F					 je	 @@IstOK
+   1575	    0B8F  8A E2					 mov	 ah, dl		 ; Laufwerk sichern
+   1576	    0B91  53					 push	 bx		 ; Offset
+   1577	    0B92  50					 push	 ax
+   1578	    0B93  66| BB 00000001			 mov	 ebx, 1
+   1579	    0B99  E8 0AF9				 call	 ADD_SEK
+   1580	    0B9C  58					 pop	 ax
+   1581	    0B9D  8A D4					 mov	 dl, ah		 ; Laufwerk zurÅck
+   1582	    0B9F  5B					 pop	 bx		 ; Offset ZurÅck
+   1583	    0BA0  81 C3	0200				 add	 bx, 200h
+   1584	    0BA4  83 FE	03				 cmp	 si, 3		 ; Wieder erstes Symbol
+   1585	    0BA7  74 03					 je	 @@First_Sym
+   1586	    0BA9  46					 inc	 si
+   1587	    0BAA  EB 02					 jmp	 short @@ShowSym
+   1588	    0BAC				 @@First_Sym:
+   1589	    0BAC  33 F6					 xor	 si, si
+   1590	    0BAE				 @@ShowSym:
+   1591	    0BAE  06					 push	 es
+   1592	    0BAF  53					 push	 bx
+   1593	    0BB0  57					 push	 di
+   1594	    0BB1  56					 push	 si
+   1595	    0BB2  50					 push	 ax
+   1596	    0BB3  51					 push	 cx
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 29
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1597	    0BB4  52					 push	 dx
+   1598	    0BB5  B6 0A					 mov	 dh, 10
+   1599	    0BB7  B2 29					 mov	 dl, 41
+   1600	    0BB9  E8 09B0				 call	 set_curpos
+   1601	    0BBC  8A 84	0E2Dr				 mov	 al, byte ptr ds:[SYMBOLIC+si]
+   1602	    0BC0  B4 70					 mov	 ah, 70h
+   1603	    0BC2  E8 08EF				 call	 PRINT_CHAR
+   1604	    0BC5  5A					 pop	 dx
+   1605	    0BC6  59					 pop	 cx
+   1606	    0BC7  58					 pop	 ax
+   1607	    0BC8  5E					 pop	 si
+   1608	    0BC9  5F					 pop	 di
+   1609	    0BCA  5B					 pop	 bx
+   1610	    0BCB  07					 pop	 es
+   1611	    0BCC  EB B2					 jmp	 @@Read_Loop
+   1612	    0BCE				 @@IstOK:
+   1613							 ; Alles gelesen...
+   1614	    0BCE  B6 09					 mov	 dh, 9
+   1615	    0BD0  B2 22					 mov	 dl, 34
+   1616	    0BD2  E8 0997				 call	 set_curpos
+   1617	    0BD5  BE 0D36r				 lea	 si, ds:MSG_1017
+   1618	    0BD8  B4 77					 mov	 ah, 77h
+   1619	    0BDA  E8 0921				 call	 PRINT
+   1620	    0BDD  F8					 clc
+   1621	    0BDE  C3					 ret
+   1622	    0BDF				 @@Failed:
+   1623	    0BDF  58					 pop	 ax
+   1624	    0BE0  4F					 dec	 di
+   1625	    0BE1  83 FF	00				 cmp	 di, 0
+   1626	    0BE4  75 9A					 jne	 @@Read_Loop
+   1627							 ; Fehler beim Lesen, ERR in ah
+   1628	    0BE6  B6 09					 mov	 dh, 9
+   1629	    0BE8  B2 22					 mov	 dl, 34
+   1630	    0BEA  E8 097F				 call	 set_curpos
+   1631	    0BED  BE 0D36r				 lea	 si, ds:MSG_1017
+   1632	    0BF0  B4 77					 mov	 ah, 77h
+   1633	    0BF2  E8 0909				 call	 PRINT
+   1634	    0BF5  F9					 stc
+   1635	    0BF6  C3					 ret
+   1636	    0BF7				 WRITE_SEKTORS ENDP
+   1637
+   1638						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1639
+   1640	    0BF7  00				 BOOT_DRIVE	 db	 0		 ; Start Laufwerk
+   1641	    0BF8  0000				 BOOTMAN_SEKZYL	 dw	 0		 ; Position des	Bootcodes
+   1642	    0BFA  00				 BOOTMAN_HEADZYL db	 0		 ; und dessen Grî·e in
+   1643	    0BFB  0000				 BOOTMAN_SEKS	 dw	 0		 ; Sektoren
+   1644
+   1645	    0BFD  00				 PRIMARY_DRIVE	 db	 0		 ; PrimÑr Laufwerk (Autoboot)
+   1646	    0BFE  0000				 PRIMARY_PART	 dw	 0		 ; PrimÑr Partition (Autoboot)
+   1647
+   1648	    0C00  00				 CURRENT_DRIVE	 db	 0		 ; Aktuelles Laufwerk
+   1649
+   1650	    0C01  0000				 BOOTMAN_KEY	 dw	 0		 ; Aufruf Taste
+   1651	    0C03  0000				 KEY_BACKUP	 dw	 0		 ; Kopie der Aufruf-Taste
+   1652
+   1653	    0C05  00				 BACKUP_DRIVE	 db	 0		 ; Kopie des OS/2 Laufwerks
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 30
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1654	    0C06  0000				 BACKUP_PART	 dw	 0		 ; Offset OS/2 Part
+   1655
+   1656	    0C08  24				 PASSWORT	 db	 '$'
+   1657	    0C09  08*(??)					 db	 8 dup (?);	 ; Passwort fÅr	Optionen/Start
+   1658	    0C11  24				 PASSINPUT	 db	 '$'
+   1659	    0C12  08*(??)					 db	 8 dup (?)	 ; Passwort Eingabe hierher
+   1660	    0C1A  00				 PASSWORT_STATUS db	 0h
+   1661											 ; 0 = Deaktiviert
+   1662											 ; 1 = bei Optionen
+   1663											 ; 2 = bei Start
+   1664
+   1665	    0C1B  0000				 TIMING		 dw	 0		 ; Zeiten fÅr Autoboot
+   1666	    0C1D  3C				 PRIMARY_TIMEOUT db	 60
+   1667
+   1668
+   1669						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1670
+   1671						 ; Systemtitel
+   1672	    0C1E  56 4F	53 2F 39 20 53+		 MSG_0000	 db	 'VOS/9	SYSTEM SELECT	  Version 1.0	  (c)(r) 1995 by MZ +
+   1673		  59 53	54 45 4D 20 53+	 Computer Systems$'
+   1674		  45 4C	45 43 54 20 20+
+   1675		  20 20	20 56 65 72 73+
+   1676		  69 6F	6E 20 31 2E 30+
+   1677		  20 20	20 20 20 28 63+
+   1678		  29 28	72 29 20 31 39+
+   1679		  39 35	20 62 79 20 4D+
+   1680		  5A 20	43 6F 6D 70 75+
+   1681		  74 65	72 20 53 79 73+
+   1682		  74 65	6D 73 24
+   1683
+   1684						 ; Systemtexte
+   1685	    0C69  4C 65	73 65 66 65 68+		 MSG_1002	 db	 'Lesefehler!$'
+   1686		  6C 65	72 21 24
+   1687	    0C75  53 63	68 72 65 69 62+		 MSG_1003	 db	 'Schreibfehler!$'
+   1688		  66 65	68 6C 65 72 21+
+   1689		  24
+   1690	    0C84  8E 6E	64 65 72 6E 20+		 MSG_1004	 db	 'éndern der System-Select Optionen$'
+   1691		  64 65	72 20 53 79 73+
+   1692		  74 65	6D 2D 53 65 6C+
+   1693		  65 63	74 20 4F 70 74+
+   1694		  69 6F	6E 65 6E 24
+   1695	    0CA6  4A 61	20 20 24		 MSG_1005	 db	 'Ja  $'
+   1696	    0CAB  4E 65	69 6E 24		 MSG_1006	 db	 'Nein$'
+   1697	    0CB0  53 65	6B 75 6E 64 65+		 MSG_1007	 db	 'Sekunde(n)$'
+   1698		  28 6E	29 24
+   1699	    0CBB  41 75	74 6F 6D 61 74+		 MSG_1008	 db	 'Automatisch Starten	: $'
+   1700		  69 73	63 68 20 53 74+
+   1701		  61 72	74 65 6E 20 20+
+   1702		  20 3A	20 24
+   1703	    0CD4  54 61	73 74 65 20 7A+		 MSG_1009	 db	 'Taste	zur Aktivierung	: $'
+   1704		  75 72	20 41 6B 74 69+
+   1705		  76 69	65 72 75 6E 67+
+   1706		  20 3A	20 24
+   1707	    0CED  5A 65	69 74 20 62 69+		 MSG_1010	 db	 'Zeit bis Autostart	: $'
+   1708		  73 20	41 75 74 6F 73+
+   1709		  74 61	72 74 20 20 20+
+   1710		  20 3A	20 24
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 31
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1711	    0D06  52 2D	41 6C 74 20 20+		 MSG_1011	 db	 'R-Alt	 $'
+   1712		  24
+   1713	    0D0E  4C 2D	41 6C 74 20 20+		 MSG_1012	 db	 'L-Alt	 $'
+   1714		  24
+   1715	    0D16  52 2D	43 74 72 6C 20+		 MSG_1013	 db	 'R-Ctrl $'
+   1716		  24
+   1717	    0D1E  4C 2D	43 74 72 6C 20+		 MSG_1014	 db	 'L-Ctrl $'
+   1718		  24
+   1719	    0D26  52 2D	53 68 69 66 74+		 MSG_1015	 db	 'R-Shift$'
+   1720		  24
+   1721	    0D2E  4C 2D	53 68 69 66 74+		 MSG_1016	 db	 'L-Shift$'
+   1722		  24
+   1723	    0D36  42 69	74 74 65 20 57+		 MSG_1017	 db	 'Bitte	Warten...$'
+   1724		  61 72	74 65 6E 2E 2E+
+   1725		  2E 24
+   1726	    0D46  4B 6F	6E 66 69 67 75+		 MSG_1018	 db	 'Konfiguration	gesichert.$'
+   1727		  72 61	74 69 6F 6E 20+
+   1728		  67 65	73 69 63 68 65+
+   1729		  72 74	2E 24
+   1730	    0D5F  46 65	68 6C 65 72 20+		 MSG_1019	 db	 'Fehler beim Sichern!$'
+   1731		  62 65	69 6D 20 53 69+
+   1732		  63 68	65 72 6E 21 24
+   1733	    0D74  20 20	20 20 3C 20 4F+		 MSG_1020	 db	 '    <	OK > $'
+   1734		  4B 20	3E 20 24
+   1735	    0D80  50 61	73 73 77 6F 72+		 MSG_1021	 db	 'Passwort Abfrage	: $'
+   1736		  74 20	41 62 66 72 61+
+   1737		  67 65	20 20 20 20 20+
+   1738		  20 3A	20 24
+   1739	    0D99  44 65	61 6B 74 69 76+		 MSG_1022	 db	 'Deaktiviert $'
+   1740		  69 65	72 74 20 24
+   1741	    0DA6  62 65	69 20 4F 70 74+		 MSG_1023	 db	 'bei Optionen$'
+   1742		  69 6F	6E 65 6E 24
+   1743	    0DB3  62 65	69 20 53 74 61+		 MSG_1024	 db	 'bei Start   $'
+   1744		  72 74	20 20 20 24
+   1745	    0DC0  50 61	73 73 77 6F 72+		 MSG_1025	 db	 'Passwort		: $'
+   1746		  74 20	20 20 20 20 20+
+   1747		  20 20	20 20 20 20 20+
+   1748		  20 3A	20 24
+   1749	    0DD9  50 41	53 53 57 4F 52+		 MSG_1026	 db	 'PASSWORT: $'
+   1750		  54 3A	20 24
+   1751	    0DE4  41 75	74 6F 73 74 61+		 MSG_1027	 db	 'Autostart$'
+   1752		  72 74	24
+   1753	    0DEE  69 6E	20 2D 20 20 20+		 MSG_1028	 db	 'in -	 Sekunden$'
+   1754		  53 65	6B 75 6E 64 65+
+   1755		  6E 24
+   1756	    0DFE  55 62	65 6B 61 6E 6E+		 MSG_1029	 db	 'Ubekannt - TYP $'
+   1757		  74 20	2D 20 54 59 50+
+   1758		  20 24
+   1759	    0E0E  46 65	73 74 70 6C 61+		 MSG_1030	 db	 'Festplatte $'
+   1760		  74 74	65 20 24
+   1761	    0E1A  3D 3E	24			 MSG_1031	 db	 '=>$'
+   1762	    0E1D  20 20	44 65 61 6B 74+		 MSG_1032	 db	 '  Deaktiviert	 $'
+   1763		  69 76	69 65 72 74 20+
+   1764		  20 24
+   1765
+   1766						 ; Zeichnugselemente, ...
+   1767	    0E2D  7C 2F	C4 5C DA BF C0+		 SYMBOLIC	 db	 '|/ƒ\⁄ø¿Ÿ≥ '
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 32
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1768		  D9 B3	20
+   1769
+   1770						 ; Statuszeilen
+   1771	    0E37  5B 45	53 43 5D 20 41+		 MSG_0001	 db	 '[ESC]	Abbruch	[DEL] Korrektur	[<=] OK$'
+   1772		  62 62	72 75 63 68 20+
+   1773		  5B 44	45 4C 5D 20 4B+
+   1774		  6F 72	72 65 6B 74 75+
+   1775		  72 20	5B 3C 3D 5D 20+
+   1776		  4F 4B	24
+   1777	    0E5D  20 20	5B 45 53 43 5D+		 MSG_0002	 db	 '  [ESC] Abbruch   [',1fh,'][',1eh,'] Feld WÑhlen  [<-][->]+
+   1778		  20 41	62 62 72 75 63+	 Auswahl   [F10] Speichern$'
+   1779		  68 20	20 20 5B 1F 5D+
+   1780		  5B 1E	5D 20 46 65 6C+
+   1781		  64 20	57 84 68 6C 65+
+   1782		  6E 20	20 5B 3C 2D 5D+
+   1783		  5B 2D	3E 5D 20 41 75+
+   1784		  73 77	61 68 6C 20 20+
+   1785		  20 5B	46 31 30 5D 20+
+   1786		  53 70	65 69 63 68 65+
+   1787		  72 6E	24
+   1788	    0EA6  5B 1F	5D 5B 1E 5D 20+		 MSG_0003	 db	 '[',1fh,'][',1eh,'] WÑhlen [<-][->] Festp. [F1] Hilfe [F2] +
+   1789		  57 84	68 6C 65 6E 20+	 éndern	[F3] Opt. [<=] Start$'
+   1790		  5B 3C	2D 5D 5B 2D 3E+
+   1791		  5D 20	46 65 73 74 70+
+   1792		  2E 20	5B 46 31 5D 20+
+   1793		  48 69	6C 66 65 20 5B+
+   1794		  46 32	5D 20 8E 6E 64+
+   1795		  65 72	6E 20 5B 46 33+
+   1796		  5D 20	4F 70 74 2E 20+
+   1797		  5B 3C	3D 5D 20 53 74+
+   1798		  61 72	74 24
+   1799
+   1800						 ; Hilfstexte
+   1801	    0EF0  41 55	54 4F 4D 41 54+		 HLP_1000	 db	 'AUTOMATISCH STARTEN:$'
+   1802		  49 53	43 48 20 53 54+
+   1803		  41 52	54 45 4E 3A 24
+   1804	    0F05  48 69	65 72 20 6B 94+		 HLP_1001	 db	 'Hier kînnen Sie Einstellen, ob SYSTEM-SELECT bei jedem    +
+   1805		  6E 6E	65 6E 20 53 69+	 Start erscheint.$'
+   1806		  65 20	45 69 6E 73 74+
+   1807		  65 6C	6C 65 6E 2C 20+
+   1808		  6F 62	20 53 59 53 54+
+   1809		  45 4D	2D 53 45 4C 45+
+   1810		  43 54	20 62 65 69 20+
+   1811		  6A 65	64 65 6D 20 53+
+   1812		  74 61	72 74 20 65 72+
+   1813		  73 63	68 65 69 6E 74+
+   1814		  2E 24
+   1815	    0F4D  4A 41	20 20 20 20 53+		 HLP_1002	 db	 'JA	SYSTEM-SELECT wird bei jedem Neustart des Systems   +
+   1816		  59 53	54 45 4D 2D 53+	 Aufgerufen.$'
+   1817		  45 4C	45 43 54 20 77+
+   1818		  69 72	64 20 62 65 69+
+   1819		  20 6A	65 64 65 6D 20+
+   1820		  4E 65	75 73 74 61 72+
+   1821		  74 20	64 65 73 20 53+
+   1822		  79 73	74 65 6D 73 20+
+   1823		  41 75	66 67 65 72 75+
+   1824		  66 65	6E 2E 24
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 33
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1825	    0F91  4E 45	49 4E 20 20 4E+		 HLP_1003	 db	 'NEIN	Nach einem Neustart erscheint SYSTEM-SELECT, wenn   +
+   1826		  61 63	68 20 65 69 6E+	 die TASTE ZUR$'
+   1827		  65 6D	20 4E 65 75 73+
+   1828		  74 61	72 74 20 65 72+
+   1829		  73 63	68 65 69 6E 74+
+   1830		  20 53	59 53 54 45 4D+
+   1831		  2D 53	45 4C 45 43 54+
+   1832		  2C 20	77 65 6E 6E 20+
+   1833		  64 69	65 20 54 41 53+
+   1834		  54 45	20 5A 55 52 24
+   1835	    0FD7  20 20	20 20 20 20 41+		 HLP_1004	 db	 '	AKTIVIERUNG gedrÅckt gehalten wird.$'
+   1836		  4B 54	49 56 49 45 52+
+   1837		  55 4E	47 20 67 65 64+
+   1838		  72 81	63 6B 74 20 67+
+   1839		  65 68	61 6C 74 65 6E+
+   1840		  20 77	69 72 64 2E 24
+   1841	    1001  54 41	53 54 45 20 5A+		 HLP_1005	 db	 'TASTE	ZUR AKTIVIERUNG:$'
+   1842		  55 52	20 41 4B 54 49+
+   1843		  56 49	45 52 55 4E 47+
+   1844		  3A 24
+   1845	    1018  57 65	6E 6E 20 53 69+		 HLP_1006	 db	 'Wenn Sie die gewÑhlte	Taste bei einem	Neustart gedrÅck    +
+   1846		  65 20	64 69 65 20 67+	 halten, wird $'
+   1847		  65 77	84 68 6C 74 65+
+   1848		  20 54	61 73 74 65 20+
+   1849		  62 65	69 20 65 69 6E+
+   1850		  65 6D	20 4E 65 75 73+
+   1851		  74 61	72 74 20 67 65+
+   1852		  64 72	81 63 6B 20 68+
+   1853		  61 6C	74 65 6E 2C 20+
+   1854		  77 69	72 64 20 24
+   1855	    105D  53 59	53 54 45 4D 2D+		 HLP_1007	 db	 'SYSTEM-SELECT	aufgerufen. Ansonsten wird da· von Ihnen    +
+   1856		  53 45	4C 45 43 54 20+	 eingestellte $'
+   1857		  61 75	66 67 65 72 75+
+   1858		  66 65	6E 2E 20 41 6E+
+   1859		  73 6F	6E 73 74 65 6E+
+   1860		  20 77	69 72 64 20 64+
+   1861		  61 E1	20 76 6F 6E 20+
+   1862		  49 68	6E 65 6E 20 65+
+   1863		  69 6E	67 65 73 74 65+
+   1864		  6C 6C	74 65 20 24
+   1865	    10A2  73 74	61 6E 64 61 72+		 HLP_1008	 db	 'standard Betriebssystem gestartet. Diese Option ist nur   +
+   1866		  64 20	42 65 74 72 69+	 dann aktiv, $'
+   1867		  65 62	73 73 79 73 74+
+   1868		  65 6D	20 67 65 73 74+
+   1869		  61 72	74 65 74 2E 20+
+   1870		  44 69	65 73 65 20 4F+
+   1871		  70 74	69 6F 6E 20 69+
+   1872		  73 74	20 6E 75 72 20+
+   1873		  64 61	6E 6E 20 61 6B+
+   1874		  74 69	76 2C 20 24
+   1875	    10E7  77 65	6E 6E 20 53 69+		 HLP_1009	 db	 'wenn Sie AUTOMATISCH-STARTEN auf NEIN	gestellt haben.$'
+   1876		  65 20	41 55 54 4F 4D+
+   1877		  41 54	49 53 43 48 2D+
+   1878		  53 54	41 52 54 45 4E+
+   1879		  20 61	75 66 20 4E 45+
+   1880		  49 4E	20 67 65 73 74+
+   1881		  65 6C	6C 74 20 68 61+
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 34
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1882		  62 65	6E 2E 24
+   1883	    111D  5A 45	49 54 20 42 49+		 HLP_1010	 db	 'ZEIT BIS AUTOSTART:$'
+   1884		  53 20	41 55 54 4F 53+
+   1885		  54 41	52 54 3A 24
+   1886	    1131  57 65	6E 6E 20 53 69+		 HLP_1011	 db	 'Wenn Sie AUTOMATISCH STARTEN auf JA gestellt haben, kînnen+
+   1887		  65 20	41 55 54 4F 4D+	 Sie hier die$'
+   1888		  41 54	49 53 43 48 20+
+   1889		  53 54	41 52 54 45 4E+
+   1890		  20 61	75 66 20 4A 41+
+   1891		  20 67	65 73 74 65 6C+
+   1892		  6C 74	20 68 61 62 65+
+   1893		  6E 2C	20 6B 94 6E 6E+
+   1894		  65 6E	20 53 69 65 20+
+   1895		  68 69	65 72 20 64 69+
+   1896		  65 24
+   1897	    1179  5A 65	69 74 73 70 61+		 HLP_1012	 db	 'Zeitspanne einstellen, in welcher Sie	ein anderes	    +
+   1898		  6E 6E	65 20 65 69 6E+	 Betriebssystem	wÑhlen$'
+   1899		  73 74	65 6C 6C 65 6E+
+   1900		  2C 20	69 6E 20 77 65+
+   1901		  6C 63	68 65 72 20 53+
+   1902		  69 65	20 65 69 6E 20+
+   1903		  61 6E	64 65 72 65 73+
+   1904		  20 42	65 74 72 69 65+
+   1905		  62 73	73 79 73 74 65+
+   1906		  6D 20	77 84 68 6C 65+
+   1907		  6E 24
+   1908	    11C1  6B 94	6E 6E 65 6E 2E+		 HLP_1013	 db	 'kînnen. Haben	Sie innerhalb dieser Zeit kein anderes	    +
+   1909		  20 48	61 62 65 6E 20+	 System	ausgewÑhlt,$'
+   1910		  53 69	65 20 69 6E 6E+
+   1911		  65 72	68 61 6C 62 20+
+   1912		  64 69	65 73 65 72 20+
+   1913		  5A 65	69 74 20 6B 65+
+   1914		  69 6E	20 61 6E 64 65+
+   1915		  72 65	73 20 53 79 73+
+   1916		  74 65	6D 20 61 75 73+
+   1917		  67 65	77 84 68 6C 74+
+   1918		  2C 24
+   1919	    1209  77 69	72 64 20 64 61+		 HLP_1014	 db	 'wird das standard System automatisch gestartet. WÑhlen Sie+
+   1920		  73 20	73 74 61 6E 64+	 0 Sekunden um$'
+   1921		  61 72	64 20 53 79 73+
+   1922		  74 65	6D 20 61 75 74+
+   1923		  6F 6D	61 74 69 73 63+
+   1924		  68 20	67 65 73 74 61+
+   1925		  72 74	65 74 2E 20 57+
+   1926		  84 68	6C 65 6E 20 53+
+   1927		  69 65	20 30 20 53 65+
+   1928		  6B 75	6E 64 65 6E 20+
+   1929		  75 6D	24
+   1930	    1252  64 69	65 73 65 20 46+		 HLP_1015	 db	 'diese	Funktion zu Deaktivieren.$'
+   1931		  75 6E	6B 74 69 6F 6E+
+   1932		  20 7A	75 20 44 65 61+
+   1933		  6B 74	69 76 69 65 72+
+   1934		  65 6E	2E 24
+   1935	    1272  50 41	53 53 57 4F 52+		 HLP_1016	 db	 'PASSWORT ABFRAGE:$'
+   1936		  54 20	41 42 46 52 41+
+   1937		  47 45	3A 24
+   1938	    1284  57 84	68 6C 65 6E 20+		 HLP_1017	 db	 'WÑhlen Sie ob/wann Sie ein Passwort verwenden	mîchten.$'
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 35
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1939		  53 69	65 20 6F 62 2F+
+   1940		  77 61	6E 6E 20 53 69+
+   1941		  65 20	65 69 6E 20 50+
+   1942		  61 73	73 77 6F 72 74+
+   1943		  20 76	65 72 77 65 6E+
+   1944		  64 65	6E 20 6D 94 63+
+   1945		  68 74	65 6E 2E 24
+   1946	    12BB  44 45	41 4B 54 49 56+		 HLP_1018	 db	 'DEAKTIVIERT	Die Passwortfunktion wird nicht	verwendet.$'
+   1947		  49 45	52 54 20 20 20+
+   1948		  44 69	65 20 50 61 73+
+   1949		  73 77	6F 72 74 66 75+
+   1950		  6E 6B	74 69 6F 6E 20+
+   1951		  77 69	72 64 20 6E 69+
+   1952		  63 68	74 20 76 65 72+
+   1953		  77 65	6E 64 65 74 2E+
+   1954		  24
+   1955	    12F4  42 45	49 20 4F 50 54+		 HLP_1019	 db	 'BEI OPTIONEN	Das Passwort wird nur bei Aufruf dieses	    +
+   1956		  49 4F	4E 45 4E 20 20+	 MenÅs verlangt.$'
+   1957		  44 61	73 20 50 61 73+
+   1958		  73 77	6F 72 74 20 77+
+   1959		  69 72	64 20 6E 75 72+
+   1960		  20 62	65 69 20 41 75+
+   1961		  66 72	75 66 20 64 69+
+   1962		  65 73	65 73 20 4D 65+
+   1963		  6E 81	73 20 76 65 72+
+   1964		  6C 61	6E 67 74 2E 24
+   1965	    133A  42 45	49 20 53 54 41+		 HLP_1020	 db	 'BEI START	Abfrage	des Passworts nach dem Starten von  +
+   1966		  52 54	20 20 20 20 20+	 SYSTEM-SELECT.$'
+   1967		  41 62	66 72 61 67 65+
+   1968		  20 64	65 73 20 50 61+
+   1969		  73 73	77 6F 72 74 73+
+   1970		  20 6E	61 63 68 20 64+
+   1971		  65 6D	20 53 74 61 72+
+   1972		  74 65	6E 20 76 6F 6E+
+   1973		  20 53	59 53 54 45 4D+
+   1974		  2D 53	45 4C 45 43 54+
+   1975		  2E 24
+   1976	    1382  50 41	53 53 57 4F 52+		 HLP_1021	 db	 'PASSWORT:$'
+   1977		  54 3A	24
+   1978	    138C  57 84	68 6C 65 6E 20+		 HLP_1022	 db	 'WÑhlen Sie bitte ein Passwort	fÅr den	unter PASSWORT	    +
+   1979		  53 69	65 20 62 69 74+	 ABFRAGE gewÑhlten$'
+   1980		  74 65	20 65 69 6E 20+
+   1981		  50 61	73 73 77 6F 72+
+   1982		  74 20	66 81 72 20 64+
+   1983		  65 6E	20 75 6E 74 65+
+   1984		  72 20	50 41 53 53 57+
+   1985		  4F 52	54 20 41 42 46+
+   1986		  52 41	47 45 20 67 65+
+   1987		  77 84	68 6C 74 65 6E+
+   1988		  24
+   1989	    13D3  42 65	72 65 69 63 68+		 HLP_1023	 db	 'Bereich (nur gÅltig wenn nicht Deaktiviert). Gro·- und    +
+   1990		  20 28	6E 75 72 20 67+	 Kleinschreibung$'
+   1991		  81 6C	74 69 67 20 77+
+   1992		  65 6E	6E 20 6E 69 63+
+   1993		  68 74	20 44 65 61 6B+
+   1994		  74 69	76 69 65 72 74+
+   1995		  29 2E	20 47 72 6F E1+
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 36
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   1996		  2D 20	75 6E 64 20 4B+
+   1997		  6C 65	69 6E 73 63 68+
+   1998		  72 65	69 62 75 6E 67+
+   1999		  24
+   2000	    141A  2C 20	73 6F 77 69 65+		 HLP_1024	 db	 ', sowie Leerzeichen werden beachtet. Das Passwort endet an+
+   2001		  20 4C	65 65 72 7A 65+	 der Stelle $'
+   2002		  69 63	68 65 6E 20 77+
+   2003		  65 72	64 65 6E 20 62+
+   2004		  65 61	63 68 74 65 74+
+   2005		  2E 20	44 61 73 20 50+
+   2006		  61 73	73 77 6F 72 74+
+   2007		  20 65	6E 64 65 74 20+
+   2008		  61 6E	20 64 65 72 20+
+   2009		  53 74	65 6C 6C 65 20+
+   2010		  24
+   2011	    1461  64 65	73 20 43 75 72+		 HLP_1025	 db	 'des Cursors. Maximal sind 8 Zeichen/Sonderzeichen mîglich.+
+   2012		  73 6F	72 73 2E 20 4D+	 $'
+   2013		  61 78	69 6D 61 6C 20+
+   2014		  73 69	6E 64 20 38 20+
+   2015		  5A 65	69 63 68 65 6E+
+   2016		  2F 53	6F 6E 64 65 72+
+   2017		  7A 65	69 63 68 65 6E+
+   2018		  20 6D	94 67 6C 69 63+
+   2019		  68 2E	20 24
+   2020
+   2021						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   2022
+   2023						 include ..\bios\vio.inc		 ; BIOS	Video Funktionen
+1  2024					 ;	 Project	 VOS/9
+1  2025					 ;	 File name	 VIO.INC	 18.11.1995
+1  2026					 ;	 File type	 Include
+1  2027					 ;
+1  2028					 ;	 (c)(r)	1995 by	MZ Computer Systems
+1  2029					 ;
+1  2030					 ;	 Version	 Gamma		 18.11.1995
+1  2031					 ;	 Release	 0		 18.11.1995
+1  2032					 ;
+1  2033					 ;	 Autor		 Marcus	Zoller
+1  2034					 ;
+1  2035					 ;	 Description	 Video I/O Funktionen fÅr den Realmode/V86
+1  2036					 ;
+1  2037					 ;	 Includes	 -
+1  2038					 ;	 Link Objects	 -
+1  2039					 ;
+1  2040					 ;	 CPU Type	 x86
+1  2041					 ;	 CPU Mode	 Real/V86
+1  2042					 ;
+1  2043					 ;	 Functions Used	 System	BIOS, Video BIOS
+1  2044					 ;
+1  2045					 ;	 Bugfix	List ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2046					 ;
+1  2047					 ;	 Release Comments ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2048					 ;
+1  2049					 ;	 Function Ref ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2050					 ;
+1  2051					 ;	 GET_ADDR_VRAM	 : Liefert VRAM	Seg.-Adresse in	bx zurÅck
+1  2052					 ;	 PRINT_CHAR	 : Ausgabe eines Zeichens in AL, AH=Farb Attr.
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 37
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2053					 ;	 PRINT_LOOP	 : Wiederholt Zeichen CX mal (AL, AH)
+1  2054					 ;	 PRINT_ZAHL	 : Ausgabe einer 8Bit Zahl, AH=Farbe, BL=Zahl
+1  2055					 ;	 PRINT		 : Ausgabe eines Strings, ds:si	= String, ah=Farb Attr.
+1  2056					 ;	 SET_CURPOS	 : Setzen der Cursor Position, dh=y, dl=x
+1  2057					 ;	 CLEAR		 : Lîscht den Bildschirm
+1  2058					 ;	 DRAW_BOX	 : Zeichnet Kasten, AL=X1, AH=Y1, BL=X2, BH=Y2
+1  2059					 ;
+1  2060
+1  2061						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2062						 ; GET_ADDR_VRAM: Liefert VRAM Seg.-Addr. zurÅck
+1  2063						 ; Input :
+1  2064						 ; Output: BX =	Seg.-Addr.
+1  2065						 ;
+1  2066	    149D				 GET_ADDR_VRAM	 PROC NEAR
+1  2067	    149D  50					 push	 ax
+1  2068	    149E  B4 0F					 mov	 ah, 0fh		 ; Get Current Video State
+1  2069	    14A0  CD 10					 int	 10h
+1  2070							 ; AL =	Video Mode, AH=Nr. of columns, BH=Active Page
+1  2071	    14A2  D0 E0					 shl	 al, 1
+1  2072	    14A4  D0 E8					 shr	 al, 1
+1  2073	    14A6  3C 07					 cmp	 al, 7
+1  2074	    14A8  74 05					 je	 short @@IsMono
+1  2075	    14AA  BB B800				 mov	 bx, 0B800h
+1  2076	    14AD  EB 03					 jmp	 short SetVideo
+1  2077	    14AF				 @@IsMono:
+1  2078	    14AF  BB B000				 mov	 bx, 0B000h
+1  2079	    14B2				 SetVideo:
+1  2080	    14B2  58					 pop	 ax
+1  2081	    14B3  C3					 ret
+1  2082	    14B4				 GET_ADDR_VRAM	 ENDP
+1  2083
+1  2084						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2085						 ; PRINT_CHAR: Gibt ein	Zeichen	direkt in das VRAM aus...
+1  2086						 ; Input : AH =	Farb-Attribut
+1  2087						 ;	   AL =	Zeichen	(ASC-II	Code)
+1  2088						 ; Output: -
+1  2089						 ;
+1  2090	    14B4				 PRINT_CHAR PROC NEAR
+1  2091	    14B4  06 50	53 51 52			 push	 es ax bx cx dx
+1  2092	    14B9  50					 push	 ax
+1  2093	    14BA  E8 FFE0				 call	 GET_ADDR_VRAM
+1  2094	    14BD  8E C3					 mov	 es, bx
+1  2095	    14BF  B4 03					 mov	 ah, 3
+1  2096	    14C1  32 FF					 xor	 bh, bh
+1  2097	    14C3  CD 10					 int	 10h
+1  2098	    14C5  8A EE					 mov	 ch, dh
+1  2099	    14C7  8A CA					 mov	 cl, dl
+1  2100	    14C9  80 FA	4F				 cmp	 dl, 79
+1  2101	    14CC  74 04					 je	 @@DataNext
+1  2102	    14CE  FE C2					 inc	 dl
+1  2103	    14D0  EB 04					 jmp	 short @@DataOK
+1  2104	    14D2				 @@DataNext:
+1  2105	    14D2  B2 00					 mov	 dl, 0
+1  2106	    14D4  FE C6					 inc	 dh
+1  2107	    14D6				 @@DataOK:
+1  2108	    14D6  51					 push	 cx
+1  2109	    14D7  32 FF					 xor	 bh, bh
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 38
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2110	    14D9  B4 02					 mov	 ah, 2h
+1  2111	    14DB  CD 10					 int	 10h
+1  2112	    14DD  59					 pop	 cx
+1  2113	    14DE  0F B6	D9				 movzx	 bx, cl
+1  2114	    14E1  03 DB					 add	 bx, bx		 ; X-Offset (Spalte * 2)
+1  2115	    14E3  0F B6	C5				 movzx	 ax, ch
+1  2116	    14E6  B9 00A0				 mov	 cx, 160	 ; Y-Offset (Zeile * 160)
+1  2117	    14E9  F7 E1					 mul	 cx
+1  2118	    14EB  03 C3					 add	 ax, bx
+1  2119	    14ED  8B F8					 mov	 di, ax
+1  2120	    14EF  58					 pop	 ax
+1  2121	    14F0  FC					 cld
+1  2122	    14F1  AB					 stosw
+1  2123	    14F2  5A 59	5B 58 07			 pop	 dx cx bx ax es
+1  2124	    14F7  C3					 ret
+1  2125	    14F8				 PRINT_CHAR ENDP
+1  2126
+1  2127						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2128						 ; PRINT_LOOP: Wiederholt die Ausgabe eines Zeichens
+1  2129						 ; Input : AH =	Farb-Attribut
+1  2130						 ;	   AL =	Zeichen
+1  2131						 ;	   CX =	Anzahl Wiederholungen
+1  2132						 ;
+1  2133	    14F8				 PRINT_LOOP PROC NEAR
+1  2134	    14F8				 @@plp:
+1  2135	    14F8  E8 FFB9				 call	 PRINT_CHAR
+1  2136	    14FB  E2 FB					 loop	 @@plp
+1  2137	    14FD  C3					 ret
+1  2138	    14FE				 PRINT_LOOP ENDP
+1  2139
+1  2140						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2141						 ; PRINT: Ausgabe eines	Strings	direkt ins VRAM
+1  2142						 ; Input : SI =	Offset des Strings /DS=Seg
+1  2143						 ;	   AH =	Farb-Attribut
+1  2144						 ; Output: -
+1  2145						 ;
+1  2146	    14FE				 PRINT PROC NEAR
+1  2147	    14FE  50 56					 push	 ax si
+1  2148	    1500				 @@pnull:
+1  2149	    1500  2E: 8A 04				 mov	 al, byte ptr cs:[si]
+1  2150	    1503  3C 24					 cmp	 al, '$'
+1  2151	    1505  74 06					 je	 @@ende
+1  2152	    1507  E8 FFAA				 call	 PRINT_CHAR
+1  2153	    150A  46					 inc	 si
+1  2154	    150B  EB F3					 jmp	 short @@pnull
+1  2155	    150D				 @@ende:
+1  2156	    150D  5E 58					 pop	 si ax
+1  2157	    150F  C3					 ret
+1  2158	    1510				 PRINT ENDP
+1  2159
+1  2160						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2161						 ; PRINT_ZAHL: Gibt eine Zahl aus - so siehts aus!
+1  2162						 ; Input : bl =	8 Bit Zahl, ah =Farbe
+1  2163						 ; Output: -
+1  2164						 ;
+1  2165	    1510				 PRINT_ZAHL PROC NEAR
+1  2166	    1510  50 53	51 52				 push	 ax bx cx dx
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 39
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2167
+1  2168	    1514  80 FB	C8				 cmp	 bl, 0C8h
+1  2169	    1517  72 0C					 jb	 @@kleiner200
+1  2170	    1519  B0 32					 mov	 al, 32h	 ;2
+1  2171	    151B  53					 push	 bx
+1  2172	    151C  E8 FF95				 call	 print_char
+1  2173	    151F  5B					 pop	 bx
+1  2174	    1520  80 EB	C8				 sub	 bl, 200
+1  2175	    1523  EB 0F					 jmp	 short @@StelleB
+1  2176	    1525				 @@kleiner200:
+1  2177	    1525  80 FB	64				 cmp	 bl, 64h
+1  2178	    1528  72 0A					 jb	 @@StelleB
+1  2179	    152A  B0 31					 mov	 al, 31h
+1  2180	    152C  53					 push	 bx
+1  2181	    152D  E8 FF84				 call	 print_char
+1  2182	    1530  5B					 pop	 bx
+1  2183	    1531  80 EB	64				 sub	 bl, 100
+1  2184	    1534				 @@StelleB:
+1  2185	    1534  80 FB	0A				 cmp	 bl, 10
+1  2186	    1537  72 27					 jb	 @@StelleC
+1  2187	    1539  53					 push	 bx
+1  2188	    153A  8A EC					 mov	 ch, ah
+1  2189	    153C  0F B6	C3				 movzx	 ax, bl
+1  2190	    153F  BB 000A				 mov	 bx, 10
+1  2191	    1542  33 D2					 xor	 dx, dx
+1  2192	    1544  F7 F3					 div	 bx
+1  2193	    1546  05 0030				 add	 ax, 30h
+1  2194	    1549  8A E5					 mov	 ah, ch
+1  2195	    154B  E8 FF66				 call	 print_char
+1  2196	    154E  2C 30					 sub	 al, 30h
+1  2197	    1550  8A EC					 mov	 ch, ah
+1  2198	    1552  32 E4					 xor	 ah, ah
+1  2199	    1554  BB 000A				 mov	 bx, 10
+1  2200	    1557  33 D2					 xor	 dx, dx
+1  2201	    1559  F7 E3					 mul	 bx
+1  2202	    155B  5B					 pop	 bx
+1  2203	    155C  2B D8					 sub	 bx, ax
+1  2204	    155E  8A E5					 mov	 ah, ch
+1  2205	    1560				 @@StelleC:
+1  2206	    1560  8A C3					 mov	 al, bl
+1  2207	    1562  04 30					 add	 al, 30h
+1  2208	    1564  E8 FF4D				 call	 print_char
+1  2209
+1  2210	    1567  5A 59	5B 58				 pop	 dx cx bx ax
+1  2211	    156B  C3					 ret
+1  2212	    156C				 PRINT_ZAHL ENDP
+1  2213
+1  2214						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2215						 ; SET_CURPOS: Setzt die aktuelle position des Cursors
+1  2216						 ; Input : DH =	Y
+1  2217						 ;	   DL =	X
+1  2218						 ; Output: -
+1  2219						 ;
+1  2220	    156C				 SET_CURPOS PROC NEAR
+1  2221	    156C  50 53	52				 push	 ax bx dx
+1  2222	    156F  32 FF					 xor	 bh, bh
+1  2223	    1571  B4 02					 mov	 ah, 2
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 40
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2224	    1573  CD 10					 int	 10h
+1  2225	    1575  5A 5B	58				 pop	 dx bx ax
+1  2226	    1578  C3					 ret
+1  2227	    1579				 SET_CURPOS ENDP
+1  2228
+1  2229						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2230						 ; DRAW_BOX: Zeichnet ein Kasten
+1  2231						 ; Input : al =	X1, ah = Y1
+1  2232						 ;	   bl =	X2, bh = Y2
+1  2233						 ; Output: -
+1  2234						 ;
+1  2235	    1579				 DRAW_BOX PROC NEAR
+1  2236	    1579  50 53	51 52				 push	 ax bx cx dx
+1  2237	    157D  50					 push	 ax
+1  2238	    157E  53					 push	 bx
+1  2239	    157F  8A F4					 mov	 dh, ah
+1  2240	    1581  8A D0					 mov	 dl, al
+1  2241	    1583  E8 FFE6				 call	 set_curpos
+1  2242	    1586  B0 DA					 mov	 al, '⁄'
+1  2243	    1588  B4 71					 mov	 ah, 71h	 ; Blau	auf wei·
+1  2244	    158A  E8 FF27				 call	 print_char
+1  2245							 ; Nun brauchen	wir X2-X1
+1  2246	    158D  5B					 pop	 bx
+1  2247	    158E  58					 pop	 ax
+1  2248	    158F  33 C9					 xor	 cx, cx
+1  2249	    1591  8A CB					 mov	 cl, bl
+1  2250	    1593  2A C8					 sub	 cl, al
+1  2251	    1595  80 E9	02				 sub	 cl, 2
+1  2252	    1598  50					 push	 ax
+1  2253	    1599  53					 push	 bx
+1  2254	    159A  B0 C4					 mov	 al, 'ƒ'
+1  2255	    159C  B4 71					 mov	 ah, 71h
+1  2256	    159E  E8 FF57				 call	 PRINT_LOOP
+1  2257	    15A1  B0 BF					 mov	 al, 'ø'
+1  2258	    15A3  B4 71					 mov	 ah, 71h
+1  2259	    15A5  E8 FF0C				 call	 PRINT_char		 ; !! OHOH
+1  2260							 ; Nun brauchen	wir Y2-Y1
+1  2261	    15A8  5B					 pop	 bx
+1  2262	    15A9  58					 pop	 ax
+1  2263	    15AA  33 C9					 xor	 cx, cx
+1  2264	    15AC  8A CF					 mov	 cl, bh
+1  2265	    15AE  2A CC					 sub	 cl, ah
+1  2266	    15B0  80 E9	01				 sub	 cl, 1		 ; Anzahl Zeilen zu zeichen
+1  2267	    15B3  8A F4					 mov	 dh, ah		 ; Start X
+1  2268	    15B5  FE C6					 inc	 dh		 ; Erste Zeile
+1  2269	    15B7  8A D0					 mov	 dl, al
+1  2270	    15B9				 @@DrawBody:
+1  2271	    15B9  51					 push	 cx
+1  2272	    15BA  52					 push	 dx
+1  2273	    15BB  50					 push	 ax
+1  2274	    15BC  53					 push	 bx
+1  2275	    15BD  E8 FFAC				 call	 set_curpos
+1  2276	    15C0  B0 B3					 mov	 al, '≥'
+1  2277	    15C2  B4 71					 mov	 ah, 71h
+1  2278	    15C4  E8 FEED				 call	 PRINT_CHAR
+1  2279	    15C7  5B					 pop	 bx
+1  2280	    15C8  58					 pop	 ax
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 41
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2281	    15C9  33 C9					 xor	 cx, cx
+1  2282	    15CB  8A CB					 mov	 cl, bl
+1  2283	    15CD  2A C8					 sub	 cl, al
+1  2284	    15CF  80 E9	02				 sub	 cl, 2
+1  2285	    15D2  50					 push	 ax
+1  2286	    15D3  53					 push	 bx
+1  2287	    15D4  B0 20					 mov	 al, ' '
+1  2288	    15D6  B4 71					 mov	 ah, 71h
+1  2289	    15D8  E8 FF1D				 call	 PRINT_LOOP
+1  2290	    15DB  B0 B3					 mov	 al, '≥'
+1  2291	    15DD  B4 71					 mov	 ah, 71h
+1  2292	    15DF  E8 FED2				 call	 PRINT_CHAR
+1  2293	    15E2  5B					 pop	 bx
+1  2294	    15E3  58					 pop	 ax
+1  2295	    15E4  5A					 pop	 dx
+1  2296	    15E5  59					 pop	 cx
+1  2297	    15E6  FE C6					 inc	 dh	 ; NÑchste Zeile
+1  2298	    15E8  FE C9					 dec	 cl
+1  2299	    15EA  80 F9	00				 cmp	 cl, 0
+1  2300	    15ED  74 02					 je	 @@SoweitOK
+1  2301	    15EF  EB C8					 jmp	 short @@DrawBody
+1  2302	    15F1				 @@SoweitOK:
+1  2303	    15F1  50					 push	 ax
+1  2304	    15F2  53					 push	 bx
+1  2305	    15F3  8A F7					 mov	 dh, bh
+1  2306	    15F5  8A D0					 mov	 dl, al
+1  2307	    15F7  E8 FF72				 call	 set_curpos
+1  2308	    15FA  B0 C0					 mov	 al, '¿'
+1  2309	    15FC  B4 71					 mov	 ah, 71h	 ; Blau	auf wei·
+1  2310	    15FE  E8 FEB3				 call	 print_char
+1  2311							 ; Nun brauchen	wir X2-X1
+1  2312	    1601  5B					 pop	 bx
+1  2313	    1602  58					 pop	 ax
+1  2314	    1603  33 C9					 xor	 cx, cx
+1  2315	    1605  8A CB					 mov	 cl, bl
+1  2316	    1607  2A C8					 sub	 cl, al
+1  2317	    1609  80 E9	02				 sub	 cl, 2
+1  2318	    160C  B0 C4					 mov	 al, 'ƒ'
+1  2319	    160E  B4 71					 mov	 ah, 71h
+1  2320	    1610  E8 FEE5				 call	 PRINT_LOOP
+1  2321	    1613  B0 D9					 mov	 al, 'Ÿ'
+1  2322	    1615  B4 71					 mov	 ah, 71h
+1  2323	    1617  E8 FE9A				 call	 PRINT_char
+1  2324	    161A  5A 59	5B 58				 pop	 dx cx bx ax
+1  2325	    161E  C3					 ret
+1  2326	    161F				 DRAW_BOX ENDP
+1  2327
+1  2328						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2329						 ; CLEAR: Lîscht den Bildschirm	und setzt Cursor oben links
+1  2330						 ; Input : -
+1  2331						 ; Output: -
+1  2332						 ;
+1  2333	    161F				 CLEAR PROC NEAR	 ; <-Alles was sich Reimt ist gut!
+1  2334	    161F  50 51	52				 push	 ax cx dx
+1  2335	    1622  33 D2					 xor	 dx, dx
+1  2336	    1624  E8 FF45				 call	 set_curpos
+1  2337							 ; Bildschrim Lîschen!
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 42
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2338	    1627  B9 07D0				 mov	 cx, 2000
+1  2339	    162A  B4 07					 mov	 ah, 7h
+1  2340	    162C  B0 20					 mov	 al, ' '
+1  2341	    162E  E8 FEC7				 call	 PRINT_LOOP
+1  2342	    1631  33 D2					 xor	 dx, dx
+1  2343	    1633  E8 FF36				 call	 set_curpos
+1  2344	    1636  5A 59	58				 pop	 dx cx ax
+1  2345	    1639  C3					 ret
+1  2346	    163A				 CLEAR ENDP
+1  2347
+   2348						 include ..\bios\strg.inc		 ; String Bearbeitung
+1  2349					 ;	 Project	 VOS/9
+1  2350					 ;	 File name	 STRG.INC		 21.11.1995
+1  2351					 ;	 File type	 Include
+1  2352					 ;
+1  2353					 ;	 (c)(r)	1995 by	MZ Computer Systems
+1  2354					 ;
+1  2355					 ;	 Version	 Gamma		 21.11.1995
+1  2356					 ;	 Release	 0		 21.11.1995
+1  2357					 ;
+1  2358					 ;	 Autor		 Marcus	Zoller
+1  2359					 ;
+1  2360					 ;	 Description	 String	Funktionen
+1  2361					 ;
+1  2362					 ;	 Includes	 -
+1  2363					 ;	 Link Objects	 -
+1  2364					 ;
+1  2365					 ;	 CPU Type	 x86
+1  2366					 ;	 CPU Mode	 Real/V86
+1  2367					 ;
+1  2368					 ;	 Functions Used	 -
+1  2369					 ;
+1  2370					 ;	 Bugfix	List ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2371					 ;
+1  2372					 ;	 Release Comments ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2373					 ;
+1  2374					 ;	 Function Ref ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2375					 ;
+1  2376					 ;	 COMPARE	 : Vergleicht zwei Null-Terminierte Strings
+1  2377					 ;			   CF =	1 wenn gleich, String =	cs:si, cs:di
+1  2378					 ;	 GET_SIZE	 : Liefert die grî·e eines Strings ds:si in cx zurÅck
+1  2379					 ;
+1  2380						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2381						 ; COMPARE: Vergleicht zwei Strings
+1  2382						 ; Input : cs:si = String A, cs:di = String B
+1  2383						 ; Output: CF=1	wenn gleich
+1  2384						 ;
+1  2385	    163A				 COMPARE PROC NEAR
+1  2386	    163A  50 56	57				 push	 ax si di
+1  2387	    163D				 @@TestGleich:
+1  2388	    163D  2E: 8A 04				 mov	 al, byte ptr cs:[si]
+1  2389	    1640  2E: 38 05				 cmp	 byte ptr cs:[di], al
+1  2390	    1643  75 0B					 jne	 @@NixGleich
+1  2391	    1645  46					 inc	 si
+1  2392	    1646  47					 inc	 di
+1  2393	    1647  3C 24					 cmp	 al, '$'
+1  2394	    1649  75 F2					 jne	 @@TestGleich
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 43
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2395	    164B  5F 5E	58				 pop	 di si ax
+1  2396	    164E  F9					 stc				 ; Gleich!
+1  2397	    164F  C3					 ret
+1  2398	    1650				 @@NixGleich:
+1  2399	    1650  5F 5E	58				 pop	 di si ax
+1  2400	    1653  F8					 clc				 ; Nicht gleich!
+1  2401	    1654  C3					 ret
+1  2402	    1655				 COMPARE ENDP
+1  2403
+1  2404						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2405						 ; GET_SIZE: Liefert die Grî·e eines Strings in	Bytes zurÅck
+1  2406						 ; Input : ds:si = String
+1  2407						 ; Output: cx =	Anzahl Bytes
+1  2408						 ;
+1  2409	    1655				 GET_SIZE PROC NEAR
+1  2410	    1655  50 56					 push	 ax si
+1  2411	    1657  33 C9					 xor	 cx, cx
+1  2412	    1659				 @@checkloop:
+1  2413	    1659  8A 04					 mov	 al, byte ptr ds:[si]
+1  2414	    165B  3C 24					 cmp	 al, '$'
+1  2415	    165D  74 0A					 je	 @@SizeOK
+1  2416	    165F  81 F9	00FF				 cmp	 cx, 0FFh
+1  2417	    1663  74 07					 je	 @@Fault
+1  2418	    1665  41					 inc	 cx
+1  2419	    1666  46					 inc	 si
+1  2420	    1667  EB F0					 jmp	 short @@checkloop
+1  2421	    1669				 @@SizeOK:
+1  2422	    1669  5E 58					 pop	 si ax
+1  2423	    166B  C3					 ret
+1  2424	    166C				 @@Fault:
+1  2425	    166C  5E 58					 pop	 si ax
+1  2426	    166E  33 C9					 xor	 cx, cx		 ; String ist endlos (keine Term!)
+1  2427	    1670  C3					 ret
+1  2428	    1671				 GET_SIZE ENDP
+1  2429
+   2430						 include ..\bios\diskio.inc		 ; BIOS	Disk Funktionen
+1  2431					 ;	 Project	 VOS/9
+1  2432					 ;	 File name	 DISKIO.INC	 24.11.1995
+1  2433					 ;	 File type	 Include
+1  2434					 ;
+1  2435					 ;	 (c)(r)	1995 by	MZ Computer Systems
+1  2436					 ;
+1  2437					 ;	 Version	 Gamma		 24.11.1995
+1  2438					 ;	 Release	 0		 24.11.1995
+1  2439					 ;
+1  2440					 ;	 Autor		 Marcus	Zoller
+1  2441					 ;
+1  2442					 ;	 Description	 Disk I/O Funktionen fÅr den Realmode/V86
+1  2443					 ;			 Benîtigt VIO.INC
+1  2444					 ;
+1  2445					 ;	 Includes	 -
+1  2446					 ;	 Link Objects	 -
+1  2447					 ;
+1  2448					 ;	 CPU Type	 x86
+1  2449					 ;	 CPU Mode	 Real/V86
+1  2450					 ;
+1  2451					 ;	 Functions Used	 System	BIOS, Disk BIOS
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 44
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2452					 ;
+1  2453					 ;	 Bugfix	List ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2454					 ;
+1  2455					 ;	 Release Comments ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2456					 ;
+1  2457					 ;	 Function Ref ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2458					 ;
+1  2459					 ;	 GET_SEKZYL: Entpackt die Laufwerks-Positions-Angabe des BIOS
+1  2460					 ;		  CX = SEKTOR /	ZYLINDER, DH = KOPF / ZYLINDER
+1  2461					 ;		  Output: AL = SEKTOR, BX = ZYLINDER, DL = KOPF
+1  2462					 ;	 SET_SEKZYL: Packt die Angaben
+1  2463					 ;		 AL=Sektor, BX=Zylinder, DL=Kopf
+1  2464					 ;		 Output: CX=Sektor/Zylinder, DH=Kopf/Zylinder
+1  2465					 ;	 ADD_SEK: Adiert EBX Sektoren auf die aktuelle Position
+1  2466					 ;		 in CX=SekZyl, DH=HeadZyl => CX+DH aktualisiert
+1  2467					 ;	 SET_DRIVE_DATA: Setzt die Daten fÅr ein Laufwerk in DL
+1  2468					 ;		 CF=Laufwerk Fehler!
+1  2469					 ;	 READ: Lesen eines Sektors - DL=Laufwerk, DH=HeadZyl, CX=SekZyl
+1  2470					 ;		 es:bx=Buffer (bx wird um 200h erhîht wenn nicht CF=1 -	Fehler)
+1  2471					 ;	 WRITE:	Schreiben eines	Sektors	- DL=Laufwerk, DH=HeadZyl, CX=SekZyl
+1  2472					 ;		 es:bx=Buffer (bx wird um 200h erhîht wenn nicht CF=1 -	Fehler)
+1  2473					 ;
+1  2474
+1  2475						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2476						 ; SET_DRIVE_DATA: Setzt die Daten fÅr ein Laufwerk
+1  2477						 ; Input : DL =	Laufwerk
+1  2478						 ; Output: CF =	Laufwerk existiert nicht oder sonst. Fehler
+1  2479						 ;
+1  2480	    1671				 SET_DRIVE_DATA	PROC NEAR
+1  2481	    1671  50 53	51 52				 push	 ax bx cx dx
+1  2482	    1675  B4 08					 mov	 ah, 8h				 ; Get Disk Param
+1  2483	    1677  CD 13					 int	 13h
+1  2484	    1679  72 14					 jc	 @@NixDa
+1  2485	    167B  E8 0041				 call	 GET_SEKZYL
+1  2486	    167E  2E: A2 1736r				 mov	 byte ptr cs:[DRIVE_SEKS], al
+1  2487	    1682  2E: 88 16 1735r			 mov	 byte ptr cs:[DRIVE_HEADS], dl
+1  2488	    1687  2E: 89 1E 1737r			 mov	 word ptr cs:[DRIVE_ZYLS], bx
+1  2489	    168C  F8					 clc
+1  2490	    168D  EB 01					 jmp	 short @@Ende
+1  2491	    168F				 @@NixDa:
+1  2492	    168F  F9					 stc
+1  2493	    1690				 @@Ende:
+1  2494	    1690  5A 59	5B 58				 pop	 dx cx bx ax
+1  2495	    1694  C3					 ret
+1  2496	    1695				 SET_DRIVE_DATA	ENDP
+1  2497
+1  2498						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2499						 ; ADD_SEK:    Addiert X Sektoren zur Åbergebenen Position und gibt
+1  2500						 ;	       die neue	Position zurÅck
+1  2501						 ; Input:      CX = Aktueller SekZyl
+1  2502						 ;	       DH = Aktueller ZylHead
+1  2503						 ;	       EBX = Anzahl zu addierende Sektoren
+1  2504						 ; Output:     CX, DH Aktualisiert
+1  2505						 ;
+1  2506	    1695				 ADD_SEK PROC NEAR
+1  2507	    1695  50					 push	 ax
+1  2508	    1696  66| 53				 push	 ebx
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 45
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2509	    1698  E8 0024				 call	 get_sekzyl
+1  2510	    169B  66| 59				 pop	 ecx
+1  2511
+1  2512	    169D				 @@IncLoop:
+1  2513	    169D  2E: 3A 16 1735r			 cmp	 dl, byte ptr cs:[DRIVE_HEADS]
+1  2514	    16A2  74 04					 je	 @@NextSek
+1  2515	    16A4  FE C2					 inc	 dl
+1  2516	    16A6  EB 10					 jmp	 short @@IsOK
+1  2517
+1  2518	    16A8				 @@NextSek:
+1  2519	    16A8  B2 00					 mov	 dl, 0
+1  2520	    16AA  2E: 3A 06 1736r			 cmp	 al, byte ptr cs:[DRIVE_SEKS]
+1  2521	    16AF  74 04					 je	 @@NextZyl
+1  2522	    16B1  FE C0					 inc	 al
+1  2523	    16B3  EB 03					 jmp	 short @@IsOK
+1  2524
+1  2525	    16B5				 @@NextZyl:
+1  2526	    16B5  B0 01					 mov	 al, 1
+1  2527	    16B7  43					 inc	 bx
+1  2528
+1  2529	    16B8				 @@IsOK:
+1  2530	    16B8  E2 E3					 loop	 @@IncLoop
+1  2531	    16BA  E8 0024				 call	 set_sekzyl
+1  2532	    16BD  58					 pop	 ax
+1  2533	    16BE  C3					 ret
+1  2534	    16BF				 ADD_SEK ENDP
+1  2535
+1  2536						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2537						 ; GET_SEKZYL: Wandelt die BIOS	Pos. Angaben in	die Bestandteile um
+1  2538						 ; Input : CX =	SEKTOR / ZYLINDER
+1  2539						 ;	   DH =	KOPF / ZYLINDER
+1  2540						 ; Output: AL =	SEKTOR
+1  2541						 ;	   BX =	ZYLINDER
+1  2542						 ;	   DL =	KOPF
+1  2543						 ;
+1  2544	    16BF				 GET_SEKZYL PROC NEAR
+1  2545	    16BF  8A C5					 mov	 al, ch
+1  2546	    16C1  8A E1					 mov	 ah, cl
+1  2547	    16C3  C0 EC	06				 shr	 ah, 6
+1  2548	    16C6  33 DB					 xor	 bx, bx
+1  2549	    16C8  8A DE					 mov	 bl, dh
+1  2550	    16CA  C0 EB	06				 shr	 bl, 6
+1  2551	    16CD  C0 E3	08				 shl	 bl, 8
+1  2552	    16D0  02 E7					 add	 ah, bh
+1  2553	    16D2  8B D8					 mov	 bx, ax			 ; => anz. Zylinder
+1  2554
+1  2555	    16D4  8B C1					 mov	 ax, cx
+1  2556	    16D6  25 003F				 and	 ax, 63			 ; => anz. Sektoren
+1  2557
+1  2558	    16D9  86 F2					 xchg	 dh, dl
+1  2559	    16DB  32 F6					 xor	 dh, dh
+1  2560	    16DD  83 E2	3F				 and	 dx, 63			 ; => anz. Kîpfe
+1  2561	    16E0  C3					 ret
+1  2562	    16E1				 GET_SEKZYL ENDP
+1  2563
+1  2564						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2565						 ; SET_SEKZYL: Wandelt die Pos.	Angaben	in das BIOS Format...
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 46
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2566						 ; Input : AL =	SEKTOR
+1  2567						 ;	   BX =	ZYLINDER
+1  2568						 ;	   DL =	KOPF
+1  2569						 ; Output: CX =	SEKTOR / ZYLINDER
+1  2570						 ;	   DH =	KOPF / ZYLINDER
+1  2571						 ;
+1  2572	    16E1				 SET_SEKZYL PROC NEAR
+1  2573	    16E1  8A EB					 mov	 ch, bl
+1  2574	    16E3  8A C8					 mov	 cl, al			 ; Sektor dazu
+1  2575	    16E5  8A C7					 mov	 al, bh
+1  2576	    16E7  C0 E0	06				 shl	 al, 6
+1  2577	    16EA  02 C8					 add	 cl, al			 ; Rest	Zyl dazu
+1  2578	    16EC  C0 EF	02				 shr	 bh, 2
+1  2579	    16EF  8A C7					 mov	 al, bh
+1  2580	    16F1  C0 E0	06				 shl	 al, 6
+1  2581	    16F4  8A F2					 mov	 dh, dl
+1  2582	    16F6  02 F0					 add	 dh, al
+1  2583	    16F8  C3					 ret
+1  2584	    16F9				 SET_SEKZYL ENDP
+1  2585
+1  2586						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2587						 ; READ: Liest einen Sektor
+1  2588						 ; Input : DL =	Laufwerk, DH=HeadZyl, CX=Sekzyl, es:bx=Buffer
+1  2589						 ; Output: CF =	1 - Laufwerk existiert nicht oder sonst. Fehler
+1  2590						 ;
+1  2591						 ; Die Offset des Buffers wird nach erfolgreichem Lesen	automitsch
+1  2592						 ; erhîht!
+1  2593						 ;
+1  2594	    16F9				 READ PROC NEAR
+1  2595	    16F9  50 57					 push	 ax di
+1  2596	    16FB  BF 0004				 mov	 di, 4
+1  2597	    16FE				 @@Lesen:
+1  2598	    16FE  B8 0201				 mov	 ax, 0201h		 ; 1 Sektor lesen
+1  2599	    1701  CD 13					 int	 13h
+1  2600	    1703  72 08					 jc	 @@Fehler
+1  2601	    1705  81 C3	0200				 add	 bx, 200h		 ; Buffer weiterschreiben
+1  2602	    1709  5F 58					 pop	 di ax
+1  2603	    170B  F8					 clc
+1  2604	    170C  C3					 ret
+1  2605	    170D				 @@Fehler:
+1  2606	    170D  4F					 dec	 di
+1  2607	    170E  83 FF	00				 cmp	 di, 0
+1  2608	    1711  75 EB					 jne	 @@Lesen
+1  2609	    1713  5F 58					 pop	 di ax
+1  2610	    1715  F9					 stc
+1  2611	    1716  C3					 ret
+1  2612	    1717				 READ ENDP
+1  2613
+1  2614						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2615						 ; WRITE: Schreibt einen Sektor
+1  2616						 ; Input : DL =	Laufwerk, DH=HeadZyl, CX=Sekzyl, es:bx=Buffer
+1  2617						 ; Output: CF =	1 - Laufwerk existiert nicht oder sonst. Fehler
+1  2618						 ;
+1  2619						 ; Die Offset des Buffers wird nach erfolgreichem Schreiben automitsch
+1  2620						 ; erhîht!
+1  2621						 ;
+1  2622	    1717				 WRITE PROC NEAR
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 47
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+1  2623	    1717  50 57					 push	 ax di
+1  2624	    1719  BF 0004				 mov	 di, 4
+1  2625	    171C				 @@Schreiben:
+1  2626	    171C  B8 0301				 mov	 ax, 0301h		 ; 1 Sektor schreiben
+1  2627	    171F  CD 13					 int	 13h
+1  2628	    1721  72 08					 jc	 @@Fehler
+1  2629	    1723  81 C3	0200				 add	 bx, 200h		 ; Buffer weiterschreiben
+1  2630	    1727  5F 58					 pop	 di ax
+1  2631	    1729  F8					 clc
+1  2632	    172A  C3					 ret
+1  2633	    172B				 @@Fehler:
+1  2634	    172B  4F					 dec	 di
+1  2635	    172C  83 FF	00				 cmp	 di, 0
+1  2636	    172F  75 EB					 jne	 @@Schreiben
+1  2637	    1731  5F 58					 pop	 di ax
+1  2638	    1733  F9					 stc
+1  2639	    1734  C3					 ret
+1  2640	    1735				 WRITE ENDP
+1  2641
+1  2642	    1735  00				 DRIVE_HEADS	 db	 0		 ; Anzahl Kîpfe
+1  2643	    1736  00				 DRIVE_SEKS	 db	 0		 ; Anzahl Sektoren
+1  2644	    1737  0000				 DRIVE_ZYLS	 dw	 0		 ; Anzahl Zylinder
+1  2645
+   2646
+   2647						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   2648
+   2649	    1739  00 2D	20 28 75 6E 62+		 DATABASE_START	 db	 000h, '- (unbelegt)		      $'
+   2650		  65 6C	65 67 74 29 20+
+   2651		  20 20	20 20 20 20 20+
+   2652		  20 20	20 20 20 20 20+
+   2653		  20 20	20 24
+   2654	    1759  01 44	4F 53 20 2D 20+				 db	 001h, 'DOS - 12 Bit FAT < 32 MByte   $'
+   2655		  31 32	20 42 69 74 20+
+   2656		  46 41	54 20 3C 20 33+
+   2657		  32 20	4D 42 79 74 65+
+   2658		  20 20	20 24
+   2659	    1779  02 58	65 6E 69 78 20+				 db	 002h, 'Xenix -	Root		      $'
+   2660		  2D 20	52 6F 6F 74 20+
+   2661		  20 20	20 20 20 20 20+
+   2662		  20 20	20 20 20 20 20+
+   2663		  20 20	20 24
+   2664	    1799  03 58	65 6E 69 78 20+				 db	 003h, 'Xenix -	User		      $'
+   2665		  2D 20	55 73 65 72 20+
+   2666		  20 20	20 20 20 20 20+
+   2667		  20 20	20 20 20 20 20+
+   2668		  20 20	20 24
+   2669	    17B9  04 44	4F 53 20 2D 20+				 db	 004h, 'DOS - 16 Bit FAT < 32 MByte   $'
+   2670		  31 36	20 42 69 74 20+
+   2671		  46 41	54 20 3C 20 33+
+   2672		  32 20	4D 42 79 74 65+
+   2673		  20 20	20 24
+   2674	    17D9  05 44	4F 53 20 2D 20+				 db	 005h, 'DOS - Extended Partition      $'
+   2675		  45 78	74 65 6E 64 65+
+   2676		  64 20	50 61 72 74 69+
+   2677		  74 69	6F 6E 20 20 20+
+   2678		  20 20	20 24
+   2679	    17F9  06 44	4F 53 20 2D 20+				 db	 006h, 'DOS - 16 Bit FAT > 32 MByte   $'
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 48
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   2680		  31 36	20 42 69 74 20+
+   2681		  46 41	54 20 3E 20 33+
+   2682		  32 20	4D 42 79 74 65+
+   2683		  20 20	20 24
+   2684	    1819  07 49	42 4D 20 4F 53+				 db	 007h, 'IBM OS/2 - HPFS		      $'
+   2685		  2F 32	20 2D 20 48 50+
+   2686		  46 53	20 20 20 20 20+
+   2687		  20 20	20 20 20 20 20+
+   2688		  20 20	20 24
+   2689	    1839  08 49	42 4D 20 41 49+				 db	 008h, 'IBM AIX			      $'
+   2690		  58 20	20 20 20 20 20+
+   2691		  20 20	20 20 20 20 20+
+   2692		  20 20	20 20 20 20 20+
+   2693		  20 20	20 24
+   2694	    1859  09 49	42 4D 20 41 49+				 db	 009h, 'IBM AIX	- BOOT		      $'
+   2695		  58 20	2D 20 42 4F 4F+
+   2696		  54 20	20 20 20 20 20+
+   2697		  20 20	20 20 20 20 20+
+   2698		  20 20	20 24
+   2699	    1879  0A 49	42 4D 20 4F 53+				 db	 00Ah, 'IBM OS/2 - Bootmanager	      $'
+   2700		  2F 32	20 2D 20 42 6F+
+   2701		  6F 74	6D 61 6E 61 67+
+   2702		  65 72	20 20 20 20 20+
+   2703		  20 20	20 24
+   2704	    1899  16 49	42 4D 20 4F 53+				 db	 016h, 'IBM OS/2 - FAT (versteckt)    $'
+   2705		  2F 32	20 2D 20 46 41+
+   2706		  54 20	28 76 65 72 73+
+   2707		  74 65	63 6B 74 29 20+
+   2708		  20 20	20 24
+   2709	    18B9  40 56	65 6E 69 78 20+				 db	 040h, 'Venix			      $'
+   2710		  20 20	20 20 20 20 20+
+   2711		  20 20	20 20 20 20 20+
+   2712		  20 20	20 20 20 20 20+
+   2713		  20 20	20 24
+   2714	    18D9  51 4E	6F 76 65 6C 6C+				 db	 051h, 'Novell Netware		      $'
+   2715		  20 4E	65 74 77 61 72+
+   2716		  65 20	20 20 20 20 20+
+   2717		  20 20	20 20 20 20 20+
+   2718		  20 20	20 24
+   2719	    18F9  52 4D	69 63 72 6F 70+				 db	 052h, 'Microport		      $'
+   2720		  6F 72	74 20 20 20 20+
+   2721		  20 20	20 20 20 20 20+
+   2722		  20 20	20 20 20 20 20+
+   2723		  20 20	20 24
+   2724	    1919  63 47	4E 55 20 48 75+				 db	 063h, 'GNU Hurd		      $'
+   2725		  72 64	20 20 20 20 20+
+   2726		  20 20	20 20 20 20 20+
+   2727		  20 20	20 20 20 20 20+
+   2728		  20 20	20 24
+   2729	    1939  64 4E	6F 76 65 6C 6C+				 db	 064h, 'Novell Netware		      $'
+   2730		  20 4E	65 74 77 61 72+
+   2731		  65 20	20 20 20 20 20+
+   2732		  20 20	20 20 20 20 20+
+   2733		  20 20	20 24
+   2734	    1959  65 4E	6F 76 65 6C 6C+				 db	 065h, 'Novell Netware 386	      $'
+   2735		  20 4E	65 74 77 61 72+
+   2736		  65 20	33 38 36 20 20+
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 49
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   2737		  20 20	20 20 20 20 20+
+   2738		  20 20	20 24
+   2739	    1979  75 50	43 2F 49 58 20+				 db	 075h, 'PC/IX			      $'
+   2740		  20 20	20 20 20 20 20+
+   2741		  20 20	20 20 20 20 20+
+   2742		  20 20	20 20 20 20 20+
+   2743		  20 20	20 24
+   2744	    1999  80 4D	69 6E 69 78 20+				 db	 080h, 'Minix (old)		      $'
+   2745		  28 6F	6C 64 29 20 20+
+   2746		  20 20	20 20 20 20 20+
+   2747		  20 20	20 20 20 20 20+
+   2748		  20 20	20 24
+   2749	    19B9  81 4D	69 6E 69 78 20+				 db	 081h, 'Minix /	Linux		      $'
+   2750		  2F 20	4C 69 6E 75 78+
+   2751		  20 20	20 20 20 20 20+
+   2752		  20 20	20 20 20 20 20+
+   2753		  20 20	20 24
+   2754	    19D9  82 4C	69 6E 75 78 20+				 db	 082h, 'Linux -	SWAP		      $'
+   2755		  2D 20	53 57 41 50 20+
+   2756		  20 20	20 20 20 20 20+
+   2757		  20 20	20 20 20 20 20+
+   2758		  20 20	20 24
+   2759	    19F9  83 4C	69 6E 75 78 20+				 db	 083h, 'Linux -	Extended FS	      $'
+   2760		  2D 20	45 78 74 65 6E+
+   2761		  64 65	64 20 46 53 20+
+   2762		  20 20	20 20 20 20 20+
+   2763		  20 20	20 24
+   2764	    1A19  93 41	6D 6F 65 62 61+				 db	 093h, 'Amoeba			      $'
+   2765		  20 20	20 20 20 20 20+
+   2766		  20 20	20 20 20 20 20+
+   2767		  20 20	20 20 20 20 20+
+   2768		  20 20	20 24
+   2769	    1A39  94 41	6D 6F 65 62 61+				 db	 094h, 'Amoeba BBT		      $'
+   2770		  20 42	42 54 20 20 20+
+   2771		  20 20	20 20 20 20 20+
+   2772		  20 20	20 20 20 20 20+
+   2773		  20 20	20 24
+   2774	    1A59  B7 42	53 44 49 20 2D+				 db	 0B7h, 'BSDI - FS		      $'
+   2775		  20 46	53 20 20 20 20+
+   2776		  20 20	20 20 20 20 20+
+   2777		  20 20	20 20 20 20 20+
+   2778		  20 20	20 24
+   2779	    1A79  B8 42	53 44 49 20 2D+				 db	 0B8h, 'BSDI - SWAP		      $'
+   2780		  20 53	57 41 50 20 20+
+   2781		  20 20	20 20 20 20 20+
+   2782		  20 20	20 20 20 20 20+
+   2783		  20 20	20 24
+   2784	    1A99  C0 4E	6F 76 65 6C 6C+				 db	 0C0h, 'Novell DOS - GeschÅtzt	      $'
+   2785		  20 44	4F 53 20 2D 20+
+   2786		  47 65	73 63 68 81 74+
+   2787		  7A 74	20 20 20 20 20+
+   2788		  20 20	20 24
+   2789	    1AB9  C7 53	79 72 69 6E 78+				 db	 0C7h, 'Syrinx			      $'
+   2790		  20 20	20 20 20 20 20+
+   2791		  20 20	20 20 20 20 20+
+   2792		  20 20	20 20 20 20 20+
+   2793		  20 20	20 24
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 50
+C:\VOS9\BIOS\SYS_SEL.ASM
+
+
+
+   2794	    1AD9  D0 56	4F 53 2F 39 20+				 db	 0D0h, 'VOS/9 -	ROOT VOLUME	      $'
+   2795		  2D 20	52 4F 4F 54 20+
+   2796		  56 4F	4C 55 4D 45 20+
+   2797		  20 20	20 20 20 20 20+
+   2798		  20 20	20 24
+   2799	    1AF9  D1 56	4F 53 2F 39 20+				 db	 0D1h, 'VOS/9 -	EXTENDED VOLUME	      $'
+   2800		  2D 20	45 58 54 45 4E+
+   2801		  44 45	44 20 56 4F 4C+
+   2802		  55 4D	45 20 20 20 20+
+   2803		  20 20	20 24
+   2804	    1B19  DB 43	50 2F 4D 20 20+				 db	 0DBh, 'CP/M			      $'
+   2805		  20 20	20 20 20 20 20+
+   2806		  20 20	20 20 20 20 20+
+   2807		  20 20	20 20 20 20 20+
+   2808		  20 20	20 24
+   2809	    1B39  E1 44	4F 53 20 2D 20+				 db	 0E1h, 'DOS - ACCESS		      $'
+   2810		  41 43	43 45 53 53 20+
+   2811		  20 20	20 20 20 20 20+
+   2812		  20 20	20 20 20 20 20+
+   2813		  20 20	20 24
+   2814	    1B59  E3 44	4F 53 20 2D 20+				 db	 0E3h, 'DOS - READ ONLY		      $'
+   2815		  52 45	41 44 20 4F 4E+
+   2816		  4C 59	20 20 20 20 20+
+   2817		  20 20	20 20 20 20 20+
+   2818		  20 20	20 24
+   2819	    1B79  F2 44	4F 53 20 2D 20+				 db	 0F2h, 'DOS - SECONDARY		      $'
+   2820		  53 45	43 4F 4E 44 41+
+   2821		  52 59	20 20 20 20 20+
+   2822		  20 20	20 20 20 20 20+
+   2823		  20 20	20 24
+   2824	    1B99  FF 42	42 54 20 20 20+				 db	 0FFh, 'BBT			      $'
+   2825		  20 20	20 20 20 20 20+
+   2826		  20 20	20 20 20 20 20+
+   2827		  20 20	20 20 20 20 20+
+   2828		  20 20	20 24
+   2829	    1BB9				 DATABASE_END	 label WORD
+   2830						 ;============================================================
+   2831						 ; ENDE	IM GELéNDE
+   2832
+   2833	    1BB9				 BOOT_SIZE	 LABEL	 WORD
+   2834
+   2835	    1BB9			 SYS_SEL ENDS
+   2836					 end	 STARTUP_IP
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 51
+Symbol Table
+
+
+
+
+Symbol Name		Type   Value			   Cref	(defined at #)
+
+??DATE			Text   "24/11/95"
+??FILENAME		Text   "SYS_SEL	"
+??TIME			Text   "00:01:13"
+??VERSION		Number 0314
+@@ANZEIGEN		Near   SYS_SEL:0921		   1220	 #1223
+@@AUTOBOOT		Near   SYS_SEL:0233		   303	#323
+@@BOOT			Near   SYS_SEL:031A		   435	#460
+@@BOOTTHIS		Near   SYS_SEL:0152		   197	#211
+@@CFGFAIL		Near   SYS_SEL:0313		   #455	 457
+@@CFGFAIL		Near   SYS_SEL:08E4		   1179	 #1187
+@@CHECKENDE		Near   SYS_SEL:08BC		   1164	 #1168
+@@CHECKLOOP		Near   SYS_SEL:0462		   #645	 660
+@@CHECKLOOP		Near   SYS_SEL:08B1		   #1162  1167	1173
+@@CHECKLOOP		Near   SYS_SEL:1659		   #2412  2420
+@@CHECKOS2		Near   SYS_SEL:02DB		   430	#433
+@@CHECKPASS		Near   SYS_SEL:0435		   560	#605
+@@CHECKPASSSIZE		Near   SYS_SEL:08AE		   1155	 #1158
+@@CHECK_EXTDOWN		Near   SYS_SEL:07EB		   1050	 #1057
+@@CHECK_EXTUP		Near   SYS_SEL:0811		   1075	 #1078
+@@DATANEXT		Near   SYS_SEL:14D2		   2101	 #2104
+@@DATAOK		Near   SYS_SEL:14D6		   2103	 #2107
+@@DECTIMEOUT		Near   SYS_SEL:01F7		   187	#290  295
+@@DELCHAR		Near   SYS_SEL:0742		   967	#983
+@@DELETE		Near   SYS_SEL:040C		   562	#583
+@@DOCFG			Near   SYS_SEL:08CE		   1005	 #1177
+@@DOCHNICHT		Near   SYS_SEL:0445		   564	#613
+@@DOKEY			Near   SYS_SEL:0824		   1052	 1056  1061  1065  1077	 1082  1086  #1090
+@@DRAWBODY		Near   SYS_SEL:15B9		   #2270  2301
+@@DRIVELEFT		Near   SYS_SEL:0171		   207	#225
+@@DRIVERIGHT		Near   SYS_SEL:018B		   209	#235
+@@ENDE			Near   SYS_SEL:150D		   2151	 #2155
+@@ENDE			Near   SYS_SEL:1690		   2490	 #2493
+@@EXTDOWN		Near   SYS_SEL:07E5		   1048	 #1053
+@@EXTFIRST		Near   SYS_SEL:081A		   1080	 #1083
+@@EXTUP			Near   SYS_SEL:0820		   1073	 #1087
+@@FAILED		Near   SYS_SEL:039C		   495	504  #522
+@@FAILED		Near   SYS_SEL:0B32		   1464	 #1515
+@@FAILED		Near   SYS_SEL:0BDF		   1570	 #1622
+@@FAUL			Near   SYS_SEL:044C		   #630	 640
+@@FAULT			Near   SYS_SEL:166C		   2417	 #2424
+@@FEHLER		Near   SYS_SEL:02BD		   343	#402
+@@FEHLER		Near   SYS_SEL:170D		   2600	 #2605
+@@FEHLER		Near   SYS_SEL:172B		   2628	 #2633
+@@FIRSTPOS		Near   SYS_SEL:01DE		   272	#275
+@@FIRST_SYM		Near   SYS_SEL:0AFE		   1478	 #1481
+@@FIRST_SYM		Near   SYS_SEL:0BAC		   1585	 #1588
+@@GEFUNDEN		Near   SYS_SEL:04B5		   681	#692
+@@HLP_AUTO		Near   SYS_SEL:0611		   778	#846
+@@HLP_PASS		Near   SYS_SEL:0583		   786	#788
+@@HLP_STAT		Near   SYS_SEL:05CA		   784	#817
+@@HLP_TASTE		Near   SYS_SEL:0658		   780	#875
+@@HLP_ZEIT		Near   SYS_SEL:069E		   782	#904
+@@INCLOOP		Near   SYS_SEL:169D		   #2512  2530
+@@IN_LOOP		Near   SYS_SEL:03CF		   #554	 558  569  582	587  604
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 52
+Symbol Table
+
+
+
+@@ISMONO		Near   SYS_SEL:14AF		   2074	 #2077
+@@ISOK			Near   SYS_SEL:16B8		   2516	 2523  #2529
+@@ISTENDE		Near   SYS_SEL:08CA		   1170	 #1174
+@@ISTOK			Near   SYS_SEL:0B21		   1468	 #1505
+@@ISTOK			Near   SYS_SEL:0BCE		   1574	 #1612
+@@KLEINER200		Near   SYS_SEL:1525		   2169	 #2176
+@@LASTPOS		Near   SYS_SEL:01C1		   256	#259
+@@LEFTALT		Near   SYS_SEL:0963		   1232	 1244  #1250
+@@LEFTCTRL		Near   SYS_SEL:096D		   1246	 #1256
+@@LEFTSHIFT		Near   SYS_SEL:0977		   1236	 #1262
+@@LESEN			Near   SYS_SEL:16FE		   #2597  2608
+@@LOOKTASTE		Near   SYS_SEL:0924		   1222	 #1225
+@@LOOKTIME		Near   SYS_SEL:097A		   1249	 1252  1255  1258  1261	 #1264
+@@LOSWOCHOS		Near   SYS_SEL:0995		   1271	 #1275
+@@MOVEDOWN		Near   SYS_SEL:01C5		   205	#262
+@@MOVEDOWN		Near   SYS_SEL:0889		   1003	 #1135
+@@MOVEFIRST		Near   SYS_SEL:0893		   1138	 #1141
+@@MOVELAST		Near   SYS_SEL:08A1		   1147	 #1150
+@@MOVEUP		Near   SYS_SEL:01A8		   203	#246
+@@MOVEUP		Near   SYS_SEL:0897		   1001	 #1144
+@@NEEDPASS		Near   SYS_SEL:00AD		   #129	 131
+@@NEWTABEL		Near   SYS_SEL:01A0		   234	#242
+@@NEXTDRIVE		Near   SYS_SEL:048E		   658	#662
+@@NEXTENTRY		Near   SYS_SEL:0483		   647	649  #656
+@@NEXTINFO		Near   SYS_SEL:0A8D		   #1406  1418
+@@NEXTSEK		Near   SYS_SEL:16A8		   2514	 #2518
+@@NEXTZYL		Near   SYS_SEL:16B5		   2521	 #2525
+@@NIXDA			Near   SYS_SEL:168F		   2484	 #2491
+@@NIXGLEICH		Near   SYS_SEL:1650		   2390	 #2398
+@@NIXPASS		Near   SYS_SEL:09BC		   1284	 #1292
+@@NONASC		Near   SYS_SEL:0133		   195	#199
+@@NONASC		Near   SYS_SEL:0766		   948	#999
+@@NORMAL		Near   SYS_SEL:02A4		   383	#385
+@@OPTIONS		Near   SYS_SEL:01F1		   201	#286
+@@PARTLOOP		Near   SYS_SEL:028F		   #374	 397
+@@PASSIN		Near   SYS_SEL:070D		   954	#959
+@@PASSOPTS		Near   SYS_SEL:09B7		   1286	 #1289
+@@PLP			Near   SYS_SEL:14F8		   #2134  2136
+@@PNULL			Near   SYS_SEL:1500		   #2148  2154
+@@READCODE		Near   SYS_SEL:0330		   #470	 472
+@@READTAB		Near   SYS_SEL:02CC		   #424	 426
+@@READ_LOOP		Near   SYS_SEL:0AD8		   #1461  1504
+@@READ_LOOP		Near   SYS_SEL:0B80		   #1566  1611	1626
+@@REDENDS		Near   SYS_SEL:0A9D		   1403	 #1416
+@@REDFOLLOWS		Near   SYS_SEL:0A93		   1401	 #1410
+@@REDRAW		Near   SYS_SEL:00BF		   #149	 288  327
+@@RESTARTPASS		Near   SYS_SEL:03A4		   #536	 610
+@@RESTART_BOOTMAN	Near   SYS_SEL:04CB		   706	708  #710  1204
+@@RIGHTALT		Near   SYS_SEL:095E		   1240	 #1247
+@@RIGHTCTRL		Near   SYS_SEL:0968		   1242	 #1253
+@@RIGHTSHIFT		Near   SYS_SEL:0972		   1238	 #1259
+@@ROGER			Near   SYS_SEL:02BA		   394	#398
+@@SCHREIBEN		Near   SYS_SEL:171C		   #2625  2636
+@@SEARCHLOOP		Near   SYS_SEL:045A		   #638	 665
+@@SETAUTO		Near   SYS_SEL:087F		   1129	 #1131
+@@SETPOS		Near   SYS_SEL:01E2		   245	258  261  274  277  #278
+@@SETPOS		Near   SYS_SEL:08A3		   1140	 1143  1149  #1152
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 53
+Symbol Table
+
+
+
+@@SETSTAT		Near   SYS_SEL:0840		   1040	 1096  1102  #1105
+@@SETTIME		Near   SYS_SEL:0866		   1115	 1121  #1122
+@@SETTOK		Near   SYS_SEL:0228		   313	#317
+@@SHIFTLAST		Near   SYS_SEL:07F4		   1059	 #1062
+@@SHOWENDS		Near   SYS_SEL:0AA1		   1405	 #1419
+@@SHOWLOOP		Near   SYS_SEL:0A7E		   #1398  1409	1415
+@@SHOWSTAT		Near   SYS_SEL:09C1		   1288	 1291  1294  #1295
+@@SHOWSYM		Near   SYS_SEL:0B00		   1480	 #1483
+@@SHOWSYM		Near   SYS_SEL:0BAE		   1587	 #1590
+@@SIZEOK		Near   SYS_SEL:1669		   2415	 #2421
+@@SOWEITOK		Near   SYS_SEL:15F1		   2300	 #2302
+@@START			Near   SYS_SEL:00B2		   128	#132
+@@STARTUP_FAILED	Near   SYS_SEL:008E		   73  78  91  102  #106
+@@STATFIRST		Near   SYS_SEL:083E		   1100	 #1103
+@@STATLAST		Near   SYS_SEL:082E		   1038	 #1094
+@@STELLEB		Near   SYS_SEL:1534		   2175	 2178  #2184
+@@STELLEC		Near   SYS_SEL:1560		   2186	 #2205
+@@SUCHEN		Near   SYS_SEL:049A		   #678	 684
+@@SYSSEL		Near   SYS_SEL:0093		   62  #113
+@@TESTGLEICH		Near   SYS_SEL:163D		   #2387  2394
+@@TIMEACTIVE		Near   SYS_SEL:010D		   176	#181
+@@TOGLEAUTO		Near   SYS_SEL:0870		   1015	 1027  #1126
+@@TOGLEKEYDOWN		Near   SYS_SEL:07CE		   1017	 #1041
+@@TOGLEKEYUP		Near   SYS_SEL:07FA		   1029	 #1066
+@@TOGLELEFT		Near   SYS_SEL:0788		   1007	 #1011
+@@TOGLERIGHT		Near   SYS_SEL:07A5		   1009	 #1023
+@@TOGLESTATLEFT		Near   SYS_SEL:07C2		   1021	 #1035
+@@TOGLESTATRIGHT	Near   SYS_SEL:0832		   1033	 #1097
+@@TOGLETIMEDOWN		Near   SYS_SEL:084A		   1019	 #1110
+@@TOGLETIMEUP		Near   SYS_SEL:0858		   1031	 #1116
+@@WAITKEY		Near   SYS_SEL:0115		   180	#185  191  198	210  224  228  231  239	 284
+@@WAITOK		Near   SYS_SEL:08F3		   1186	 #1194
+@@WAIT_AGAIN		Near   SYS_SEL:06F1		   787	816  845  874  903  #938  955  961  963	 965  971  982	987  998  +
+							   1010	 1022  1034  1046  1071	 1093  1108  1113  1119	 1125  1134
+@@WAIT_LOOP		Near   SYS_SEL:054D		   #766	 1157  1176
+@@WAIT_NOTIME		Near   SYS_SEL:011F		   #188	 299  322
+@@WRITETAB		Near   SYS_SEL:02F0		   #442	 445
+@@ZURUECK		Near   SYS_SEL:070B		   950	#956
+@CPU			Text   0F8FH			   #32
+@CURSEG			Text   SYS_SEL			   #29
+@FILENAME		Text   SYS_SEL
+@WORDSIZE		Text   4			   #29	#32
+ADD_SEK			Near   SYS_SEL:1695		   1473	 1579  #2506
+BACKUP_DRIVE		Byte   SYS_SEL:0C05		   70  84  452	#1653
+BACKUP_PART		Word   SYS_SEL:0C06		   74  83  451	#1654
+BOOTMANAGER		Near   SYS_SEL:00BA		   137	#145
+BOOTMAN_HEADZYL		Byte   SYS_SEL:0BFA		   48  490  #1642
+BOOTMAN_KEY		Word   SYS_SEL:0C01		   86  122  447	 450  508  1044	 1069  1091  1128  1132	 1219  1231  1234 +
+							   #1650
+BOOTMAN_OPTS		Near   SYS_SEL:04BA		   287	#703
+BOOTMAN_SEKS		Word   SYS_SEL:0BFB		   46  492  #1643
+BOOTMAN_SEKZYL		Word   SYS_SEL:0BF8		   47  491  #1641
+BOOT_DRIVE		Byte   SYS_SEL:0BF7		   49  493  #1640
+BOOT_PART		Near   SYS_SEL:02BF		   223	326  #416
+BOOT_SIZE		Word   SYS_SEL:1BB9		   #2833
+BUILD_SCREEN		Near   SYS_SEL:09E7		   124	#1320
+CLEAR			Near   SYS_SEL:161F		   103	110  473  1322	#2333
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 54
+Symbol Table
+
+
+
+CLEAR_FRAME		Near   SYS_SEL:0A49		   133	150  704  1347	#1364
+COMPARE			Near   SYS_SEL:163A		   609	#2385
+CURRENT_DRIVE		Byte   SYS_SEL:0C00		   159	222  226  232  236  240	 243  652  #1648
+DATABASE_END		Word   SYS_SEL:1BB9		   677	#2829
+DATABASE_START		Byte   SYS_SEL:1739		   676	#2649
+DRAW_BOX		Near   SYS_SEL:1579		   366	541  715  771  1442  1546  #2235
+DRIVE_HEADS		Byte   SYS_SEL:1735		   2487	 2513  #2642
+DRIVE_SEKS		Byte   SYS_SEL:1736		   2486	 2520  #2643
+DRIVE_ZYLS		Word   SYS_SEL:1737		   2488	 #2644
+GET_ADDR_VRAM		Near   SYS_SEL:149D		   #2066  2093
+GET_PASS		Near   SYS_SEL:039E		   130	#532  707
+GET_PRIMARY		Near   SYS_SEL:0448		   136	#624
+GET_SEKZYL		Near   SYS_SEL:16BF		   2485	 2509  #2544
+GET_SIZE		Near   SYS_SEL:1655		   #2409
+HLP_1000		Byte   SYS_SEL:0EF0		   847	#1801
+HLP_1001		Byte   SYS_SEL:0F05		   853	#1804
+HLP_1002		Byte   SYS_SEL:0F4D		   859	#1815
+HLP_1003		Byte   SYS_SEL:0F91		   865	#1825
+HLP_1004		Byte   SYS_SEL:0FD7		   871	#1835
+HLP_1005		Byte   SYS_SEL:1001		   876	#1841
+HLP_1006		Byte   SYS_SEL:1018		   882	#1845
+HLP_1007		Byte   SYS_SEL:105D		   888	#1855
+HLP_1008		Byte   SYS_SEL:10A2		   894	#1865
+HLP_1009		Byte   SYS_SEL:10E7		   900	#1875
+HLP_1010		Byte   SYS_SEL:111D		   905	#1883
+HLP_1011		Byte   SYS_SEL:1131		   911	#1886
+HLP_1012		Byte   SYS_SEL:1179		   917	#1897
+HLP_1013		Byte   SYS_SEL:11C1		   923	#1908
+HLP_1014		Byte   SYS_SEL:1209		   929	#1919
+HLP_1015		Byte   SYS_SEL:1252		   935	#1930
+HLP_1016		Byte   SYS_SEL:1272		   818	#1935
+HLP_1017		Byte   SYS_SEL:1284		   824	#1938
+HLP_1018		Byte   SYS_SEL:12BB		   830	#1946
+HLP_1019		Byte   SYS_SEL:12F4		   836	#1955
+HLP_1020		Byte   SYS_SEL:133A		   842	#1965
+HLP_1021		Byte   SYS_SEL:1382		   789	#1976
+HLP_1022		Byte   SYS_SEL:138C		   795	#1978
+HLP_1023		Byte   SYS_SEL:13D3		   801	#1989
+HLP_1024		Byte   SYS_SEL:141A		   807	#2000
+HLP_1025		Byte   SYS_SEL:1461		   813	#2011
+KEY_BACKUP		Word   SYS_SEL:0C03		   61  85  87  448  #1651
+MSG_0000		Byte   SYS_SEL:0C1E		   1352	 #1672
+MSG_0001		Byte   SYS_SEL:0E37		   533	#1771
+MSG_0002		Byte   SYS_SEL:0E5D		   716	#1777
+MSG_0003		Byte   SYS_SEL:0EA6		   151	#1788
+MSG_1002		Byte   SYS_SEL:0C69		   #1685
+MSG_1003		Byte   SYS_SEL:0C75		   #1687
+MSG_1004		Byte   SYS_SEL:0C84		   722	#1690
+MSG_1005		Byte   SYS_SEL:0CA6		   1224	 #1695
+MSG_1006		Byte   SYS_SEL:0CAB		   1221	 #1696
+MSG_1007		Byte   SYS_SEL:0CB0		   746	#1697
+MSG_1008		Byte   SYS_SEL:0CBB		   728	#1699
+MSG_1009		Byte   SYS_SEL:0CD4		   734	#1703
+MSG_1010		Byte   SYS_SEL:0CED		   740	#1707
+MSG_1011		Byte   SYS_SEL:0D06		   1248	 #1711
+MSG_1012		Byte   SYS_SEL:0D0E		   1251	 #1713
+MSG_1013		Byte   SYS_SEL:0D16		   1254	 #1715
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 55
+Symbol Table
+
+
+
+MSG_1014		Byte   SYS_SEL:0D1E		   1257	 #1717
+MSG_1015		Byte   SYS_SEL:0D26		   1260	 #1719
+MSG_1016		Byte   SYS_SEL:0D2E		   1263	 #1721
+MSG_1017		Byte   SYS_SEL:0D36		   1446	 1510  1519  1550  1617	 1631  #1723
+MSG_1018		Byte   SYS_SEL:0D46		   1183	 #1726
+MSG_1019		Byte   SYS_SEL:0D5F		   1191	 #1730
+MSG_1020		Byte   SYS_SEL:0D74		   1198	 #1733
+MSG_1021		Byte   SYS_SEL:0D80		   752	#1735
+MSG_1022		Byte   SYS_SEL:0D99		   1293	 #1739
+MSG_1023		Byte   SYS_SEL:0DA6		   1290	 #1741
+MSG_1024		Byte   SYS_SEL:0DB3		   1287	 #1743
+MSG_1025		Byte   SYS_SEL:0DC0		   758	#1745
+MSG_1026		Byte   SYS_SEL:0DD9		   545	#1749
+MSG_1027		Byte   SYS_SEL:0DE4		   156	#1751
+MSG_1028		Byte   SYS_SEL:0DEE		   182	#1753
+MSG_1029		Byte   SYS_SEL:0DFE		   686	#1756
+MSG_1030		Byte   SYS_SEL:0E0E		   349	#1759
+MSG_1031		Byte   SYS_SEL:0E1A		   165	281  #1761
+MSG_1032		Byte   SYS_SEL:0E1D		   177	#1762
+PASSINPUT		Byte   SYS_SEL:0C11		   550	570  592  608  #1658
+PASSWORT		Byte   SYS_SEL:0C08		   607	972  988  1161	1308  #1656
+PASSWORT_STATUS		Byte   SYS_SEL:0C1A		   127	705  1036  1098	 1106  1282  #1660
+PRIMARY_DRIVE		Byte   SYS_SEL:0BFD		   324	651  #1645
+PRIMARY_PART		Word   SYS_SEL:0BFE		   325	650  #1646
+PRIMARY_TIMEOUT		Byte   SYS_SEL:0C1D		   172	186  1111  1117	 1123  1269  1276  #1666
+PRINT			Near   SYS_SEL:14FE		   158	167  179  184  283  351	 547  687  694	724  730  736  742  748	  +
+							   754	760  791  797  803  809	 815  820  826	832  838  844  849  855	  +
+							   861	867  873  878  884  890	 896  902  907	913  919  925  931  937	  +
+							   1185	 1193  1200  1226  1265	 1297  1310  1353  1448	 1512  1521  1552 +
+							   1619	 1633  #2146
+PRINT_CHAR		Near   SYS_SEL:14B4		   316	581  600  1274	1327  1332  1334  1339	1341  1346  1407  1412	  +
+							   1454	 1496  1558  1603  #2090  2135	2152  2172  2181  2195	2208  2244+
+							   2259	 2278  2292  2310  2323
+PRINT_LOOP		Near   SYS_SEL:14F8		   253	269  1304  1330	 1337  1344  1372  1390	 #2133	2256  2289  2320  +
+							   2341
+PRINT_ZAHL		Near   SYS_SEL:1510		   321	359  690  1278	#2165
+READ			Near   SYS_SEL:16F9		   72  101  342	 425  471  639	1463  #2594
+READ_SEKTORS		Near   SYS_SEL:0AA2		   503	#1432
+SETVIDEO		Near   SYS_SEL:14B2		   2076	 #2079
+SET_CURPOS		Near   SYS_SEL:156C		   155	164  170  249  265  280	 309  348  354	376  544  597  603  721	  +
+							   727	733  739  745  751  757	 774  794  800	806  812  823  829  835	  +
+							   841	852  858  864  870  881	 887  893  899	910  916  922  928  934	  +
+							   941	1182  1190  1197  1216	1229  1268  1281  1300	1307  1325  1350  +
+							   1368	 1386  1395  1445  1451	 1493  1509  1518  1549	 1555  1600  1616 +
+							   1630	 #2220	2241  2275  2307  2336	2343
+SET_DRIVE_DATA		Near   SYS_SEL:1671		   51  #2480
+SET_SEKZYL		Near   SYS_SEL:16E1		   2531	 #2572
+SHOW_INFO		Near   SYS_SEL:0A63		   152	534  717  #1382
+SHOW_OPTS		Near   SYS_SEL:090B		   761	978  997  1092	1107  1124  1133  #1213
+SHOW_PARTNAME		Near   SYS_SEL:0494		   389	#675
+SHOW_TABEL		Near   SYS_SEL:0243		   160	230  238  #335
+STARTUP_IP		Near   SYS_SEL:0000		   #36	2836
+SYMBOLIC		Byte   SYS_SEL:0E2D		   1452	 1494  1556  1601  #1767
+TIMING			Word   SYS_SEL:0C1B		   174	297  304  #1665
+WRITE			Near   SYS_SEL:1717		   77  #2622
+WRITE_CFG		Near   SYS_SEL:033F		   90  456  #486  1178
+WRITE_SEKTORS		Near   SYS_SEL:0B44		   494	520  #1536
+Turbo Assembler	 Version 3.2	    24/11/95 00:01:14	    Page 56
+Symbol Table
+
+
+
+
+Groups & Segments	Bit Size Align	Combine	Class	   Cref	(defined at #)
+
+SYS_SEL			16  1BB9 Para	none	CODE	   #29	30  30
+

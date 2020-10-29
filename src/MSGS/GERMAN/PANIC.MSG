@@ -1,0 +1,75 @@
+; VOS/9 Kernel Panic Messages
+; (c)(r) 1995 by MZ Computer Systems
+; 
+;
+kernel_panic	db 'ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿'
+        	db '³      VOS/9 KERNEL-PANIC: Es ist ein schwerwiegender Fehler aufgetreten!      ³'
+		db 'ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ$'
+
+panic_help	db '   Es ist ein Fehler aufgetreten, welcher die weitere Verarbeitung unm”glich    '
+		db '   macht und von VOS/9 nicht behoben werden kann. Einen detailierten Hinweis    '
+		db '   finden Sie in Ihrem Handbuch unter der unten angegebenen Referenz-Nr.  im    '
+		db '   Kapitel Systemfehler.  Sollten Sie das Problem selbst nicht l”sen k”nnen,    '
+		db '   notieren Sie bitte die Fehlerbeschreibung und zeigen Sie diese Ihrem         '
+		db '   System-Verwalter oder Computerh„ndler.$'
+
+panic_err	db 'Fehlerbeschreibung $'
+panic_exp	db 'Fehler-Ursache: $'
+panic_ref	db 'Referenz-Nr.  : $'
+panic_locate	db 'Lokalisierung : $'
+panic_howto	db 'Behebung      : $'
+
+
+ifdef DOSSYS
+ panic_adios	db 'Systemabschluá angefordert... Rckkehr zu DOS... $'
+else
+ panic_adios	db 'Das System wurde angehalten. Sie k”nnen das System nun abschalten. $'
+endif
+
+; UNKNOWN
+	panic_msg0	db	'Der Fehlergrund ist unbekannt!$'
+	panic_msg1	db	'??????????????$'
+	panic_msg2	db	'Siehe Handbuch$'
+; RAM
+	panic_msg3	db	'Der Arbeitsspeicher Ihres Computers ist defekt! $'
+	panic_msg4	db	'Start-Adresse des defekten RAM Bereiches (hex):$'
+	panic_msg5	db	'Wechseln Sie den/die RAM-Baustein(e) $'
+; Gate A20
+	panic_msg6	db	'Die Adressleitung A20 konnte nicht freigegeben werden! $'
+	panic_msg7	db	'System Hauptplatine Port 60h $'
+	panic_msg8	db	'Wechseln Sie die System-Hauptlatine oder den Port-Baustein $'
+; EMM386/HIMEM
+ifdef DOSSYS
+	panic_msg9	db	'Die CPU befindet sich im geschtzten Modus! $'
+	panic_msg10	db	'Speichermanager (z.B. EMM386.EXE), DOS-Extender$'
+	panic_msg11	db	'Starten Sie DOS ohne einen EMS-Manager/DOS-Extender$'
+endif
+; GP-Fault while Init
+	panic_msg12	db	'Allgemeine Schutzverletzung w„hren der Initialisierung! $'
+; Invalid TSS while Init
+	panic_msg13	db	'Ungltiges TSS w„hren der Initialisierung! $'
+; Stack Fehler
+	panic_msg14	db	'Stack-Fehler w„hren der Initialisierung! $'
+; Double-Fault while Init
+	panic_msg15	db	'Double Fault w„hrend der Initialisierung! $'
+; OP-Fault while Init
+	panic_msg16	db	'Ungltige Instruktion w„hren der Initialisierung! $'
+	panic_msg17	db	'Intel kompatible CPU verwenden / RAMs prfen$'
+; Unknown Int Occured
+	panic_msg18	db	'Unbekanntes Interrupt ist aufgetreten !$'
+
+panic_list	dw	panic_msg0 , panic_msg1 , panic_msg2
+		dw	panic_msg3 , panic_msg4 , panic_msg5
+		dw	panic_msg6 , panic_msg7 , panic_msg8
+	ifdef DOSSYS
+		dw	panic_msg9 , panic_msg10, panic_msg11
+	else
+		dw	panic_msg0 , panic_msg1 , panic_msg2
+	endif	
+		dw	panic_msg12, panic_msg1 , panic_msg2
+		dw	panic_msg13, panic_msg1 , panic_msg2
+		dw	panic_msg14, panic_msg1 , panic_msg2
+		dw	panic_msg15, panic_msg1 , panic_msg2		
+		dw	panic_msg16, panic_msg1 , panic_msg17
+		dw	panic_msg18, panic_msg1 , panic_msg2
+		

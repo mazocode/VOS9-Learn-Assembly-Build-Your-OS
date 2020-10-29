@@ -1,0 +1,14 @@
+; LOADUP - Map
+; (c)(r) 1995 by MZ Computer Systems
+;
+; Alle Angaben sind 32-Bit Linear Adressen!
+; Im Realmode beschreiben sie die Seg.-Adr shl 4!
+
+; ADDRESSEN
+
+	KERNEL_START_ADDR	= 2000h		;Kernel Start Addr.
+	KERNEL_MAX_SIZE		= 85400h	;max. Kernel Gr”áe (533KB)
+	ROOTDEV_MAX_SIZE	= 19000h	;max. Rootdevice Gr”áe (100KB)
+
+	
+	

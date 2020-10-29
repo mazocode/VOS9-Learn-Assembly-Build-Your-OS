@@ -1,0 +1,341 @@
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:21	    Page 1
+\PROJECT\VOS9\BOOT\BOOTSEC.ASM
+
+
+
+      1				     ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+      2				     ; File_Name       : MAKEROOT.ASM
+      3				     ; (c)(r) 1995 by MZ Computer Systems
+      4				     ;
+      5				     ; Description     : Master	Bootstrap Record (MBR)
+      6				     ;
+      7				     ; Operating System: uses BIOS
+      8				     ; Language	       : Assembler
+      9				     ; Usage	       : VOS-Package
+     10				     ;
+     11				     ; Link Objects    : -
+     12				     ; Exec-File       : EXE
+     13				     ; CPU	       : x86
+     14				     ; CPU Mode	       : Real
+     15				     ; FPU	       : -
+     16				     ; Memory Required : -
+     17				     ;
+     18				     ; Creation	Date   : 12.01.1995
+     19				     ; Autor	       : Marcus	Zoller
+     20				     ; Version	       : 1.0
+     21				     ; Version Date    : 29.10.1995
+     22				     ; Release	       : 7
+     23				     ; Release Date    : 04.11.1995
+     24				     ; Released	by     : Marcus	Zoller
+     25				     ;
+     26				     ; Release Notes:
+     27				     ; Code Grî·e maximal 446 Bytes - Rest bis 512 Bytes = Partitionstabelle
+     28				     ;
+     29				     ; 30.04.95, V0.0 R1: Multi-Drive Search hinzugefÅgt
+     30				     ; 28.08.95, V1.0 R2: ALT fordert VOS-Bootmanager
+     31				     ; 30.08.95, V1.0 R3: Radikalkur: Der VOS/9	Bootsektor wird	nun aus
+     32				     ;		     kompatibilitÑts-GrÅnden nicht mehr	lÑnger gesondert Behandelt.
+     33				     ;		     Der Loader	durchsucht alle	HDs. Die erste Bootbare	Part.
+     34				     ;		     wird gestartet. Wir die ALT-Taste gedrÅckt	gehalten, wird
+     35				     ;		     ausschlie·lich nach VOS/9 gesucht und dort	das Boot-Setup
+     36				     ;		     aufgerufen.
+     37				     ; 19.09.95: Wir Åbergen an	den BootCode:
+     38				     ;		     DL	= Laufwerk
+     39				     ;		     DH	= Kopf Partitions start
+     40				     ;		     CX	= Sektor/Zylinder Part start
+     41				     ; 08.10.95, V1.0 R7: BOOTMAN Activation Key jetzt Variabel	(kann durch
+     42				     ;		     Bootmanager geÑndert werden.
+     43				     ;		     Codes:  0	     =>	Bootman	nicht inst. =>Standard Bootstrap
+     44				     ;			     ffh     =>	Bootman	sofort starten => VOS Part suchen
+     45				     ;				     und an den	Master die BootOpt Åbergeben
+     46				     ;			     Taste   =>	wenn gedrÅckt siehe ffh
+     47				     ;
+     48				     ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+     49
+     50	0000			     code segment para use16 'CODE'
+     51					     assume cs:code, ds:code
+     52					     org 000h
+     53				     ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+     54	0000			     start:
+     55					     ; Unser erster Job: Das Bios hat uns an 7c00 geladen. Wir mÅssen nun
+     56					     ; erstmal Platz machen, um	hier den BootCode zu laden...
+     57
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:21	    Page 2
+\PROJECT\VOS9\BOOT\BOOTSEC.ASM
+
+
+
+     58	0000  FA			     cli			     ; Mal Ruhe	hier
+     59	0001  2B C0			     sub     ax, ax		     ; Segment Adr. 0
+     60	0003  8E D0			     mov     ss, ax
+     61	0005  8E C0			     mov     es, ax
+     62	0007  8E D8			     mov     ds, ax
+     63	0009  B8 7C00			     mov     ax, 7c00h
+     64	000C  8B E0			     mov     sp, ax
+     65	000E  FB			     sti
+     66	000F  FC			     cld
+     67	0010  BE 7C00			     mov     si, 7c00h		     ; Quell-Adresse
+     68	0013  B8 0060			     mov     ax, 0060h		     ; Ziel Seg	60h
+     69	0016  8E C0			     mov     es, ax
+     70	0018  33 FF			     xor     di, di		     ; Ziel Offset 0
+     71	001A  B9 0100			     mov     cx, 100h		     ; Wir kopieren 256	Words
+     72	001D  F3> A5			     rep     movsw
+     73
+     74					     ; Der Compiler erzeugt den	Code nicht richtig! Warum- Bitte Borland
+     75					     ; Fragen, ...
+     76
+     77	001F  EA 24 00 60 00		     db	     0EAh,24h,00h,60h,00h
+     78
+     79	0024			     andup:
+     80	0024  B8 0060			     mov     ax, 0060h		     ; Unsere Seg.-Addr.
+     81	0027  FA			     cli
+     82	0028  8E D8			     mov     ds, ax
+     83	002A  8E C0			     mov     es, ax
+     84	002C  33 C0			     xor     ax, ax
+     85	002E  8E D0			     mov     ss, ax
+     86	0030  B8 7000			     mov     ax, 7000h		     ; Neuer Stack
+     87	0033  8B E0			     mov     sp, ax
+     88	0035  FC			     cld
+     89
+     90					     ;====================================================================
+     91					     ; Nun wollen wir mal noch Hallo sagen...
+     92
+     93	0036  C6 06 0130r 80		     mov     byte ptr ds:[bootdrv], 80h
+     94
+     95	003B  BE 0131r			     mov     si, offset	060h:bootmsg
+     96	003E  E8 00DF			     call    Print
+     97
+     98	0041  8B 1E 01BCr		     mov     bx, word ptr ds:[BOOTKEY]
+     99	0045  83 FB FF			     cmp     bx, 0ffffh
+    100	0048  74 14			     je	     BootVos
+    101	004A  83 FB 00			     cmp     bx, 0h
+    102	004D  74 08			     je	     NixDemand
+    103	004F  B4 12			     mov     ah, 12h		     ; Taste gerade gedrÅckt oder im
+    104	0051  CD 16			     int     16h		     ; Buffer?
+    105	0053  85 D8			     test    bx, ax
+    106	0055  75 07			     jnz     BootVos
+    107	0057			     NixDemand:
+    108	0057  C6 06 01BBr 00		     mov     byte ptr ds:[vos],	00h
+    109	005C  EB 05			     jmp     short SearchSys
+    110	005E			     BootVos:
+    111	005E  C6 06 01BBr FF		     mov     byte ptr ds:[vos],	0ffh
+    112	0063			     SearchSys:
+    113	0063  E8 0028			     call    GetPartTab
+    114	0066  72 0D			     jc	     short KeinSys
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:21	    Page 3
+\PROJECT\VOS9\BOOT\BOOTSEC.ASM
+
+
+
+    115	0068  E8 004F			     call    CheckPartTab
+    116	006B  72 08			     jc	     short KeinSys
+    117	006D  E8 0074			     call    BootIt
+    118	0070  BE 015Ar			     mov     si, offset	060h:bootfailed
+    119	0073  EB 14			     jmp     short Endless
+    120	0075			     KeinSys:
+    121	0075  8A 16 0130r		     mov     dl, byte ptr ds:[bootdrv]
+    122	0079  80 FA 87			     cmp     dl, 87h			     ; Wirklich	Nix!
+    123	007C  74 08			     je	     AbsolutNix
+    124	007E  FE C2			     inc     dl
+    125	0080  88 16 0130r		     mov     byte ptr ds:[bootdrv], dl
+    126	0084  EB DD			     jmp     SearchSys
+    127	0086			     AbsolutNix:
+    128	0086  BE 0149r			     mov     si, offset	060h:bootnix
+    129	0089			     Endless:
+    130	0089  E8 0094			     call    Print
+    131	008C  EB FE			     jmp     $
+    132
+    133
+    134	008E			     GetPartTab	     proc near
+    135					     ; Wir laden nun die Partitions-Tabelle von	einem Laufwerk
+    136					     ; und sehen ob es da was zu booten	gibt...
+    137
+    138	008E  B9 0004			     mov     cx, 4	     ; maximal 4 Versuche
+    139	0091			       ReadLoop:
+    140	0091  51			     push    cx		     ; Rest Merken
+    141
+    142	0092  8A 16 0130r		     mov     dl, byte ptr ds:[bootdrv]
+    143
+    144	0096  32 F6			     xor     dh, dh	     ; Kopf 0
+    145	0098  B9 0001			     mov     cx, 0001h	     ; Sektor 1, Cylinder 0
+    146
+    147	009B  B8 1000			     mov     ax, 1000h
+    148	009E  8E C0			     mov     es, ax	     ; Segment nix
+    149	00A0  33 DB			     xor     bx, bx	     ; Offset 7c00h
+    150	00A2  B8 0201			     mov     ax, 0201h	     ; 1 Sektor	lesen
+    151	00A5  CD 13			     int     13h
+    152
+    153	00A7  59			     pop     cx		     ; Rest zurÅckholen
+    154
+    155	00A8  80 FC 00			     cmp     ah, 0
+    156	00AB  74 0B			     jz	     TabelleOK	     ; Lesen war OK
+    157
+    158	00AD  51			     push    cx
+    159
+    160	00AE  32 E4			     xor     ah, ah
+    161	00B0  CD 13			     int     13h	     ; Reset Controller
+    162
+    163	00B2  59			     pop     cx
+    164	00B3  F8			     clc
+    165	00B4  E2 DB			     loop    ReadLoop	     ; Lesen war nix...
+    166
+    167					     ; Alle Versuche Fehlgeschlagen!
+    168	00B6  F9			     stc		     ; Carry Setzen
+    169	00B7  C3			     ret
+    170	00B8			       TabelleOK:
+    171	00B8  F8			     clc
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:21	    Page 4
+\PROJECT\VOS9\BOOT\BOOTSEC.ASM
+
+
+
+    172	00B9  C3			     ret		     ; und zurÅck
+    173	00BA			     GetPartTab	     endp
+    174
+    175
+    176	00BA			     CheckPartTab    proc near
+    177					     ; Wir suchen nun einen Eintrag, welche als	Bootbar	makiert	wurde...
+    178	00BA  BB 01BE			     mov     bx, 1beh		     ; Erster Eintrag in der Tabelle
+    179	00BD  B9 0004			     mov     cx, 4h		     ; maximal 4 EintrÑge!
+    180	00C0  B8 1000			     mov     ax, 1000h
+    181	00C3  8E C0			     mov     es, ax
+    182	00C5			     CheckIt:
+    183	00C5  80 3E 01BBr FF		     cmp     byte ptr ds:[vos],	0ffh ; VOS/9 Suchen?
+    184	00CA  74 08			     je	     GetVOS
+    185	00CC  26: 80 3F	80		     cmp     byte ptr es:[bx], 80h   ; Bootbar?
+    186	00D0  75 0B			     jne     NextPart
+    187	00D2  EB 07			     jmp     short EntryOK
+    188	00D4			     GetVos:
+    189	00D4  26: 80 7F	04 D0		     cmp     byte ptr es:[bx+4h], 0d0h
+    190	00D9  75 02			     jne     NextPart		     ; Nix VOS9!
+    191	00DB			     EntryOK:
+    192	00DB  F8			     clc
+    193	00DC  C3			     ret			     ; Eintrag ist GÅltig!
+    194	00DD			     NextPart:
+    195	00DD  83 C3 10			     add     bx, 10h		     ; Auf nÑchsten Eintrag
+    196	00E0  E2 E3			     loop    CheckIt
+    197	00E2  F9			     stc			     ; War NIX!
+    198	00E3  C3			     ret
+    199	00E4			     CheckPartTab    endp
+    200
+    201
+    202	00E4			     BootIt	     proc near
+    203					     ; Wir booten nun das Betriebssystem...
+    204	00E4  B8 1000			     mov     ax, 1000h
+    205	00E7  8E C0			     mov     es, ax
+    206	00E9  8A 16 0130r		     mov     dl, byte ptr ds:[bootdrv]
+    207	00ED  26: 8A 77	01		     mov     dh, byte ptr es:[bx+1h]	  ; Kopf Part start
+    208	00F1  26: 8B 4F	02		     mov     cx, word ptr es:[bx+2h] ; Zylinder/Sektor Part start
+    209
+    210	00F5			     BootLoop:
+    211	00F5  33 C0			     xor     ax, ax
+    212	00F7  8E C0			     mov     es, ax
+    213	00F9  BB 7C00			     mov     bx, 7c00h			     ; An 7c00h	den Boot-Code
+    214	00FC  B8 0201			     mov     ax, 0201h			     ; 1 Sektor	lesen
+    215	00FF  CD 13			     int     13h
+    216	0101  B8 0700			     mov     ax, 700h			     ; 7c00h starten
+    217	0104  8E C0			     mov     es, ax
+    218	0106  BB C000			     mov     bx, 0c000h			     ; Adr. 7c00h
+    219	0109  B8 0201			     mov     ax, 0201h			     ; 1 Sektor	lesen
+    220	010C  CD 13			     int     13h
+    221
+    222	010E  80 FC 00			     cmp     ah, 0
+    223	0111  74 02			     jz	     StartBoot
+    224	0113  EB 09			     jmp     NixDa			     ; Fehler! Weiterversuchen...
+    225	0115			     StartBoot:
+    226	0115  8A 16 0130r		     mov     dl, byte ptr ds:[bootdrv]
+    227	0119  EA 00 7C 00 00		     db	     0eah,00h,7ch,00h,00h
+    228	011E			     NixDa:
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:21	    Page 5
+\PROJECT\VOS9\BOOT\BOOTSEC.ASM
+
+
+
+    229	011E  F9			     stc
+    230	011F  C3			     ret
+    231	0120			     BootIt	     endp
+    232
+    233	0120			     Print	     proc near
+    234					     ; Wir erwarten die	Text-Offset in si!
+    235	0120			     msg_01:
+    236	0120  8A 04			     mov     al, byte ptr 060h:[si]
+    237	0122  3C 24			     cmp     al, '$'
+    238	0124  74 09			     je	     Fertig
+    239	0126  B4 0E			     mov     ah, 0eh
+    240	0128  B3 07			     mov     bl, 07h
+    241	012A  CD 10			     int     10h		     ; Video Int
+    242	012C  46			     inc     si
+    243	012D  EB F1			     jmp     short msg_01
+    244	012F			     Fertig:
+    245	012F  C3			     ret
+    246	0130			     Print	     endp
+    247
+    248	0130  00		     bootdrv	     db	     0
+    249	0131  53 75 63 68 65 20	42+  bootmsg	     db	     'Suche Betriebssystem...$'
+    250	      65 74 72 69 65 62	73+
+    251	      73 79 73 74 65 6D	2E+
+    252	      2E 2E 24
+    253	0149  4E 69 63 68 74 20	76+  bootnix	     db	     'Nicht vorhanden!$'
+    254	      6F 72 68 61 6E 64	65+
+    255	      6E 21 24
+    256	015A  46 65 68 6C 65 72	20+  bootfailed	     db	     'Fehler beim Lesen!$'
+    257	      62 65 69 6D 20 4C	65+
+    258	      73 65 6E 21 24
+    259						     org     1bbh
+    260	01BB  00		     vos	     db	     0
+    261	01BC  0200		     bootkey	     dw	     0200h
+    262				     ; Hier steht spÑter die PART-Tabelle
+    263
+    264	01BE			     CODE      ends
+    265					       end start
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:21	    Page 6
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "10/29/20"
+??FILENAME			  Text	 "BOOTSEC "
+??TIME				  Text	 "04:41:21"
+??VERSION			  Number 040A
+@CPU				  Text	 0101H
+@CURSEG				  Text	 CODE
+@FILENAME			  Text	 BOOTSEC
+@WORDSIZE			  Text	 2
+ABSOLUTNIX			  Near	 CODE:0086
+ANDUP				  Near	 CODE:0024
+BOOTDRV				  Byte	 CODE:0130
+BOOTFAILED			  Byte	 CODE:015A
+BOOTIT				  Near	 CODE:00E4
+BOOTKEY				  Word	 CODE:01BC
+BOOTLOOP			  Near	 CODE:00F5
+BOOTMSG				  Byte	 CODE:0131
+BOOTNIX				  Byte	 CODE:0149
+BOOTVOS				  Near	 CODE:005E
+CHECKIT				  Near	 CODE:00C5
+CHECKPARTTAB			  Near	 CODE:00BA
+DEBUG				  Text
+ENDLESS				  Near	 CODE:0089
+ENTRYOK				  Near	 CODE:00DB
+FERTIG				  Near	 CODE:012F
+GETPARTTAB			  Near	 CODE:008E
+GETVOS				  Near	 CODE:00D4
+KEINSYS				  Near	 CODE:0075
+MSG_01				  Near	 CODE:0120
+NEXTPART			  Near	 CODE:00DD
+NIXDA				  Near	 CODE:011E
+NIXDEMAND			  Near	 CODE:0057
+PRINT				  Near	 CODE:0120
+READLOOP			  Near	 CODE:0091
+SEARCHSYS			  Near	 CODE:0063
+START				  Near	 CODE:0000
+STARTBOOT			  Near	 CODE:0115
+TABELLEOK			  Near	 CODE:00B8
+VOS				  Byte	 CODE:01BB
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+CODE				  16  01BE Para	  none	  CODE
+

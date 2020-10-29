@@ -1,0 +1,2 @@
+	VGA_CTR_COLOR	=	3d4h	; Video Contr. Farb Port
+	VGA_CTR_MONO	=	3b4h	; Video Contr. Mono Port

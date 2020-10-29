@@ -1,0 +1,3913 @@
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 1
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+      1					 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+      2					 ; File_Name	   : MAKEROOT.ASM
+      3					 ; (c)(r) 1995 by MZ Computer Systems
+      4					 ;
+      5					 ; Description	   : Erstellen des Root-Filesystems fÅr	VOS/9
+      6					 ;
+      7					 ; Operating System: DOS
+      8					 ; Language	   : Assembler
+      9					 ; Usage	   : Internal only
+     10					 ;
+     11					 ; Link	Objects	   : zahlen.asm
+     12					 ; Exec-File	   : EXE
+     13					 ; CPU		   : 386+
+     14					 ; CPU Mode	   : Real/V86
+     15					 ; FPU		   : -
+     16					 ; Memory Required : ?
+     17					 ;
+     18					 ; Creation Date   : 29.10.1995
+     19					 ; Autor	   : Marcus Zoller
+     20					 ; Version	   : 1.0
+     21					 ; Version Date	   : 29.10.1995
+     22					 ; Release	   : 1
+     23					 ; Release Date	   : 04.11.1995
+     24					 ; Released by	   : Marcus Zoller
+     25					 ;
+     26					 ; Release Notes:
+     27					 ; V1.0	R1 - 04.11.1995: Die ersten 2 Sektoren werden nicht in das Linear-
+     28					 ;			 Adressing mit einbezogen und dienen fÅr den Bootstrap
+     29					 ;			 und fÅr die die Volume	Data Area. Logical Addr. 0
+     30					 ;			 beschreibt also den 3.	Sektor der Partition. Dies
+     31					 ;			 gilt fÅr alle Medien!
+     32					 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+     33					 .386
+     34					 LOCALS
+     35
+     36		  =000A				 CR		 = 0Ah
+     37		  =000D				 LF		 = 0Dh
+     38
+     39						 ; INODE-Attribut Flags
+     40
+     41		  =0000				 FLAG_File	 = 0h
+     42		  =0001				 FLAG_Dir	 = 1h
+     43		  =0002				 FLAG_Group	 = 2h
+     44		  =0004				 FLAG_Link	 = 4h
+     45		  =0008				 FLAG_D		 = 8h			 ; Deleted
+     46		  =0010				 FLAG_M		 = 10h			 ; Moved
+     47		  =0020				 FLAG_S		 = 20h			 ; System
+     48		  =0040				 FLAG_C		 = 40h			 ; Compressed
+     49		  =0080				 FLAG_A		 = 80h			 ; Archived
+     50		  =0001				 FLAG_H		 = 1h			 ; Hidden
+     51		  =0002				 FLAG_F		 = 2h			 ; Fixed
+     52		  =0004				 FLAG_E		 = 4h			 ; Executable
+     53		  =0008				 FLAG_Sh	 = 8h			 ; Shareable
+     54		  =0010				 FLAG_Di	 = 10h			 ; Delete Inhibit
+     55		  =0020				 FLAG_Ci	 = 20h			 ; Compress Inhibit
+     56		  =0040				 FLAG_Mi	 = 40h			 ; Move	Inhibit
+     57		  =0080				 FLAG_Li	 = 80h			 ; Link	Inhibit
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 2
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+     58		  =0001				 FLAG_Ri	 = 1h			 ; Rename Inhibit
+     59		  =0002				 FLAG_Lo	 = 2h			 ; Local Only Access
+     60		  =0004				 FLAG_Eo	 = 4h			 ; Executable Only
+     61		  =0008				 FLAG_Ro	 = 8h			 ; Read	Only
+     62		  =0010				 FLAG_Wo	 = 10h			 ; Write Only
+     63		  =0020				 FLAG_Ao	 = 20h			 ; Add Only
+     64		  =0040				 FLAG_Dd	 = 40h			 ; Delete Data by Overwrite
+     65		  =0080				 FLAG_Si	 = 80h			 ; Subdirs Inhibit
+     66
+     67		  =0094				 RootDirFlags	 = FLAG_Dir+FLAG_S+FLAG_Di+FLAG_Ci+FLAG_Mi+FLAG_Ri+FLAG_F
+     68		  =0051				 SystemDirFlags	 = FLAG_Dir+FLAG_S+FLAG_Di+FLAG_Ci
+     69
+     70		  =0098				 BootCodeFlags	 = FLAG_File+FLAG_S+FLAG_F+FLAG_Eo+FLAG_Di+FLAG_Ci+FLAG_Mi+FLAG_Lo
+     71
+     72						 ; VIS Flags
+     73
+     74		  =0000				 TYPE_UNKNOWN	 = 0h
+     75		  =0001				 TYPE_ROOT	 = 1h
+     76		  =0002				 TYPE_ADD	 = 2h
+     77		  =0003				 TYPE_MOUNT	 = 3h
+     78		  =0008				 DEFECTIVE	 = 8h
+     79		  =0010				 REMOVEABLE	 = 10h
+     80		  =0020				 AUTO_CHECK	 = 20h
+     81		  =0040				 WRITE_PROTECT	 = 40h
+     82		  =0080				 MOUNTED_ADDED	 = 80h
+     83
+     84		  =0001				 RootVisFlags	 = Type_Root
+     85
+     86						 ; Directory Flags
+     87
+     88		  =0000				 EMPTY_INODE	 = 0h
+     89		  =0001				 OBJECT_NAME	 = 1h
+     90		  =0002				 EXTENDED_NAME	 = 2h
+     91		  =0003				 OBJECT_COMMENT	 = 3h
+     92		  =0004				 EXTENDED_COMMENT= 4h
+     93
+     94
+     95					 ;ÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕ
+     96
+     97	    0000			 MAKEROOT SEGMENT PARA USE16 'CODE'
+     98						 ASSUME	CS:MAKEROOT, DS:DATA, ES:SEKTOR_DATA, FS:BLOCK_DATA
+     99
+    100	    0000			 INIT_IP:
+    101	    0000  FA				 cli
+    102	    0001  B8 0000s			 mov	 ax, STACK_SEG
+    103	    0004  BB 0100r			 mov	 bx, offset TOS
+    104	    0007  8E D0				 mov	 ss, ax
+    105	    0009  8B E3				 mov	 sp, bx
+    106	    000B  B8 0000s			 mov	 ax, DATA
+    107	    000E  BB 0000s			 mov	 bx, SEKTOR_DATA
+    108	    0011  B9 0000s			 mov	 cx, BLOCK_DATA
+    109	    0014  8E D8				 mov	 ds, ax
+    110	    0016  8E C3				 mov	 es, bx
+    111	    0018  8E E1				 mov	 fs, cx
+    112	    001A  FB				 sti
+    113
+    114	    001B  BA 0000r			 lea	 dx, MSG_0000			 ;SAY Hello...
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 3
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    115	    001E  B4 09				 mov	 ah, 9
+    116	    0020  CD 21				 int	 21h
+    117
+    118	    0022  E8 00E8			 call	 GET_USERDATA			 ; Daten vom User holen
+    119
+    120	    0025  8A 16	0441r			 mov	 dl, byte ptr ds:[HDD_DRIVE]
+    121	    0029  E8 013D			 call	 GET_DRIVEDATA			 ; Daten vom Bios holen
+    122
+    123	    002C  E8 01DB			 call	 GET_VOLUMEDATA			 ; Some	linear algebrar...
+    124
+    125						 ; Nun haben wir alle benîtigten Daten Åber das	Laufwerk!
+    126
+    127	    002F  E8 0500			 call	 SET_BITMAPBLOCKS		 ; Bitmaps schreiben
+    128
+    129	    0032  E8 0890			 call	 CREATE_ROOT			 ; Das ROOT Directory
+    130
+    131	    0035  E8 1080			 call	 MAKE_SYSDIR			 ; Das SYSTEM Directory
+    132
+    133	    0038  E8 09E8			 call	 COPY_BOOT			 ; VOSBOOT Image!
+    134
+    135	    003B  E8 0C0C			 call	 COPY_SYSSELECT			 ; SYSTEM SELECT Image!
+    136
+    137	    003E  E8 0E3E			 call	 COPY_KERNEL			 ; KERNEL Image!
+    138
+    139	    0041  E8 08E8			 call	 CREATE_VIS			 ; Volume Info Sektor
+    140
+    141	    0044  E8 078A			 call	 WRITE_BOOTSTRAP		 ; Bootsrap Code
+    142
+    143	    0047  B8 4C00			 mov	 ax, 4c00h			 ; GOING HOME...
+    144	    004A  CD 21				 int	 21h
+    145
+    146						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    147						 ; PRINT32   : Ausgabe einer 32-Bit Zahl
+    148						 ; INPUT     :	 DX = Hi 16-Bit
+    149						 ;		 AX = Lo 16-Bit
+    150						 ;
+    151						 extrn Print32Bit: near
+    152
+    153	    004C				 PRINT32 PROC NEAR
+    154	    004C  53					 push	 bx
+    155	    004D  51					 push	 cx
+    156	    004E  52 50					 push	 dx ax
+    157	    0050  E8 0000e				 call	 print32bit
+    158	    0053  59					 pop	 cx
+    159	    0054  5B					 pop	 bx
+    160	    0055  C3					 ret
+    161	    0056				 PRINT32 ENDP
+    162
+    163						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    164						 ; READ32   : Lesen einer 32-Bit Zahl von STDIN
+    165						 ; INPUT    :	 -
+    166						 ; OUTPUT   :	 DX = Hi 16-Bit
+    167						 ;		 AX = Lo 16-Bit
+    168						 ;
+    169						 extrn Read32Bit: near
+    170
+    171	    0056				 READ32	PROC NEAR
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 4
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    172	    0056  53					 push	 bx
+    173	    0057  51					 push	 cx
+    174	    0058  E8 0000e				 call	 read32bit
+    175	    005B  59					 pop	 cx
+    176	    005C  5B					 pop	 bx
+    177	    005D  C3					 ret
+    178	    005E				 READ32	ENDP
+    179
+    180						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    181						 ; READ_SEK: Lesen eines Sektors
+    182						 ; INPUT   :	 CX = Sektor/Zylinder
+    183						 ;		 DX = Kopf/Laufwerk
+    184						 ;		 BX = Adresse
+    185						 ; OUTPUT  :	 SEKTOR_DATA: BX
+    186						 ; CHANGES :	 -
+    187						 ;
+    188	    005E				 READ_SEK PROC NEAR
+    189	    005E  50					 push	 ax
+    190	    005F  57					 push	 di
+    191
+    192	    0060  BF 0004				 mov	 di, 4		 ; max.	4 Leseversuche
+    193
+    194	    0063				 @@ReadLoop:
+    195	    0063  B8 0201				 mov	 ax, 0201h
+    196	    0066  CD 13					 int	 13h
+    197
+    198	    0068  73 1A					 jnc	 @@ReadOK
+    199	    006A  83 EF	01				 sub	 di, 1
+    200	    006D  75 F4					 jnz	 @@ReadLoop
+    201
+    202	    006F  50					 push	 ax
+    203	    0070  BA 0049r				 lea	 dx, MSG_0001
+    204	    0073  B4 09					 mov	 ah, 9
+    205	    0075  CD 21					 int	 21h
+    206	    0077  58					 pop	 ax
+    207	    0078  33 D2					 xor	 dx, dx
+    208
+    209	    007A  E8 FFCF				 call	 PRINT32
+    210
+    211	    007D  5F					 pop	 di
+    212	    007E  58					 pop	 ax
+    213	    007F  B8 4C00				 mov	 ax, 4c00h
+    214	    0082  CD 21					 int	 21h
+    215	    0084				 @@ReadOK:
+    216	    0084  5F					 pop	 di
+    217	    0085  58					 pop	 ax
+    218	    0086  C3					 ret
+    219	    0087				 READ_SEK ENDP
+    220
+    221						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    222						 ; WRITE_SEK: Schreiben	eines Sektors
+    223						 ; INPUT   :	 CX = Sektor/Zylinder
+    224						 ;		 DH = Kopf/Zylinder
+    225						 ;		 SEKTOR_DATA: READ_DATA
+    226						 ; CHANGES :	 -
+    227						 ;
+    228	    0087				 WRITE_SEK PROC	NEAR
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 5
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    229	    0087  53					 push	 bx
+    230	    0088  50					 push	 ax
+    231	    0089  57					 push	 di
+    232
+    233	    008A  BF 0004				 mov	 di, 4		 ; max.	4 Schreibversuche
+    234	    008D  8A 16	0441r				 mov	 dl, byte ptr ds:[HDD_DRIVE]
+    235
+    236	    0091				 @@WriteLoop:
+    237	    0091  BB 0000r				 lea	 bx, READ_DATA
+    238	    0094  B8 0301				 mov	 ax, 0301h
+    239	    0097  CD 13					 int	 13h
+    240
+    241	    0099  73 1C					 jnc	 @@WriteOK
+    242	    009B  4F					 dec	 di
+    243	    009C  83 FF	00				 cmp	 di, 0
+    244	    009F  75 F0					 jnz	 @@WriteLoop
+    245
+    246	    00A1  50					 push	 ax
+    247	    00A2  BA 0063r				 lea	 dx, MSG_0002
+    248	    00A5  B4 09					 mov	 ah, 9
+    249	    00A7  CD 21					 int	 21h
+    250	    00A9  58					 pop	 ax
+    251	    00AA  33 D2					 xor	 dx, dx
+    252
+    253	    00AC  E8 FF9D				 call	 PRINT32
+    254
+    255	    00AF  5F					 pop	 di
+    256	    00B0  58					 pop	 ax
+    257	    00B1  5B					 pop	 bx
+    258	    00B2  B8 4C00				 mov	 ax, 4c00h
+    259	    00B5  CD 21					 int	 21h
+    260	    00B7				 @@WriteOK:
+    261	    00B7  5F					 pop	 di
+    262	    00B8  58					 pop	 ax
+    263	    00B9  5B					 pop	 bx
+    264	    00BA  C3					 ret
+    265	    00BB				 WRITE_SEK ENDP
+    266
+    267						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    268						 ; CLR_SEK: Lîschen des	Sektor-Buffers
+    269						 ; Input : -
+    270						 ; Output: -
+    271						 ;
+    272	    00BB				 CLR_SEK PROC NEAR
+    273	    00BB  B8 0000s				 mov	 ax, SEKTOR_DATA
+    274	    00BE  8E C0					 mov	 es, ax
+    275	    00C0  B9 0200				 mov	 cx, 512
+    276	    00C3  32 C0					 xor	 al, al
+    277	    00C5  33 FF					 xor	 di, di
+    278	    00C7				   @@Clr_Loop:
+    279	    00C7  AA					 stosb
+    280	    00C8  E2 FD					 loop	 @@Clr_Loop
+    281	    00CA  C3					 ret
+    282	    00CB				 CLR_SEK ENDP
+    283
+    284						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    285						 ; GETSEKZYL: Umwandeln	der BIOS-Angaben in die	Bestandteile
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 6
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    286						 ; CX	 = SekZyl
+    287						 ; DH	 = HeadZyl
+    288						 ; RÅckgabe:
+    289						 ; AL	 = Sektor
+    290						 ; BX	 = Zylind
+    291						 ; DL	 = Kopf
+    292						 ;
+    293	    00CB				 GetSekZyl	 proc near
+    294	    00CB  33 C0					 xor	 ax, ax
+    295	    00CD  8A C5					 mov	 al, ch
+    296	    00CF  8A E1					 mov	 ah, cl
+    297	    00D1  C0 EC	06				 shr	 ah, 6
+    298	    00D4  33 DB					 xor	 bx, bx
+    299	    00D6  8A DE					 mov	 bl, dh
+    300	    00D8  C0 EB	06				 shr	 bl, 6
+    301	    00DB  C0 E3	08				 shl	 bl, 8
+    302	    00DE  02 E7					 add	 ah, bh
+    303	    00E0  33 DB					 xor	 bx, bx
+    304	    00E2  8B D8					 mov	 bx, ax			 ; => anz. Zylinder
+    305
+    306	    00E4  33 C0					 xor	 ax, ax
+    307	    00E6  8B C1					 mov	 ax, cx
+    308	    00E8  25 003F				 and	 ax, 63			 ; => anz. Sektoren
+    309
+    310	    00EB  86 F2					 xchg	 dh, dl
+    311	    00ED  32 F6					 xor	 dh, dh
+    312	    00EF  83 E2	3F				 and	 dx, 63			 ; => anz. Kîpfe
+    313
+    314	    00F2  C3					 ret
+    315	    00F3				 GetSekZyl	 endp
+    316
+    317						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    318						 ; SETSEKZYL: Umwandeln	der phys. Daten	in BIOS-Angabe
+    319						 ; AL =	Sektor
+    320						 ; BX =	Zylinder
+    321						 ; DL =	Kopf
+    322						 ; RÅckgabe:
+    323						 ; CX =	Sekzyl
+    324						 ; Dh =	HeadZyl
+    325						 ;
+    326	    00F3				 SetSekZyl	 proc near
+    327	    00F3  33 C9					 xor	 cx, cx
+    328	    00F5  8A EB					 mov	 ch, bl
+    329	    00F7  8A C8					 mov	 cl, al			 ; Sektor dazu
+    330	    00F9  8A C7					 mov	 al, bh
+    331	    00FB  C0 E0	06				 shl	 al, 6
+    332	    00FE  02 C8					 add	 cl, al			 ; Rest	Zyl dazu
+    333	    0100  C0 EF	02				 shr	 bh, 2
+    334	    0103  8A C7					 mov	 al, bh
+    335	    0105  C0 E0	06				 shl	 al, 6
+    336	    0108  8A F2					 mov	 dh, dl
+    337
+    338	    010A  02 F0					 add	 dh, al
+    339	    010C  C3					 ret
+    340	    010D				 SetSekZyl	 endp
+    341
+    342						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 7
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    343						 ; GET_USERDATA: Eingabe von Laufwerk und Blockgrî·e
+    344						 ; OUTPUT	 DATA:HDD_DRIVE
+    345						 ;		 DATA:BLOCKSIZE
+    346						 ;		 DATA:SEKS_PER_BLOCK
+    347						 ;
+    348						 ; énderung 03.10.95: Bei einem	Diskettenlaufwerk arbeiten wir Sektor
+    349						 ;		      orientiert. Die Blockgrî·e betrÑgt hier 0. d.h.
+    350						 ;		      jeder Sektor reprÑsentiert einen Block
+    351						 ;
+    352	    010D				 GET_USERDATA proc near
+    353	    010D  BA 007Er				 lea	 dx, MSG_0003
+    354	    0110  B4 09					 mov	 ah, 9
+    355	    0112  CD 21					 int	 21h
+    356	    0114				 @@AskDrive:
+    357	    0114  E8 FF3F				 call	 READ32
+    358	    0117  72 FB					 jc	 @@AskDrive
+    359	    0119  A2 0441r				 mov	 byte ptr ds:[HDD_DRIVE], al
+    360	    011C  BA 008Cr				 lea	 dx, MSG_0004
+    361	    011F  B4 09					 mov	 ah, 9
+    362	    0121  CD 21					 int	 21h
+    363	    0123  A0 0441r				 mov	 al, byte ptr [HDD_DRIVE]
+    364	    0126  3C 80					 cmp	 al, 128
+    365	    0128  72 13					 jb	 @@BlockKnown
+    366	    012A				 @@AskBlock:
+    367	    012A  E8 FF29				 call	 READ32
+    368	    012D  72 FB					 jc	 @@AskBlock
+    369	    012F  3C 00					 cmp	 al, 0
+    370	    0131  74 2A					 je	 @@NixBlock
+    371	    0133  3C 20					 cmp	 al, 32
+    372	    0135  7F 26					 jg	 @@NixBlock
+    373	    0137  32 E4					 xor	 ah, ah
+    374	    0139  33 D2					 xor	 dx, dx
+    375	    013B  EB 0B					 jmp	 short @@SetBlockData
+    376	    013D				 @@BlockKnown:
+    377	    013D  33 D2					 xor	 dx, dx
+    378	    013F  B8 0000				 mov	 ax, 0			 ; Blockgrî·e ist 0
+    379	    0142  E8 FF07				 call	 print32
+    380	    0145  B8 0000				 mov	 ax, 0
+    381	    0148				 @@SetBlockData:
+    382	    0148  A2 0446r				 mov	 byte ptr ds:[HDD_BLOCKSIZE], al
+    383	    014B  B3 02					 mov	 bl, 2
+    384	    014D  F6 E3					 mul	 bl
+    385	    014F  3C 00					 cmp	 al, 0
+    386	    0151  74 04					 jz	 @@SetSeks1		 ; 1 Sektor bei	Blockgrî·e 0
+    387	    0153  A2 0447r				 mov	 byte ptr ds:[SEKS_PER_BLOCK], al
+    388	    0156  C3					 ret
+    389	    0157				 @@SetSeks1:
+    390	    0157  C6 06	0447r 01			 mov	 byte ptr ds:[SEKS_PER_BLOCK], 1
+    391	    015C  C3					 ret
+    392	    015D				 @@NixBlock:
+    393	    015D  BA 009Ar				 lea	 dx, MSG_0005
+    394	    0160  B4 09					 mov	 ah, 9
+    395	    0162  CD 21					 int	 21h
+    396	    0164  B8 4C00				 mov	 ax, 4c00h
+    397	    0167  CD 21					 int	 21h
+    398	    0169				 GET_USERDATA endp
+    399
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 8
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    400						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    401						 ; GET_DRIVEDATA: Ermittelt die	phys. Daten eines Laufwerks
+    402						 ; INPUT :	 DL = Laufwerk
+    403						 ; OUTPUT:	 DATA:HDD_ZYLINDER
+    404						 ;		 DATA:HDD_SEKTOREN
+    405						 ;		 DATA:HDD_KOEPFE
+    406						 ;
+    407	    0169				 GET_DRIVEDATA PROC NEAR
+    408	    0169  B4 08					 mov	 ah, 8
+    409	    016B  CD 13					 int	 13h
+    410	    016D  0F 82	008D				 jc	 @@NixDrv
+    411	    0171  80 FD	00				 cmp	 ch, 0
+    412	    0174  0F 84	0086				 je	 @@NixDrv
+    413	    0178  E8 FF50				 call	 GetSekZyl
+    414	    017B  89 1E	0442r				 mov	 word ptr ds:[HDD_ZYLINDER], bx
+    415	    017F  A2 0444r				 mov	 byte ptr ds:[HDD_SEKTOREN], al
+    416	    0182  88 16	0445r				 mov	 byte ptr ds:[HDD_KOEPFE], dl
+    417
+    418	    0186  BA 0107r				 lea	 dx, MSG_0012
+    419	    0189  B4 09					 mov	 ah, 9
+    420	    018B  CD 21					 int	 21h
+    421	    018D  A1 0442r				 mov	 ax, word ptr ds:[HDD_ZYLINDER]
+    422	    0190  33 D2					 xor	 dx, dx
+    423	    0192  E8 FEB7				 call	 print32
+    424	    0195  BA 00E9r				 lea	 dx, MSG_0008
+    425	    0198  B4 09					 mov	 ah, 9
+    426	    019A  CD 21					 int	 21h
+    427	    019C  0F B6	06 0444r			 movzx	 ax, byte ptr ds:[HDD_SEKTOREN]
+    428	    01A1  33 D2					 xor	 dx, dx
+    429	    01A3  E8 FEA6				 call	 print32
+    430	    01A6  BA 00DEr				 lea	 dx, MSG_0007
+    431	    01A9  B4 09					 mov	 ah, 9
+    432	    01AB  CD 21					 int	 21h
+    433	    01AD  0F B6	06 0445r			 movzx	 ax, byte ptr ds:[HDD_KOEPFE]
+    434	    01B2  33 D2					 xor	 dx, dx
+    435	    01B4  E8 FE95				 call	 print32
+    436	    01B7  BA 00F5r				 lea	 dx, MSG_0009
+    437	    01BA  B4 09					 mov	 ah, 9
+    438	    01BC  CD 21					 int	 21h
+    439	    01BE  BA 0102r				 lea	 dx, MSG_0011
+    440	    01C1  B4 09					 mov	 ah, 9
+    441	    01C3  CD 21					 int	 21h
+    442	    01C5  66| 0F B7 06 0442r			 movzx	 eax, word ptr ds:[HDD_ZYLINDER]
+    443	    01CB  66| 40				 inc	 eax
+    444	    01CD  66| 0F B6 1E 0444r			 movzx	 ebx, byte ptr ds:[HDD_SEKTOREN]
+    445	    01D3  66| F7 E3				 mul	 ebx
+    446	    01D6  66| 33 D2				 xor	 edx, edx
+    447	    01D9  66| 0F B6 1E 0445r			 movzx	 ebx, byte ptr ds:[HDD_KOEPFE]
+    448	    01DF  66| 43				 inc	 ebx
+    449	    01E1  66| F7 E3				 mul	 ebx
+    450	    01E4  66| 33 D2				 xor	 edx, edx
+    451	    01E7  66| BB 00000800			 mov	 ebx, 2048
+    452	    01ED  66| F7 F3				 div	 ebx
+    453	    01F0  66| 33 D2				 xor	 edx, edx
+    454	    01F3  E8 FE56				 call	 print32
+    455	    01F6  BA 00FDr				 lea	 dx, MSG_0010
+    456	    01F9  B4 09					 mov	 ah, 9
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 9
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    457	    01FB  CD 21					 int	 21h
+    458	    01FD  C3					 ret
+    459	    01FE				 @@NixDrv:
+    460	    01FE  BA 00C1r				 lea	 dx, MSG_0006
+    461	    0201  B4 09					 mov	 ah, 9
+    462	    0203  CD 21					 int	 21h
+    463	    0205  B8 4C00				 mov	 ax, 4c00h
+    464	    0208  CD 21					 int	 21h
+    465	    020A				 GET_DRIVEDATA ENDP
+    466
+    467						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    468						 ; GET_VOLUMEDATA: PrÅft und lÑdt die Partitionsdaten, Berechnet
+    469						 ; die Anzahl der Bitmap Blocks, Anzahl	der Blocks im Volume, ...
+    470						 ;
+    471						 ; 04.10.95 V1.0 R1: Auf den gefunden Part-Start werden	2 Sektoren
+    472						 ;		     Addiert. Es gilt:
+    473						 ;		     Sektor 1: Bootstrap Loader
+    474						 ;		     Sektor 2: Volume Data Area
+    475						 ;
+    476	    020A				 GET_VOLUMEDATA	PROC NEAR
+    477	    020A  33 D2					 xor	 dx, dx
+    478	    020C  8A 16	0441r				 mov	 dl, byte ptr [HDD_DRIVE]
+    479	    0210  80 FA	80				 cmp	 dl, 128
+    480	    0213  72 6F					 jb	 @@IsFDD
+    481	    0215  B9 0001				 mov	 cx, 1
+    482	    0218  BB 0200r				 lea	 bx, es:PART_TABEL
+    483	    021B  E8 FE40				 call	 READ_SEK
+    484
+    485	    021E				 @@SuchePart:
+    486	    021E  81 C3	01BE				 add	 bx, 1beh
+    487	    0222  B9 0003				 mov	 cx, 3			 ; 4 EintrÑge max.
+    488	    0225				 @@Check:
+    489	    0225  26: 80 7F 04 D0			 cmp	 byte ptr es:[bx+4h], 0d0h
+    490	    022A  74 17					 je	 @@PartFound
+    491	    022C  83 F9	00				 cmp	 cx, 0
+    492	    022F  74 06					 je	 @@PartErr
+    493	    0231  49					 dec	 cx
+    494	    0232  83 C3	10				 add	 bx, 10h
+    495	    0235  EB EE					 jmp	 short @@Check
+    496	    0237				 @@PartErr:
+    497	    0237  BA 011Br				 lea	 dx, MSG_0013
+    498	    023A  B4 09					 mov	 ah, 9
+    499	    023C  CD 21					 int	 21h
+    500	    023E  B8 4C00				 mov	 ax, 4c00h
+    501	    0241  CD 21					 int	 21h
+    502	    0243				 @@PartFound:
+    503	    0243  26: 8B 4F 02				 mov	 cx, word ptr es:[bx+2h] ; Partitions Start Sek/Zyl
+    504	    0247  26: 8A 77 01				 mov	 dh, byte ptr es:[bx+1h] ; " Zyl/Kopf
+    505	    024B  89 0E	0452r				 mov	 word ptr [VOLUME_START_SEKZYL], cx
+    506	    024F  88 36	0454r				 mov	 byte ptr [VOLUME_START_HEADZYL], dh
+    507	    0253  53					 push	 bx
+    508
+    509	    0254  66| BB 00000002			 mov	 ebx, 2
+    510	    025A  E8 03E0				 call	 add_sektor			 ; V1.0	R1
+    511
+    512	    025D  E8 FE6B				 call	 getsekzyl
+    513	    0260  89 1E	044Ar				 mov	 word ptr [VOLUME_START_ZYL], bx
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 10
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    514	    0264  A2 044Cr				 mov	 byte ptr [VOLUME_START_SEK], al
+    515	    0267  88 16	044Dr				 mov	 byte ptr [VOLUME_START_HEAD], dl
+    516
+    517	    026B  5B					 pop	 bx
+    518	    026C  26: 8B 4F 06				 mov	 cx, word ptr es:[bx+6h] ; Partitions Ende Sek/Zyl
+    519	    0270  26: 8A 77 05				 mov	 dh, byte ptr es:[bx+5h] ; " Zyl/Kopf
+    520	    0274  E8 FE54				 call	 getsekzyl
+    521
+    522	    0277  89 1E	0455r				 mov	 word ptr [VOLUME_END_ZYL], bx
+    523	    027B  A2 0457r				 mov	 byte ptr [VOLUME_END_SEK], al
+    524	    027E  88 16	0458r				 mov	 byte ptr [VOLUME_END_HEAD], dl
+    525	    0282  EB 36					 jmp	 @@CalcSeks
+    526
+    527	    0284				 @@IsFDD:
+    528							 ; Es Handlet sich um ein Disk-Laufwerk... Alles klar soweit!
+    529	    0284  B9 0001				 mov	 cx, 1
+    530	    0287  32 F6					 xor	 dh, dh
+    531	    0289  89 0E	0452r				 mov	 word ptr [VOLUME_START_SEKZYL], cx
+    532	    028D  88 36	0454r				 mov	 byte ptr [VOLUME_START_HEADZYL], dh
+    533
+    534	    0291  33 C0					 xor	 ax, ax				 ; Start Zylinder = 0
+    535	    0293  B3 02					 mov	 bl, 2				 ; Start Sektor	= 2
+    536	    0295  B7 00					 mov	 bh, 0				 ; Start Kopf =	0
+    537
+    538	    0297  8B 0E	0442r				 mov	 cx, word ptr [HDD_ZYLINDER]	 ; End Zylinder
+    539	    029B  8A 16	0444r				 mov	 dl, byte ptr [HDD_SEKTOREN]	 ; End Sektor
+    540	    029F  8A 36	0445r				 mov	 dh, byte ptr [HDD_KOEPFE]	 ; End Kopf
+    541
+    542	    02A3  A3 044Ar				 mov	 word ptr [VOLUME_START_ZYL], ax
+    543	    02A6  88 1E	044Cr				 mov	 byte ptr [VOLUME_START_SEK], bl
+    544	    02AA  88 3E	044Dr				 mov	 byte ptr [VOLUME_START_HEAD], bh
+    545	    02AE  89 0E	0455r				 mov	 word ptr [VOLUME_END_ZYL], cx
+    546	    02B2  88 16	0457r				 mov	 byte ptr [VOLUME_END_SEK], dl
+    547	    02B6  88 36	0458r				 mov	 byte ptr [VOLUME_END_HEAD], dh
+    548
+    549	    02BA				 @@CalcSeks:
+    550	    02BA  66| 0F B7 06 044Ar			 movzx	 eax, word ptr [VOLUME_START_ZYL]
+    551	    02C0  66| 33 D2				 xor	 edx, edx
+    552	    02C3  66| 0F B6 1E 0444r			 movzx	 ebx, byte ptr [HDD_SEKTOREN]
+    553	    02C9  66| F7 E3				 mul	 ebx
+    554	    02CC  66| 33 D2				 xor	 edx, edx
+    555	    02CF  66| 0F B6 1E 0445r			 movzx	 ebx, byte ptr [HDD_KOEPFE]
+    556	    02D5  66| 43				 inc	 ebx
+    557	    02D7  66| F7 E3				 mul	 ebx
+    558
+    559	    02DA  66| 50				 push	 eax
+    560
+    561	    02DC  66| 0F B6 06 044Cr			 movzx	 eax, byte ptr [VOLUME_START_SEK]
+    562	    02E2  66| 48				 dec	 eax
+    563	    02E4  66| 33 D2				 xor	 edx, edx
+    564	    02E7  66| 0F B6 1E 0445r			 movzx	 ebx, byte ptr [HDD_KOEPFE]
+    565	    02ED  66| 43				 inc	 ebx
+    566	    02EF  66| F7 E3				 mul	 ebx
+    567
+    568	    02F2  66| 5B				 pop	 ebx
+    569
+    570	    02F4  66| 03 C3				 add	 eax, ebx
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 11
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    571	    02F7  66| 0F B6 1E 044Dr			 movzx	 ebx, byte ptr [VOLUME_START_HEAD]
+    572	    02FD  66| 43				 inc	 ebx
+    573	    02FF  66| 03 C3				 add	 eax, ebx
+    574	    0302  66| 48				 dec	 eax
+    575
+    576	    0304  66| A3 044Er				 mov	 dword ptr [VOLUME_START_SEKS],	eax
+    577
+    578	    0308  66| 0F B7 06 0455r			 movzx	 eax, word ptr [VOLUME_END_ZYL]
+    579	    030E  66| 33 D2				 xor	 edx, edx
+    580	    0311  66| 0F B6 1E 0444r			 movzx	 ebx, byte ptr [HDD_SEKTOREN]
+    581	    0317  66| F7 E3				 mul	 ebx
+    582	    031A  66| 33 D2				 xor	 edx, edx
+    583	    031D  66| 0F B6 1E 0445r			 movzx	 ebx, byte ptr [HDD_KOEPFE]
+    584	    0323  66| 43				 inc	 ebx
+    585	    0325  66| F7 E3				 mul	 ebx
+    586
+    587	    0328  66| 50				 push	 eax
+    588
+    589	    032A  66| 0F B6 06 0457r			 movzx	 eax, byte ptr [VOLUME_END_SEK]
+    590	    0330  66| 48				 dec	 eax
+    591	    0332  66| 33 D2				 xor	 edx, edx
+    592	    0335  66| 0F B6 1E 0445r			 movzx	 ebx, byte ptr [HDD_KOEPFE]
+    593	    033B  66| 43				 inc	 ebx
+    594	    033D  66| F7 E3				 mul	 ebx
+    595
+    596	    0340  66| 5B				 pop	 ebx
+    597
+    598	    0342  66| 03 C3				 add	 eax, ebx
+    599	    0345  66| 0F B6 1E 0458r			 movzx	 ebx, byte ptr [VOLUME_END_HEAD]
+    600	    034B  66| 43				 inc	 ebx
+    601	    034D  66| 03 C3				 add	 eax, ebx
+    602
+    603	    0350  66| A3 0459r				 mov	 dword ptr [VOLUME_END_SEKS], eax
+    604
+    605	    0354  66| 8B 1E 044Er			 mov	 ebx, dword ptr	[VOLUME_START_SEKS]
+    606	    0359  66| 2B C3				 sub	 eax, ebx
+    607
+    608	    035C  66| A3 046Cr				 mov	 dword ptr [PART_SEKS],	eax
+    609
+    610	    0360  66| 33 D2				 xor	 edx, edx
+    611	    0363  66| BB 00000800			 mov	 ebx, 2048		 ; MB
+    612	    0369  66| F7 F3				 div	 ebx
+    613	    036C  A3 046Ar				 mov	 word ptr [PART_SIZE], ax
+    614
+    615	    036F  66| A1 046Cr				 mov	 eax, dword ptr	[PART_SEKS]
+    616	    0373  66| 0F B6 1E 0447r			 movzx	 ebx, byte ptr [SEKS_PER_BLOCK]
+    617	    0379  66| 33 D2				 xor	 edx, edx
+    618	    037C  66| F7 F3				 div	 ebx
+    619
+    620	    037F  66| A3 0465r				 mov	 dword ptr [VOLUME_BLOCKS], eax
+    621	    0383  88 16	0469r				 mov	 byte ptr [VOLUME_LOST_SEKS], dl
+    622
+    623	    0387  66| 33 D2				 xor	 edx, edx
+    624	    038A  66| 0F B6 1E 0447r			 movzx	 ebx, byte ptr [SEKS_PER_BLOCK]
+    625	    0390  66| F7 E3				 mul	 ebx
+    626	    0393  66| A3 045Dr				 mov	 dword ptr [VOLUME_SEKS], eax
+    627	    0397  66| 33 D2				 xor	 edx, edx
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 12
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    628	    039A  66| BB 00000002			 mov	 ebx, 2				 ; KB
+    629	    03A0  66| F7 F3				 div	 ebx
+    630	    03A3  66| A3 0461r				 mov	 dword ptr [VOLUME_SIZE], eax
+    631
+    632							 ; 1 BitMap Node = 1 Block
+    633							 ; 1 Sektor = 512 Bytes	= Platz	fÅr 4096 Zonen
+    634
+    635	    03A7  66| 0F B6 06 0447r			 movzx	 eax, byte ptr [SEKS_PER_BLOCK]
+    636	    03AD  66| 33 D2				 xor	 edx, edx
+    637	    03B0  66| BB 00001000			 mov	 ebx, 4096
+    638	    03B6  66| F7 E3				 mul	 ebx
+    639
+    640							 ; EAX=	Anzahl Zonen EintrÑge pro Block
+    641	    03B9  66| A3 0470r				 mov	 dword ptr [BITMAP_ENTRYS], eax
+    642
+    643	    03BD  66| 33 D2				 xor	 edx, edx
+    644	    03C0  66| 8B D8				 mov	 ebx, eax
+    645	    03C3  66| A1 0465r				 mov	 eax, dword ptr	[VOLUME_BLOCKS]
+    646	    03C7  66| F7 F3				 div	 ebx
+    647	    03CA  66| 83 FA 00				 cmp	 edx, 0
+    648	    03CE  74 02					 je	 @@SetReq
+    649	    03D0  66| 40				 inc	 eax
+    650	    03D2				 @@SetReq:
+    651	    03D2  A3 0474r				 mov	 word ptr [BITMAP_NODES], ax
+    652	    03D5  BA 0147r				 lea	 dx, MSG_0014
+    653	    03D8  B4 09					 mov	 ah, 9
+    654	    03DA  CD 21					 int	 21h
+    655
+    656	    03DC  BA 015Br				 lea	 dx, MSG_0015
+    657	    03DF  B4 09					 mov	 ah, 9
+    658	    03E1  CD 21					 int	 21h
+    659
+    660	    03E3  33 D2					 xor	 dx, dx
+    661	    03E5  A1 044Ar				 mov	 ax, word ptr [VOLUME_START_ZYL]
+    662	    03E8  E8 FC61				 call	 print32
+    663
+    664	    03EB  BA 0165r				 lea	 dx, MSG_0016
+    665	    03EE  B4 09					 mov	 ah, 9
+    666	    03F0  CD 21					 int	 21h
+    667
+    668	    03F2  33 D2					 xor	 dx, dx
+    669	    03F4  0F B6	06 044Cr			 movzx	 ax, byte ptr [VOLUME_START_SEK]
+    670	    03F9  E8 FC50				 call	 print32
+    671
+    672	    03FC  BA 016Fr				 lea	 dx, MSG_0017
+    673	    03FF  B4 09					 mov	 ah, 9
+    674	    0401  CD 21					 int	 21h
+    675
+    676	    0403  33 D2					 xor	 dx, dx
+    677	    0405  0F B6	06 044Dr			 movzx	 ax, byte ptr [VOLUME_START_HEAD]
+    678	    040A  E8 FC3F				 call	 print32
+    679
+    680	    040D  BA 0102r				 lea	 dx, MSG_0011
+    681	    0410  B4 09					 mov	 ah, 9
+    682	    0412  CD 21					 int	 21h
+    683
+    684	    0414  A1 044Er				 mov	 ax, word ptr [VOLUME_START_SEKS]
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 13
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    685	    0417  8B 16	0450r				 mov	 dx, word ptr [VOLUME_START_SEKS+2]
+    686	    041B  E8 FC2E				 call	 print32
+    687
+    688	    041E  BA 0177r				 lea	 dx, MSG_0018
+    689	    0421  B4 09					 mov	 ah, 9
+    690	    0423  CD 21					 int	 21h
+    691
+    692	    0425  BA 0181r				 lea	 dx, MSG_0019
+    693	    0428  B4 09					 mov	 ah, 9
+    694	    042A  CD 21					 int	 21h
+    695
+    696	    042C  BA 015Br				 lea	 dx, MSG_0015
+    697	    042F  B4 09					 mov	 ah, 9
+    698	    0431  CD 21					 int	 21h
+    699
+    700	    0433  33 D2					 xor	 dx, dx
+    701	    0435  A1 0455r				 mov	 ax, word ptr [VOLUME_END_ZYL]
+    702	    0438  E8 FC11				 call	 print32
+    703
+    704	    043B  BA 0165r				 lea	 dx, MSG_0016
+    705	    043E  B4 09					 mov	 ah, 9
+    706	    0440  CD 21					 int	 21h
+    707
+    708	    0442  33 D2					 xor	 dx, dx
+    709	    0444  0F B6	06 0457r			 movzx	 ax, byte ptr [VOLUME_END_SEK]
+    710	    0449  E8 FC00				 call	 print32
+    711
+    712	    044C  BA 016Fr				 lea	 dx, MSG_0017
+    713	    044F  B4 09					 mov	 ah, 9
+    714	    0451  CD 21					 int	 21h
+    715
+    716	    0453  33 D2					 xor	 dx, dx
+    717	    0455  0F B6	06 0458r			 movzx	 ax, byte ptr [VOLUME_END_HEAD]
+    718	    045A  E8 FBEF				 call	 print32
+    719
+    720	    045D  BA 0102r				 lea	 dx, MSG_0011
+    721	    0460  B4 09					 mov	 ah, 9
+    722	    0462  CD 21					 int	 21h
+    723
+    724	    0464  A1 0459r				 mov	 ax, word ptr [VOLUME_END_SEKS]
+    725	    0467  8B 16	045Br				 mov	 dx, word ptr [VOLUME_END_SEKS+2]
+    726	    046B  E8 FBDE				 call	 print32
+    727
+    728	    046E  BA 0177r				 lea	 dx, MSG_0018
+    729	    0471  B4 09					 mov	 ah, 9
+    730	    0473  CD 21					 int	 21h
+    731
+    732	    0475  BA 0195r				 lea	 dx, MSG_0020
+    733	    0478  B4 09					 mov	 ah, 9
+    734	    047A  CD 21					 int	 21h
+    735
+    736	    047C  A1 046Cr				 mov	 ax, word ptr [PART_SEKS]
+    737	    047F  8B 16	046Er				 mov	 dx, word ptr [PART_SEKS+2]
+    738	    0483  E8 FBC6				 call	 print32
+    739
+    740	    0486  BA 0177r				 lea	 dx, MSG_0018
+    741	    0489  B4 09					 mov	 ah, 9
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 14
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    742	    048B  CD 21					 int	 21h
+    743	    048D  BA 0102r				 lea	 dx, MSG_0011
+    744	    0490  B4 09					 mov	 ah, 9
+    745	    0492  CD 21					 int	 21h
+    746
+    747	    0494  A1 046Ar				 mov	 ax, word ptr [PART_SIZE]
+    748	    0497  33 D2					 xor	 dx, dx
+    749	    0499  E8 FBB0				 call	 print32
+    750
+    751	    049C  BA 00FDr				 lea	 dx, MSG_0010
+    752	    049F  B4 09					 mov	 ah, 9
+    753	    04A1  CD 21					 int	 21h
+    754
+    755	    04A3  BA 01A9r				 lea	 dx, MSG_0021
+    756	    04A6  B4 09					 mov	 ah, 9
+    757	    04A8  CD 21					 int	 21h
+    758
+    759	    04AA  A1 045Dr				 mov	 ax, word ptr [VOLUME_SEKS]
+    760	    04AD  8B 16	045Fr				 mov	 dx, word ptr [VOLUME_SEKS+2]
+    761	    04B1  E8 FB98				 call	 print32
+    762
+    763	    04B4  BA 0177r				 lea	 dx, MSG_0018
+    764	    04B7  B4 09					 mov	 ah, 9
+    765	    04B9  CD 21					 int	 21h
+    766	    04BB  BA 0102r				 lea	 dx, MSG_0011
+    767	    04BE  B4 09					 mov	 ah, 9
+    768	    04C0  CD 21					 int	 21h
+    769
+    770	    04C2  33 C0					 xor	 ax, ax
+    771	    04C4  33 D2					 xor	 dx, dx
+    772	    04C6  A0 0469r				 mov	 al, byte ptr [VOLUME_LOST_SEKS]
+    773	    04C9  E8 FB80				 call	 print32
+    774
+    775	    04CC  BA 01BDr				 lea	 dx, MSG_0022
+    776	    04CF  B4 09					 mov	 ah, 9
+    777	    04D1  CD 21					 int	 21h
+    778
+    779	    04D3  BA 01C9r				 lea	 dx, MSG_0023
+    780	    04D6  B4 09					 mov	 ah, 9
+    781	    04D8  CD 21					 int	 21h
+    782
+    783	    04DA  A1 0465r				 mov	 ax, word ptr [VOLUME_BLOCKS]
+    784	    04DD  8B 16	0467r				 mov	 dx, word ptr [VOLUME_BLOCKS+2]
+    785	    04E1  E8 FB68				 call	 print32
+    786
+    787	    04E4  BA 01DDr				 lea	 dx, MSG_0024
+    788	    04E7  B4 09					 mov	 ah, 9
+    789	    04E9  CD 21					 int	 21h
+    790	    04EB  BA 0102r				 lea	 dx, MSG_0011
+    791	    04EE  B4 09					 mov	 ah, 9
+    792	    04F0  CD 21					 int	 21h
+    793
+    794	    04F2  A1 0461r				 mov	 ax, word ptr [VOLUME_SIZE]
+    795	    04F5  8B 16	0463r				 mov	 dx, word ptr [VOLUME_SIZE+2]
+    796	    04F9  E8 FB50				 call	 print32
+    797
+    798	    04FC  BA 01E8r				 lea	 dx, MSG_0025
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 15
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    799	    04FF  B4 09					 mov	 ah, 9
+    800	    0501  CD 21					 int	 21h
+    801
+    802	    0503  BA 01EDr				 lea	 dx, MSG_0026
+    803	    0506  B4 09					 mov	 ah, 9
+    804	    0508  CD 21					 int	 21h
+    805
+    806	    050A  A1 0470r				 mov	 ax, word ptr [bitmap_entrys]
+    807	    050D  8B 16	0472r				 mov	 dx, word ptr [bitmap_entrys+2]
+    808	    0511  E8 FB38				 call	 print32
+    809
+    810	    0514  BA 0201r				 lea	 dx, MSG_0027
+    811	    0517  B4 09					 mov	 ah, 9
+    812	    0519  CD 21					 int	 21h
+    813	    051B  BA 0102r				 lea	 dx, MSG_0011
+    814	    051E  B4 09					 mov	 ah, 9
+    815	    0520  CD 21					 int	 21h
+    816
+    817	    0522  33 D2					 xor	 dx, dx
+    818	    0524  A1 0474r				 mov	 ax, word ptr [bitmap_nodes]
+    819	    0527  E8 FB22				 call	 print32
+    820
+    821	    052A  BA 0211r				 lea	 dx, MSG_0028
+    822	    052D  B4 09					 mov	 ah, 9
+    823	    052F  CD 21					 int	 21h
+    824
+    825	    0531  C3					 ret
+    826	    0532				 GET_VOLUMEDATA	ENDP
+    827
+    828						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    829						 ;SET_BITMAPBLOCKS: Erstellt die BitmapBlocks auf einem	Volume
+    830						 ; Input : -
+    831						 ; Output: -
+    832						 ;
+    833	    0532				 SET_BITMAPBLOCKS PROC NEAR
+    834							 ; Wir werden nun berechnen wieviele Blocks wir	in einen
+    835							 ; Bitmap Block	sichern	kînnen und somit werden	wir die
+    836							 ; benîtigten BitmapBlocks ermitteln. Der BitmapBlock
+    837							 ; ansich ist in sich selbst als erster	belegter Block
+    838							 ; eingetragen.
+    839
+    840	    0532  BA 021Dr				 lea	 dx, MSG_0029
+    841	    0535  B4 09					 mov	 ah, 9
+    842	    0537  CD 21					 int	 21h
+    843
+    844	    0539  66| 0F B7 3E 0474r			 movzx	 edi, word ptr [BITMAP_NODES]
+    845
+    846	    053F				 @@CreateLoop:
+    847	    053F  66| 4F				 dec	 edi
+    848
+    849	    0541  66| 83 FF 00				 cmp	 edi, 0			 ; V1.0	R1: 1.Bitmap an	Addr. 0
+    850	    0545  74 1D					 je	 @@FirstNode
+    851
+    852	    0547  66| A1 0470r				 mov	 eax, dword ptr	[BITMAP_ENTRYS]
+    853	    054B  66| 33 D2				 xor	 edx, edx
+    854	    054E  66| 8B DF				 mov	 ebx, edi
+    855	    0551  66| F7 E3				 mul	 ebx
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 16
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    856
+    857	    0554  66| 57				 push	 edi
+    858	    0556  66| 50				 push	 eax
+    859	    0558  E8 0016				 call	 CLR_DATA
+    860	    055B  66| 58				 pop	 eax
+    861	    055D  E8 00D2				 call	 WRITE_DATA
+    862	    0560  66| 5F				 pop	 edi
+    863	    0562  EB DB					 jmp	 short @@CreateLoop
+    864
+    865	    0564				 @@FirstNode:
+    866	    0564  E8 000A				 call	 CLR_DATA
+    867	    0567  66| B8 00000000			 mov	 eax, 0			 ; V1.0	R1
+    868	    056D  E8 00C2				 call	 WRITE_DATA
+    869	    0570  C3					 ret
+    870	    0571				 SET_BITMAPBLOCKS ENDP
+    871
+    872						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    873						 ; CLR_DATA: Lîscht den	Bitmap Datenbereich
+    874						 ; Input : -
+    875						 ; Output: -
+    876						 ;
+    877	    0571				 CLR_DATA PROC NEAR
+    878	    0571  66| 50				 push	 eax
+    879	    0573  66| 51				 push	 ecx
+    880	    0575  66| 57				 push	 edi
+    881	    0577  B8 0000s				 mov	 ax, BLOCK_DATA
+    882	    057A  8E C0					 mov	 es, ax
+    883	    057C  B9 4000				 mov	 cx, 16384		 ; 16384 DWords	zu lîschen
+    884	    057F  66| 33 C0				 xor	 eax, eax
+    885	    0582  66| 33 FF				 xor	 edi, edi
+    886	    0585  FC					 cld
+    887	    0586  F3> 66| AB				 rep	 stosd
+    888	    0589  B8 0000s				 mov	 ax, SEKTOR_DATA
+    889	    058C  8E C0					 mov	 es, ax
+    890	    058E  66| 5F				 pop	 edi
+    891	    0590  66| 59				 pop	 ecx
+    892	    0592  66| 58				 pop	 eax
+    893	    0594  C3					 ret
+    894	    0595				 CLR_DATA ENDP
+    895
+    896						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    897						 ; GET_PHYSICAL: Berechnet aus einer Linearen Adresse die phys.
+    898						 ;		 Position auf dem DatentrÑger, abhÑngig	von der
+    899						 ;		 Blockgrî·e
+    900						 ;
+    901						 ; Input:	 EBX = Lieneare	Adrsesse
+    902						 ; Output:	 CX = SekZyl, DH=ZylHead
+    903						 ;
+    904	    0595				 GET_PHYSICAL PROC NEAR
+    905							 ; ZunÑchst berechnen wir aus der Linearen Adresse die Anzahl
+    906							 ; der Sektoren...
+    907
+    908	    0595  66| 8B C3				 mov	 eax, ebx
+    909	    0598  66| 0F B6 1E 0447r			 movzx	 ebx, byte ptr [SEKS_PER_BLOCK]
+    910	    059E  66| 33 D2				 xor	 edx, edx
+    911	    05A1  66| F7 E3				 mul	 ebx
+    912
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 17
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    913	    05A4  66| 8B 1E 044Er			 mov	 ebx, dword ptr	[VOLUME_START_SEKS]
+    914	    05A9  66| 03 C3				 add	 eax, ebx
+    915
+    916							 ; Nun mÅssen wir berechnen, welcher Zylinder, Sektor, Kopf
+    917							 ; EAX=	Logische Real Adresse
+    918
+    919	    05AC  66| 50				 push	 eax			 ; Adresse merken
+    920
+    921	    05AE  66| 0F B6 1E 0445r			 movzx	 ebx, byte ptr [HDD_KOEPFE]
+    922	    05B4  66| 43				 inc	 ebx
+    923	    05B6  66| 33 D2				 xor	 edx, edx
+    924	    05B9  66| F7 F3				 div	 ebx
+    925	    05BC  66| 0F B6 1E 0444r			 movzx	 ebx, byte ptr [HDD_SEKTOREN]
+    926	    05C2  66| 33 D2				 xor	 edx, edx
+    927	    05C5  66| F7 F3				 div	 ebx
+    928
+    929	    05C8  66| 50				 push	 eax			 ; Zylinder !
+    930
+    931	    05CA  66| 33 D2				 xor	 edx, edx
+    932	    05CD  66| 0F B6 1E 0444r			 movzx	 ebx, byte ptr [HDD_SEKTOREN]
+    933	    05D3  66| F7 E3				 mul	 ebx
+    934	    05D6  66| 33 D2				 xor	 edx, edx
+    935	    05D9  66| 0F B6 1E 0445r			 movzx	 ebx, byte ptr [HDD_KOEPFE]
+    936	    05DF  66| 43				 inc	 ebx
+    937	    05E1  66| F7 E3				 mul	 ebx
+    938
+    939	    05E4  66| 5B				 pop	 ebx			 ; Zyl holen
+    940	    05E6  66| 5A				 pop	 edx			 ; Adresse holen
+    941	    05E8  66| 53				 push	 ebx			 ; Zyl zurÅck
+    942	    05EA  66| 52				 push	 edx			 ; Adresse zurÅck
+    943
+    944	    05EC  66| 2B D0				 sub	 edx, eax
+    945
+    946	    05EF  66| 52				 push	 edx			 ; REST	merken !
+    947
+    948	    05F1  66| 8B C2				 mov	 eax, edx
+    949	    05F4  66| 33 D2				 xor	 edx, edx
+    950	    05F7  66| 0F B6 1E 0445r			 movzx	 ebx, byte ptr [HDD_KOEPFE]
+    951	    05FD  66| 43				 inc	 ebx
+    952	    05FF  66| F7 F3				 div	 ebx
+    953	    0602  66| 40				 inc	 eax
+    954
+    955	    0604  66| 50				 push	 eax			 ; SEKTOR merken !
+    956
+    957	    0606  66| 33 D2				 xor	 edx, edx
+    958	    0609  66| 48				 dec	 eax
+    959	    060B  66| 0F B6 1E 0445r			 movzx	 ebx, byte ptr [HDD_KOEPFE]
+    960	    0611  66| 43				 inc	 ebx
+    961	    0613  66| F7 E3				 mul	 ebx
+    962
+    963	    0616  66| 5A				 pop	 edx			 ; SEKTOR holen
+    964
+    965	    0618  66| 5B				 pop	 ebx			 ; REST	holen
+    966	    061A  66| 2B D8				 sub	 ebx, eax
+    967
+    968	    061D  66| 33 C0				 xor	 eax, eax
+    969	    0620  8A C2					 mov	 al, dl
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 18
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+    970	    0622  66| 33 D2				 xor	 edx, edx
+    971	    0625  8A D3					 mov	 dl, bl
+    972
+    973	    0627  66| 5B				 pop	 ebx			 ; Adresse zum MÅll
+    974	    0629  66| 33 DB				 xor	 ebx, ebx
+    975	    062C  66| 5B				 pop	 ebx			 ; Zylinder holen
+    976
+    977	    062E  E8 FAC2				 call	 setsekzyl
+    978	    0631  C3					 ret
+    979	    0632				 GET_PHYSICAL ENDP
+    980
+    981						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    982						 ; WRITE_DATA: Schreibt	einen Block an die Adresse in EAX
+    983						 ;	       und markiert diesen als Belegt im zugehîrigen Bitmap
+    984						 ;	       Block
+    985						 ; Input:      EAX = Positionsangabe
+    986						 ; Output:     - (abbruch bei Fehler!)
+    987						 ;
+    988	    0632				 WRITE_DATA PROC NEAR
+    989	    0632  66| 50				 push	 eax
+    990	    0634  E8 007B				 call	 WRITE_BLOCK
+    991	    0637  66| 58				 pop	 eax
+    992							 ; Wir mÅssen den Block	nun noch als "BELEGT" Eintragen!
+    993	    0639  E8 0162				 call	 MARK_BLOCK
+    994	    063C  C3					 ret
+    995	    063D				 WRITE_DATA ENDP
+    996
+    997						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+    998						 ; ADD_SEKTOR: Addiert X Sektoren zur Åbergebenen Position und gibt
+    999						 ;	       die neue	Position zurÅck
+   1000						 ; Input:      CX = Aktueller SekZyl
+   1001						 ;	       DH = Aktueller ZylHead
+   1002						 ;	       EBX = Anzahl zu addierende Sektoren
+   1003						 ; Output:     CX, DH Aktualisiert
+   1004						 ;
+   1005	    063D				 ADD_SEKTOR PROC NEAR
+   1006	    063D  66| 53				 push	 ebx
+   1007	    063F  E8 FA89				 call	 getsekzyl
+   1008	    0642  66| 59				 pop	 ecx
+   1009
+   1010	    0644				 @@IncLoop:
+   1011	    0644  3A 16	0445r				 cmp	 dl, byte ptr [HDD_KOEPFE]
+   1012	    0648  74 04					 je	 @@NextSek
+   1013	    064A  FE C2					 inc	 dl
+   1014	    064C  EB 0F					 jmp	 short @@IsOK
+   1015
+   1016	    064E				 @@NextSek:
+   1017	    064E  B2 00					 mov	 dl, 0
+   1018	    0650  3A 06	0444r				 cmp	 al, byte ptr [HDD_SEKTOREN]
+   1019	    0654  74 04					 je	 @@NextZyl
+   1020	    0656  FE C0					 inc	 al
+   1021	    0658  EB 03					 jmp	 short @@IsOK
+   1022
+   1023	    065A				 @@NextZyl:
+   1024	    065A  B0 01					 mov	 al, 1
+   1025	    065C  43					 inc	 bx
+   1026
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 19
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1027	    065D				 @@IsOK:
+   1028	    065D  E2 E5					 loop	 @@IncLoop
+   1029	    065F  E8 FA91				 call	 setsekzyl
+   1030	    0662  C3					 ret
+   1031	    0663				 ADD_SEKTOR ENDP
+   1032
+   1033						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1034						 ; READ_BLOCK :	Liest einen Block vom Volume nach BLOCK_DATA
+   1035						 ; Input:	 EAX = zu lesende Adresse
+   1036						 ; Output:	 - (abbruch bei	Fehler!)
+   1037						 ;
+   1038	    0663				 READ_BLOCK PROC NEAR
+   1039	    0663  66| 8B D8				 mov	 ebx, eax
+   1040	    0666  E8 FF2C				 call	 get_physical
+   1041
+   1042	    0669  0F B6	36 0447r			 movzx	 si, byte ptr [SEKS_PER_BLOCK]	 ; Anzahl der Sektoren
+   1043												 ; eines Blocks
+   1044	    066E  66| 33 DB				 xor	 ebx, ebx			 ; Offset 0
+   1045	    0671  B8 0000s				 mov	 ax, BLOCK_DATA
+   1046	    0674  8E C0					 mov	 es, ax
+   1047
+   1048	    0676				 @@NewSek:
+   1049	    0676  BF 0004				 mov	 di, 4				 ; max.	4 Versuche
+   1050
+   1051	    0679				 @@ReadLoop:
+   1052	    0679  8A 16	0441r				 mov	 dl, byte ptr [HDD_DRIVE]
+   1053
+   1054	    067D  B8 0201				 mov	 ax, 0201h
+   1055	    0680  CD 13					 int	 13h
+   1056
+   1057	    0682  73 08					 jnc	 @@checknext
+   1058
+   1059	    0684  4F					 dec	 di
+   1060	    0685  83 FF	00				 cmp	 di, 0
+   1061	    0688  74 1C					 je	 @@failure
+   1062	    068A  EB ED					 jmp	 short @@ReadLoop
+   1063
+   1064	    068C				 @@checknext:
+   1065	    068C  4E					 dec	 si
+   1066	    068D  83 FE	00				 cmp	 si, 0
+   1067	    0690  74 13					 je	 @@Fertisch
+   1068	    0692  81 C3	0200				 add	 bx, 200h
+   1069	    0696  66| 53				 push	 ebx
+   1070	    0698  66| BB 00000001			 mov	 ebx, 1
+   1071	    069E  E8 FF9C				 call	 ADD_SEKTOR
+   1072	    06A1  66| 5B				 pop	 ebx
+   1073
+   1074	    06A3  EB D1					 jmp	 short @@NewSek
+   1075	    06A5				 @@Fertisch:
+   1076	    06A5  C3					 ret
+   1077	    06A6				 @@failure:
+   1078	    06A6  BA 0049r				 lea	 dx, MSG_0001
+   1079	    06A9  B4 09					 mov	 ah, 9
+   1080	    06AB  CD 21					 int	 21h
+   1081	    06AD  B8 4C00				 mov	 ax, 4c00h
+   1082	    06B0  CD 21					 int	 21h
+   1083	    06B2				 READ_BLOCK ENDP
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 20
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1084
+   1085						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1086						 ; WRITE_BLOCK : Schreibt BLOCK_DATA an	die in EAX Åbergebene Position
+   1087						 ;		 auf dem DatentrÑger
+   1088						 ; Input:	 EAX = Adresse
+   1089						 ; Output:	 - (abbruch bei	Fehler!)
+   1090						 ;
+   1091	    06B2				 WRITE_BLOCK PROC NEAR
+   1092	    06B2  66| 8B D8				 mov	 ebx, eax
+   1093	    06B5  E8 FEDD				 call	 GET_PHYSICAL
+   1094
+   1095	    06B8  0F B6	36 0447r			 movzx	 si, byte ptr [SEKS_PER_BLOCK]	 ; Anzahl der Sektoren
+   1096												 ; eines Blocks
+   1097	    06BD  66| 33 DB				 xor	 ebx, ebx			 ; Offset 0
+   1098	    06C0  B8 0000s				 mov	 ax, BLOCK_DATA
+   1099	    06C3  8E C0					 mov	 es, ax
+   1100
+   1101	    06C5				 @@NewSek:
+   1102	    06C5  BF 0004				 mov	 di, 4				 ; max.	4 Versuche
+   1103
+   1104	    06C8  57					 push	 di
+   1105	    06C9  56					 push	 si
+   1106	    06CA  53					 push	 bx
+   1107	    06CB  51					 push	 cx
+   1108	    06CC  52					 push	 dx
+   1109
+   1110	    06CD  E8 F9FB				 call	 getsekzyl
+   1111
+   1112	    06D0  52					 push	 dx
+   1113	    06D1  50					 push	 ax
+   1114	    06D2  53					 push	 bx
+   1115	    06D3  BA 023Ar				 lea	 dx, MSG_0030
+   1116	    06D6  B4 09					 mov	 ah, 9
+   1117	    06D8  CD 21					 int	 21h
+   1118
+   1119	    06DA  58					 pop	 ax
+   1120	    06DB  33 D2					 xor	 dx, dx
+   1121	    06DD  E8 F96C				 call	 print32
+   1122
+   1123	    06E0  BA 0165r				 lea	 dx, MSG_0016
+   1124	    06E3  B4 09					 mov	 ah, 9
+   1125	    06E5  CD 21					 int	 21h
+   1126
+   1127	    06E7  58					 pop	 ax
+   1128	    06E8  32 E4					 xor	 ah, ah
+   1129	    06EA  33 D2					 xor	 dx, dx
+   1130	    06EC  E8 F95D				 call	 print32
+   1131
+   1132	    06EF  BA 016Fr				 lea	 dx, MSG_0017
+   1133	    06F2  B4 09					 mov	 ah, 9
+   1134	    06F4  CD 21					 int	 21h
+   1135
+   1136	    06F6  58					 pop	 ax
+   1137	    06F7  32 E4					 xor	 ah, ah
+   1138	    06F9  33 D2					 xor	 dx, dx
+   1139	    06FB  E8 F94E				 call	 print32
+   1140
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 21
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1141	    06FE  5A					 pop	 dx
+   1142	    06FF  59					 pop	 cx
+   1143	    0700  5B					 pop	 bx
+   1144	    0701  5E					 pop	 si
+   1145	    0702  5F					 pop	 di
+   1146
+   1147	    0703				 @@WriteLoop:
+   1148	    0703  8A 16	0441r				 mov	 dl, byte ptr [HDD_DRIVE]
+   1149
+   1150	    0707  B8 0301				 mov	 ax, 0301h
+   1151	    070A  CD 13					 int	 13h
+   1152
+   1153	    070C  73 08					 jnc	 @@checknext
+   1154
+   1155	    070E  4F					 dec	 di
+   1156	    070F  83 FF	00				 cmp	 di, 0
+   1157	    0712  74 21					 je	 @@failure
+   1158	    0714  EB ED					 jmp	 short @@WriteLoop
+   1159
+   1160	    0716				 @@checknext:
+   1161	    0716  4E					 dec	 si
+   1162	    0717  83 FE	00				 cmp	 si, 0
+   1163	    071A  74 13					 je	 @@Fertisch
+   1164	    071C  81 C3	0200				 add	 bx, 200h
+   1165
+   1166	    0720  66| 53				 push	 ebx
+   1167	    0722  66| BB 00000001			 mov	 ebx, 1
+   1168	    0728  E8 FF12				 call	 ADD_SEKTOR
+   1169	    072B  66| 5B				 pop	 ebx
+   1170
+   1171	    072D  EB 96					 jmp	 @@NewSek
+   1172
+   1173	    072F				 @@Fertisch:
+   1174	    072F  B8 0000s				 mov	 ax, SEKTOR_DATA
+   1175	    0732  8E C0					 mov	 es, ax
+   1176	    0734  C3					 ret
+   1177	    0735				 @@failure:
+   1178	    0735  50					 push	 ax
+   1179	    0736  BA 0063r				 lea	 dx, MSG_0002
+   1180	    0739  B4 09					 mov	 ah, 9
+   1181	    073B  CD 21					 int	 21h
+   1182	    073D  58					 pop	 ax
+   1183	    073E  8A C4					 mov	 al, ah
+   1184	    0740  32 E4					 xor	 ah, ah
+   1185	    0742  33 D2					 xor	 dx, dx
+   1186	    0744  E8 F905				 call	 print32
+   1187
+   1188	    0747  B8 4C00				 mov	 ax, 4c00h
+   1189	    074A  CD 21					 int	 21h
+   1190	    074C				 WRITE_BLOCK ENDP
+   1191
+   1192						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1193						 ; CALC_BITMAPPOS: Berechnet die Position des BitmapBlocks
+   1194						 ;		   fÅr einen zu	belegenden Block
+   1195						 ; Input :	   EAX = Lineare Adresse des einzutragenden Blocks
+   1196						 ; Output:	   EAX = Nummer	des Bitmap Blocks (1..
+   1197						 ;		   EBX = Lineare Adresse des Bitmap Blocks
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 22
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1198						 ;		   ECX = Byte im BitmapBlock (0..)
+   1199						 ;		   EDX = Bit im	Bitmap Block (8..1)
+   1200						 ;
+   1201	    074C				 CALC_BITMAPPOS	PROC NEAR
+   1202							 ; Bit 0 bedeutet die Adresse Beschreibt ein Bitmap-Block!
+   1203							 ; Wir wissen wieviele "Blocks"	in einen Bitmap-Block passen.
+   1204							 ; Wir teilen die Adresse also durch die Anzahl,
+   1205							 ; das ganze +1	und haben die Nr. des Blocks.
+   1206							 ; Ist die Blocknummer = 1 befindet sich der Block am 2. Block
+   1207							 ; der Partition d.h. Adresse 1
+   1208							 ; Ansonsten befindet er sich an Adresse BlockNr.* Anzahl
+   1209							 ; der Blocks je Bitmap
+   1210
+   1211							 ; Nur der Bitmap...
+   1212	    074C  66| 33 D2				 xor	 edx, edx
+   1213	    074F  66| 8B 1E 0470r			 mov	 ebx, dword ptr	[BITMAP_ENTRYS]
+   1214	    0754  66| F7 F3				 div	 ebx
+   1215	    0757  66| 40				 inc	 eax
+   1216
+   1217							 ; EAX = Nr. des Bitmap	Blocks
+   1218
+   1219	    0759  66| 50				 push	 eax			 ; Bitmap-Nummer merken
+   1220
+   1221							 ; EDX = Das Bit im Block
+   1222
+   1223	    075B  66| 52				 push	 edx
+   1224
+   1225	    075D  66| 33 D2				 xor	 edx, edx
+   1226	    0760  66| 48				 dec	 eax
+   1227	    0762  66| 8B 1E 0470r			 mov	 ebx, dword ptr	[BITMAP_ENTRYS]
+   1228	    0767  66| F7 E3				 mul	 ebx
+   1229
+   1230	    076A  66| 5A				 pop	 edx
+   1231	    076C  66| 50				 push	 eax			 ; Adresse des Blocks merken
+   1232
+   1233	    076E  66| 8B C2				 mov	 eax, edx
+   1234	    0771  66| 33 D2				 xor	 edx, edx
+   1235	    0774  66| BB 00000008			 mov	 ebx, 8			 ; 8 Bits
+   1236	    077A  66| F7 F3				 div	 ebx
+   1237	    077D  66| BB 00000008			 mov	 ebx, 8
+   1238	    0783  66| 2B DA				 sub	 ebx, edx
+   1239	    0786  66| 8B D3				 mov	 edx, ebx
+   1240	    0789  66| 8B C8				 mov	 ecx, eax		 ; Byte	im Block
+   1241											 ; EDX = Bit im	Block
+   1242	    078C  66| 5B				 pop	 ebx			 ; Adresse des Blocks
+   1243	    078E  66| 58				 pop	 eax			 ; Nummer der Bitmap
+   1244
+   1245	    0790  66| 83 F8 01				 cmp	 eax, 1			 ; Nummer 1?
+   1246	    0794  74 01					 je	 @@EditAddr
+   1247	    0796  C3					 ret
+   1248
+   1249	    0797				 @@EditAddr:
+   1250							 ; Der erste Bitmap Block liegt	nicht an Adresse 0
+   1251							 ; sondern an Adresse 1
+   1252							 ; V1.0	R1: 1. BitmapBlock liegt nun an	Adresse	0!!!!
+   1253
+   1254	    0797  66| BB 00000000			 mov	 ebx, 0			 ; 1. Block in Partition!
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 23
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1255
+   1256	    079D  C3					 ret
+   1257	    079E				 CALC_BITMAPPOS	ENDP
+   1258
+   1259						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1260						 ; MARK_BLOCK: Markiert	einen Block als	belegt in dem entsprechenden
+   1261						 ;	       Bitmap Block.
+   1262						 ;
+   1263						 ; Input     : EAX = Lineare Adresse des zu mark. Blocks
+   1264						 ; Output    : - (abbruch bei Fehler!)
+   1265						 ;
+   1266	    079E				 MARK_BLOCK PROC NEAR
+   1267	    079E  E8 FFAB				 call	 CALC_BITMAPPOS
+   1268							 ; => EAX = Nummer des Blocks (1..)
+   1269							 ; => EBX = Linear Adresse des Bitmap-Nodes
+   1270							 ; => ECX = Byte im Node (0..)
+   1271							 ; => EDX = Bit	im Node	(8..1)
+   1272	    07A1  66| 53				 push	 ebx			 ; Adresse merken
+   1273	    07A3  66| 52				 push	 edx			 ; Bit merken
+   1274	    07A5  66| 51				 push	 ecx			 ; Byte	merken
+   1275
+   1276	    07A7  66| 8B C3				 mov	 eax, ebx
+   1277	    07AA  E8 FEB6				 call	 READ_BLOCK
+   1278
+   1279	    07AD  B8 0000s				 mov	 ax, block_data
+   1280	    07B0  8E C0					 mov	 es, ax
+   1281
+   1282	    07B2  66| 5B				 pop	 ebx			 ; Byte	holen
+   1283	    07B4  26: 8A 07				 mov	 al, byte ptr es:[bx]
+   1284
+   1285	    07B7  66| 59				 pop	 ecx			 ; Bit holen
+   1286	    07B9  66| 49				 dec	 ecx
+   1287	    07BB  B4 01					 mov	 ah, 1
+   1288	    07BD  D2 E4					 shl	 ah, cl
+   1289	    07BF  84 C4					 test	 al, ah
+   1290	    07C1  75 05					 jnz	 @@NixAdd
+   1291	    07C3  02 C4					 add	 al, ah
+   1292	    07C5  26: 88 07				 mov	 byte ptr es:[bx], al
+   1293	    07C8				    @@NixAdd:
+   1294	    07C8  66| 58				 pop	 eax			 ; Adresse holen
+   1295
+   1296	    07CA  E8 FEE5				 call	 WRITE_BLOCK
+   1297	    07CD  E8 FDA1				 call	 CLR_DATA
+   1298	    07D0  C3					 ret
+   1299	    07D1				 MARK_BLOCK ENDP
+   1300
+   1301						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1302						 ; WRITE_BOOTSTRAP: Schreibt den Bootstrap Code!
+   1303						 ; Input : -
+   1304						 ; Output: - (abbruch bei Fehler!)
+   1305						 ;
+   1306	    07D1				 WRITE_BOOTSTRAP PROC NEAR
+   1307							 ; Wir kopieren	nun den	Gesamten BootCode (512 Byte) in
+   1308							 ; den Block-Buffer und	schreiben diesen an Adresse 0!
+   1309							 ; V1.0	R1: Adresse 0 zeigt nun	auf den	1. Bitmap Block!!!
+   1310							 ;	    Die	Position des Bootcodes ist nun nicht mehr Åber
+   1311							 ;	    das	Linear Adressing erreichbar und	mu· anhand der
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 24
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1312							 ;	    Partitionsdaten (VOLUME_START_x) beschrieben werden.
+   1313
+   1314	    07D1  BA 0256r				 lea	 dx, MSG_0031
+   1315	    07D4  B4 09					 mov	 ah, 9
+   1316	    07D6  CD 21					 int	 21h
+   1317
+   1318							 assume	 es:BOOT_CODE
+   1319
+   1320	    07D8  B8 0000s				 mov	 ax, BOOT_CODE
+   1321	    07DB  8E C0					 mov	 es, ax
+   1322
+   1323							 ASSUME	 ds:data, es:sektor_data, fs:block_data
+   1324	    07DD  B8 0000s				 mov	 ax, DATA
+   1325	    07E0  8E D8					 mov	 ds, ax
+   1326
+   1327	    07E2  E8 F8D6				 call	 CLR_SEK
+   1328
+   1329	    07E5  B9 0080				 mov	 cx, 128	 ; 128 DWords zu kopieren
+   1330	    07E8  B8 0000s				 mov	 ax, SEKTOR_DATA
+   1331	    07EB  8E C0					 mov	 es, ax
+   1332	    07ED  B8 0000s				 mov	 ax, BOOT_CODE
+   1333	    07F0  8E E0					 mov	 fs, ax
+   1334	    07F2  66| 33 FF				 xor	 edi, edi	 ; An Adresse 0
+   1335	    07F5  FC					 cld
+   1336	    07F6				 @@CpyLoop:
+   1337	    07F6  66| 64: 67| 8B 07			 mov	 eax, dword ptr	fs:[edi]
+   1338	    07FB  66| AB				 stosd
+   1339	    07FD  E2 F7					 loop	 @@CpyLoop
+   1340
+   1341	    07FF  8B 0E	0452r				 mov	 cx, word ptr [VOLUME_START_SEKZYL]
+   1342	    0803  8A 36	0454r				 mov	 dh, byte ptr [VOLUME_START_HEADZYL]
+   1343
+   1344	    0807  E8 F87D				 call	 WRITE_SEK
+   1345	    080A  C3					 ret
+   1346	    080B				 WRITE_BOOTSTRAP ENDP
+   1347
+   1348						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1349						 ; CLR_INDOE: Lîscht den INODE-Buffer
+   1350						 ; Input : -
+   1351						 ; Output: -
+   1352						 ;
+   1353	    080B				 CLR_INODE PROC	NEAR
+   1354	    080B  B9 0080				 mov	 cx, 128		 ; 128 Bytes zu	lîschen
+   1355	    080E  B8 0000s				 mov	 ax, SEKTOR_DATA
+   1356	    0811  8E C0					 mov	 es, ax
+   1357	    0813  BF 0400r				 mov	 di, offset es:INODE_START
+   1358	    0816  32 C0					 xor	 al, al
+   1359	    0818  F3> AA				 rep	 stosb
+   1360	    081A  C3					 ret
+   1361	    081B				 CLR_INODE ENDP
+   1362
+   1363						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1364						 ; CREATE_BLOCK: Erstellt einen	Block mit leeren Inodes
+   1365						 ; Input : EAX = Adresse
+   1366						 ; Output: - (abbruch bei Fehler!)
+   1367						 ;
+   1368	    081B				 CLEAR_BLOCK PROC NEAR
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 25
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1369	    081B  66| 50				 push	 eax
+   1370	    081D  E8 FD51				 call	 CLR_DATA
+   1371	    0820  66| 58				 pop	 eax
+   1372	    0822  E8 FE0D				 call	 WRITE_DATA
+   1373	    0825  C3					 ret
+   1374	    0826				 CLEAR_BLOCK ENDP
+   1375
+   1376						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1377						 ; GET_SYSTIME:	Liefert	das Datum und die Uhrzeit (aktuell) zurÅck
+   1378						 ; Input : -
+   1379						 ; Output: EAX = Datum/Uhrzeit (Timemark)
+   1380						 ;
+   1381	    0826				 GET_SYSTIME PROC NEAR
+   1382	    0826  B4 2C					 mov	 ah, 2ch
+   1383	    0828  CD 21					 int	 21h
+   1384							 ; CH= Stunde, CL= Minute, DH= Sekunde
+   1385	    082A  51					 push	 cx
+   1386	    082B  66| 0F B6 C6				 movzx	 eax, dh
+   1387	    082F  66| 33 D2				 xor	 edx, edx
+   1388	    0832  66| BB 00000002			 mov	 ebx, 2
+   1389	    0838  66| F7 F3				 div	 ebx
+   1390	    083B  66| C1 E0 1B				 shl	 eax, 27
+   1391	    083F  59					 pop	 cx
+   1392	    0840  66| 0F B6 D9				 movzx	 ebx, cl
+   1393	    0844  66| C1 E3 15				 shl	 ebx, 21
+   1394	    0848  66| 03 C3				 add	 eax, ebx
+   1395	    084B  66| 0F B6 DD				 movzx	 ebx, ch
+   1396	    084F  66| C1 E3 10				 shl	 ebx, 16
+   1397	    0853  66| 03 C3				 add	 eax, ebx
+   1398	    0856  66| 50				 push	 eax
+   1399	    0858  B4 2A					 mov	 ah, 2ah
+   1400	    085A  CD 21					 int	 21h
+   1401							 ; DL= Tag, DH=	Monat, CX= Jahr	(19xx)
+   1402	    085C  66| 58				 pop	 eax
+   1403	    085E  66| 0F B7 D9				 movzx	 ebx, cx
+   1404	    0862  66| 81 EB 000007BC			 sub	 ebx, 1980
+   1405	    0869  66| C1 E3 09				 shl	 ebx, 9
+   1406	    086D  66| 03 C3				 add	 eax, ebx
+   1407	    0870  66| 0F B6 DE				 movzx	 ebx, dh
+   1408	    0874  66| C1 E3 05				 shl	 ebx, 5
+   1409	    0878  66| 03 C3				 add	 eax, ebx
+   1410	    087B  66| 0F B6 DA				 movzx	 ebx, dl
+   1411	    087F  66| 03 C3				 add	 eax, ebx
+   1412	    0882  C3					 ret
+   1413	    0883				 GET_SYSTIME ENDP
+   1414
+   1415						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1416						 ; SET_INODEPOS: Kopiert den Inode-Datenbereich	an die angeg. Stelle
+   1417						 ;		 im Block_Data Buffer.
+   1418						 ; Input : AX =	Nr. des	Inodes
+   1419						 ; Output: -
+   1420						 ;
+   1421	    0883				 SET_INODEPOS PROC NEAR
+   1422	    0883  8B D8					 mov	 bx, ax
+   1423	    0885  B8 0080				 mov	 ax, 128
+   1424	    0888  F7 E3					 mul	 bx
+   1425	    088A  33 D2					 xor	 dx, dx
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 26
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1426							 ; AX =	Start-Byte im Block
+   1427	    088C  8B F8					 mov	 di, ax
+   1428	    088E  B8 0000s				 mov	 ax, BLOCK_DATA
+   1429	    0891  8E E0					 mov	 fs, ax
+   1430	    0893  B8 0000s				 mov	 ax, SEKTOR_DATA
+   1431	    0896  8E C0					 mov	 es, ax
+   1432	    0898  BE 0400r				 mov	 si, offset es:INODE_START
+   1433	    089B  B9 0080				 mov	 cx, 128
+   1434	    089E				  @@Cpy_Loop:
+   1435	    089E  26: 8A 04				 mov	 al, byte ptr es:[si]
+   1436	    08A1  64: 88 05				 mov	 byte ptr fs:[di], al
+   1437	    08A4  46					 inc	 si
+   1438	    08A5  47					 inc	 di
+   1439	    08A6  E2 F6					 loop	 @@Cpy_Loop
+   1440	    08A8  C3					 ret
+   1441	    08A9				 SET_INODEPOS ENDP
+   1442
+   1443						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1444						 ; CLR_DIR: Lîscht den Directory Buffer
+   1445						 ; Input : -
+   1446						 ; Output: -
+   1447						 ;
+   1448	    08A9				 CLR_DIR PROC NEAR
+   1449	    08A9  66| 51				 push	 ecx
+   1450	    08AB  66| 50				 push	 eax
+   1451	    08AD  66| 57				 push	 edi
+   1452	    08AF  B9 0020				 mov	 cx, 32			 ; Bytes zu lîschen
+   1453	    08B2  B8 0000s				 mov	 ax, SEKTOR_DATA
+   1454	    08B5  8E C0					 mov	 es, ax
+   1455	    08B7  BF 0480r				 mov	 di, offset es:DIR_START
+   1456	    08BA  32 C0					 xor	 al, al
+   1457	    08BC  F3> AA				 rep	 stosb
+   1458	    08BE  66| 5F				 pop	 edi
+   1459	    08C0  66| 58				 pop	 eax
+   1460	    08C2  66| 59				 pop	 ecx
+   1461	    08C4  C3					 ret
+   1462	    08C5				 CLR_DIR ENDP
+   1463
+   1464						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1465						 ; CREATE_ROOT:	Erstellt das Root-Directory
+   1466						 ; Input : -
+   1467						 ; Output: - (abbruch bei Fehler!)
+   1468						 ;
+   1469	    08C5				 CREATE_ROOT PROC NEAR
+   1470							 ; Bisher sind folgende	Bestandteile des Volumes vorhanden
+   1471							 ; Adresse	 0	 Erster	Bitmap Block
+   1472
+   1473	    08C5  BA 0274r				 lea	 dx, MSG_0032
+   1474	    08C8  B4 09					 mov	 ah, 9
+   1475	    08CA  CD 21					 int	 21h
+   1476
+   1477							 ; zunÑchst Lîschen wir	den Bereich fÅr	die INODEs
+   1478	    08CC  66| B8 00000001			 mov	 eax, 1
+   1479	    08D2  E8 FF46				 call	 CLEAR_BLOCK
+   1480							 ; und den Bereich fÅr das Root-Dir...
+   1481	    08D5  66| B8 00000002			 mov	 eax, 2
+   1482	    08DB  E8 FF3D				 call	 CLEAR_BLOCK
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 27
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1483
+   1484							 ; Als nÑchstes	kommt der INODE	fÅr das	Root-Dir
+   1485	    08DE  E8 FF2A				 call	 CLR_INODE
+   1486
+   1487	    08E1  B8 0094				 mov	 ax, RootDirFlags		 ; Dir Flags
+   1488	    08E4  26: A3 0400r				 mov	 es:[FLAGS_TYPE], ax
+   1489	    08E8  66| B8 00000001			 mov	 eax, 1
+   1490	    08EE  66| 26: A3 047Cr			 mov	 es:[TOTAL_BLOCKS], eax
+   1491	    08F3  E8 FF30				 call	 GET_SYSTIME
+   1492	    08F6  66| 26: A3 040Ar			 mov	 es:[CREATION_TIME], eax
+   1493	    08FB  66| 26: A3 0416r			 mov	 es:[ACCESS_TIME], eax
+   1494	    0900  66| 26: A3 0410r			 mov	 es:[MODIFY_TIME], eax
+   1495	    0905  66| 26: A3 041Cr			 mov	 es:[ARCHIVE_TIME], eax
+   1496	    090A  66| B8 00000002			 mov	 eax, 2
+   1497	    0910  66| 26: A3 0438r			 mov	 es:[STARTPOS_1], eax
+   1498	    0915  B8 0001				 mov	 ax, 1
+   1499	    0918  26: A3 043Cr				 mov	 es:[BLOCKS_1],	ax
+   1500
+   1501	    091C  B8 0000				 mov	 ax, 0
+   1502	    091F  E8 FF61				 call	 SET_INODEPOS
+   1503
+   1504	    0922  66| B8 00000001			 mov	 eax, 1
+   1505	    0928  E8 FD07				 call	 WRITE_DATA
+   1506
+   1507							 ; Der ROOT-Inode ist nun geschrieben -	Nun folgt das Dir...
+   1508
+   1509	    092B  C3					 ret
+   1510	    092C				 CREATE_ROOT ENDP
+   1511
+   1512						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1513						 ; CREATE_VIS: Erstellet den Volume Information	Sektor
+   1514						 ; Input : -
+   1515						 ; Output: - (abbruch bei Fehler!)
+   1516						 ;
+   1517	    092C				 CREATE_VIS PROC NEAR
+   1518	    092C  BA 0292r				 lea	 dx, MSG_0033
+   1519	    092F  B4 09					 mov	 ah, 9
+   1520	    0931  CD 21					 int	 21h
+   1521
+   1522	    0933  E8 F785				 call	 CLR_SEK
+   1523
+   1524							 ; ZunÑcht den VIS mit den Daten FÅllen...
+   1525	    0936  B8 0000s				 mov	 ax, SEKTOR_DATA
+   1526	    0939  8E C0					 mov	 es, ax
+   1527	    093B  26: C6 06 04D1r 56			 mov	 byte ptr es:[VOL_LABEL	  ], 'V'
+   1528	    0941  26: C6 06 04D2r 4F			 mov	 byte ptr es:[VOL_LABEL+ 1], 'O'
+   1529	    0947  26: C6 06 04D3r 53			 mov	 byte ptr es:[VOL_LABEL+ 2], 'S'
+   1530	    094D  26: C6 06 04D4r 2F			 mov	 byte ptr es:[VOL_LABEL+ 3], '/'
+   1531	    0953  26: C6 06 04D5r 39			 mov	 byte ptr es:[VOL_LABEL+ 4], '9'
+   1532	    0959  26: C6 06 04D6r 20			 mov	 byte ptr es:[VOL_LABEL+ 5], ' '
+   1533	    095F  26: C6 06 04D7r 52			 mov	 byte ptr es:[VOL_LABEL+ 6], 'R'
+   1534	    0965  26: C6 06 04D8r 4F			 mov	 byte ptr es:[VOL_LABEL+ 7], 'O'
+   1535	    096B  26: C6 06 04D9r 4F			 mov	 byte ptr es:[VOL_LABEL+ 8], 'O'
+   1536	    0971  26: C6 06 04DAr 54			 mov	 byte ptr es:[VOL_LABEL+ 9], 'T'
+   1537	    0977  26: C6 06 04DBr 20			 mov	 byte ptr es:[VOL_LABEL+10], ' '
+   1538	    097D  26: C6 06 04DCr 56			 mov	 byte ptr es:[VOL_LABEL+11], 'V'
+   1539	    0983  26: C6 06 04DDr 4F			 mov	 byte ptr es:[VOL_LABEL+12], 'O'
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 28
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1540	    0989  26: C6 06 04DEr 4C			 mov	 byte ptr es:[VOL_LABEL+13], 'L'
+   1541	    098F  26: C6 06 04DFr 55			 mov	 byte ptr es:[VOL_LABEL+14], 'U'
+   1542	    0995  26: C6 06 04E0r 4D			 mov	 byte ptr es:[VOL_LABEL+15], 'M'
+   1543	    099B  26: C6 06 04E1r 45			 mov	 byte ptr es:[VOL_LABEL+16], 'E'
+   1544	    09A1  26: C6 06 04E2r 24			 mov	 byte ptr es:[VOL_LABEL+17], '$'
+   1545
+   1546	    09A7  A0 0446r				 mov	 al, byte ptr ds:[HDD_BLOCKSIZE]
+   1547	    09AA  26: A2 04A0r				 mov	 byte ptr es:[VOL_BLOCKSIZE], al
+   1548
+   1549	    09AE  E8 FE75				 call	 GET_SYSTIME
+   1550
+   1551	    09B1  66| 26: A3 04B9r			 mov	 dword ptr es:[VOL_CREATE_TIME], eax
+   1552	    09B6  66| 26: A3 04A7r			 mov	 dword ptr es:[VOL_MOUNT_TIME],	eax
+   1553	    09BB  66| 26: A3 04ADr			 mov	 dword ptr es:[VOL_DISMOUNT_TIME], eax
+   1554	    09C0  66| 26: A3 04B3r			 mov	 dword ptr es:[VOL_CHECK_TIME],	eax
+   1555
+   1556	    09C5  B3 01					 mov	 bl, RootVisFlags
+   1557	    09C7  80 3E	0441r 80			 cmp	 byte ptr [HDD_DRIVE], 128
+   1558	    09CC  73 03					 jnb	 @@FlagsOK
+   1559	    09CE  80 C3	10				 add	 bl, REMOVEABLE
+   1560	    09D1				   @@FlagsOK:
+   1561	    09D1  26: 88 1E 04A3r			 mov	 byte ptr es:[VOL_FLAGS_1], bl
+   1562
+   1563							 ; Der ganze Klimbatsch	mu· nun	nach READ_DATA!
+   1564	    09D6  B9 0200				 mov	 cx, 512	 ; 512 Byte zu kopieren
+   1565	    09D9  BE 04A0r				 mov	 si, offset es:vol_blocksize
+   1566	    09DC  33 FF					 xor	 di, di
+   1567	    09DE				     @@Cpy_Loop:
+   1568	    09DE  26: 8A 04				 mov	 al, byte ptr es:[si]
+   1569	    09E1  26: 88 05				 mov	 byte ptr es:[di], al
+   1570	    09E4  46					 inc	 si
+   1571	    09E5  47					 inc	 di
+   1572	    09E6  E2 F6					 loop	 @@Cpy_Loop
+   1573
+   1574	    09E8  8B 0E	0452r				 mov	 cx, word ptr ds:[VOLUME_START_SEKZYL]
+   1575	    09EC  8A 36	0454r				 mov	 dh, byte ptr ds:[VOLUME_START_HEADZYL]
+   1576	    09F0  66| BB 00000001			 mov	 ebx, 1
+   1577	    09F6  E8 FC44				 call	 ADD_SEKTOR
+   1578	    09F9  E8 F68B				 call	 WRITE_SEK
+   1579	    09FC  C3					 ret
+   1580	    09FD				 CREATE_VIS ENDP
+   1581
+   1582						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1583						 ; SET_DIRPOS: Kopiert den Dir-Datenbereich an die angeg. Stelle
+   1584						 ;		 im Block_Data Buffer.
+   1585						 ; Input : AX =	Nr. des	Dir-Eintrags (0=1. Eintrag)
+   1586						 ; Output: -
+   1587						 ;
+   1588	    09FD				 SET_DIRPOS PROC NEAR
+   1589	    09FD  8B D8					 mov	 bx, ax
+   1590	    09FF  B8 0020				 mov	 ax, 32
+   1591	    0A02  F7 E3					 mul	 bx
+   1592	    0A04  33 D2					 xor	 dx, dx
+   1593							 ; AX =	Start-Byte im Block
+   1594	    0A06  8B F8					 mov	 di, ax
+   1595	    0A08  B8 0000s				 mov	 ax, BLOCK_DATA
+   1596	    0A0B  8E E0					 mov	 fs, ax
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 29
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1597	    0A0D  B8 0000s				 mov	 ax, SEKTOR_DATA
+   1598	    0A10  8E C0					 mov	 es, ax
+   1599	    0A12  BE 0480r				 mov	 si, offset es:DIR_START
+   1600	    0A15  B9 0020				 mov	 cx, 32
+   1601	    0A18				  @@Cpy_Loop:
+   1602	    0A18  26: 8A 04				 mov	 al, byte ptr es:[si]
+   1603	    0A1B  64: 88 05				 mov	 byte ptr fs:[di], al
+   1604	    0A1E  46					 inc	 si
+   1605	    0A1F  47					 inc	 di
+   1606	    0A20  E2 F6					 loop	 @@Cpy_Loop
+   1607	    0A22  C3					 ret
+   1608	    0A23				 SET_DIRPOS ENDP
+   1609
+   1610						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1611						 ; COPY_BOOT: Kopiert den VOS/9	Kernel-Loader (BIN-Image)
+   1612						 ; Input : -
+   1613						 ; Output: - (abbruch bei Fehler)
+   1614						 ;
+   1615	    0A23				 COPY_BOOT PROC	NEAR
+   1616							 ; Bisher ist folgendes	Vorhanden/Vorbereitet:
+   1617							 ; Addr. Objekt
+   1618							 ; -	 BOOTSTRAP LOADER
+   1619							 ; -	 VIS
+   1620							 ; 0	 BITMAP	BLOCK 1
+   1621							 ; 1	 INODE (fÅr ROOT-DIR)
+   1622							 ; 2	 ROOT-DIR
+   1623							 ; 3	 INODE (fÅr SYSTEM-DIR)
+   1624							 ; 4	 SYSTEM-DIR
+   1625							 ; Ab Adresse 5	beginnt	nun der	Datenbereich des BOOTSTRAP
+   1626							 ; Loaders!
+   1627
+   1628							 ; ZunÑchst kopieren wir den Datenbereich...
+   1629							 ; Wir holen eine DOS-Handle fÅr das File
+   1630
+   1631	    0A23  BA 049Cr				 lea	 dx, VOSBOOT_FILE	 ; Dateiname BootCode
+   1632	    0A26  32 C0					 xor	 al, al			 ; Zugriffsmodus: Nur Lesen
+   1633	    0A28  B4 3D					 mov	 ah, 3Dh		 ; DOS:	Datei ôffnen
+   1634	    0A2A  CD 21					 int	 21h
+   1635	    0A2C  73 0C					 jnc	 @@DOSHandleOK
+   1636	    0A2E  BA 02F7r				 lea	 dx, MSG_0038
+   1637	    0A31  B4 09					 mov	 ah, 9
+   1638	    0A33  CD 21					 int	 21h
+   1639	    0A35  B8 4C00				 mov	 ax, 4c00h
+   1640	    0A38  CD 21					 int	 21h
+   1641	    0A3A				 @@DosHandleOK:
+   1642							 ; Wir haben nun in AX das Handle fÅr die Datei
+   1643
+   1644	    0A3A  A3 049Ar				 mov	 word ptr ds:[FILE_HANDLE], ax
+   1645							 ; Nun brauchen	wir die	File-Grî·e!
+   1646	    0A3D  8B D8					 mov	 bx, ax
+   1647	    0A3F  B0 02					 mov	 al, 2		 ; Seekmodus 2
+   1648	    0A41  33 C9					 xor	 cx, cx		 ; SeekOffset 0	= Dateiende
+   1649	    0A43  33 D2					 xor	 dx, dx
+   1650	    0A45  B4 42					 mov	 ah, 42h	 ; DOS:	Seek
+   1651	    0A47  CD 21					 int	 21h
+   1652							 ; AX=LO-WORD, DX=Hi-Word
+   1653	    0A49  A3 0480r				 mov	 word ptr ds:[BOOTCODE_BYTES], ax
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 30
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1654							 ; ZunÑchst Seek an Anfang der Datei
+   1655	    0A4C  8B 1E	049Ar				 mov	 bx, word ptr ds:[FILE_HANDLE]
+   1656	    0A50  33 C9					 xor	 cx, cx		 ; Hi-Position 0
+   1657	    0A52  33 D2					 xor	 dx, dx		 ; Lo-Position 0
+   1658	    0A54  32 C0					 xor	 al, al		 ; Position absolut
+   1659	    0A56  B4 42					 mov	 ah, 42h
+   1660	    0A58  CD 21					 int	 21h
+   1661
+   1662							 ; Als erstes mal sehen	wieviele Blîcke	fÅr den	Code
+   1663							 ; benîtigt werden...
+   1664	    0A5A  33 D2					 xor	 dx, dx
+   1665	    0A5C  0F B6	06 0447r			 movzx	 ax, byte ptr [SEKS_PER_BLOCK]
+   1666	    0A61  BB 0200				 mov	 bx, 512
+   1667	    0A64  F7 E3					 mul	 bx
+   1668	    0A66  A3 0448r				 mov	 word ptr ds:[BYTE_PER_BLOCK], ax
+   1669	    0A69  33 D2					 xor	 dx, dx
+   1670	    0A6B  8B D8					 mov	 bx, ax
+   1671	    0A6D  66| 33 C0				 xor	 eax, eax
+   1672	    0A70  66| 33 D2				 xor	 edx, edx
+   1673	    0A73  A1 0480r				 mov	 ax, word ptr ds:[BOOTCODE_BYTES]
+   1674	    0A76  F7 F3					 div	 bx
+   1675							 ; AX enthÑlt nun die benîtigten Blîcke
+   1676							 ; ist DX>0 mu·	noch ein Block Addiert werden...
+   1677
+   1678	    0A78  66| A3 0476r				 mov	 dword ptr ds:[BOOTCODE_BLOCKS], eax
+   1679	    0A7C  89 16	047Ar				 mov	 word ptr ds:[BOOTCODE_SIZE], dx
+   1680	    0A80  83 FA	00				 cmp	 dx, 0
+   1681	    0A83  74 02					 jz	 @@SIZE_OK
+   1682	    0A85  66| 40				 inc	 eax
+   1683	    0A87				 @@SIZE_OK:
+   1684	    0A87  66| A3 047Cr				 mov	 dword ptr ds:[BOOTCODE_TOTAL],	eax
+   1685
+   1686	    0A8B  BA 02DDr				 lea	 dx, MSG_0036
+   1687	    0A8E  B4 09					 mov	 ah, 9
+   1688	    0A90  CD 21					 int	 21h
+   1689	    0A92  A1 0480r				 mov	 ax, word ptr ds:[BOOTCODE_BYTES]
+   1690	    0A95  33 D2					 xor	 dx, dx
+   1691	    0A97  E8 F5B2				 call	 print32
+   1692	    0A9A  BA 02F1r				 lea	 dx, MSG_0037
+   1693	    0A9D  B4 09					 mov	 ah, 9
+   1694	    0A9F  CD 21					 int	 21h
+   1695	    0AA1  BA 0102r				 lea	 dx, MSG_0011
+   1696	    0AA4  B4 09					 mov	 ah, 9
+   1697	    0AA6  CD 21					 int	 21h
+   1698	    0AA8  66| A1 047Cr				 mov	 eax, dword ptr	ds:[BOOTCODE_TOTAL]
+   1699	    0AAC  33 D2					 xor	 dx, dx
+   1700	    0AAE  E8 F59B				 call	 print32
+   1701	    0AB1  BA 01DDr				 lea	 dx, MSG_0024
+   1702	    0AB4  B4 09					 mov	 ah, 9
+   1703	    0AB6  CD 21					 int	 21h
+   1704	    0AB8  BA 02C4r				 lea	 dx, MSG_0035
+   1705	    0ABB  B4 09					 mov	 ah, 9
+   1706	    0ABD  CD 21					 int	 21h
+   1707
+   1708							 ; Insgesamt sind si Bytes zu schreiben
+   1709	    0ABF  8B 36	0480r				 mov	 si, word ptr ds:[BOOTCODE_BYTES]
+   1710							 ; Wir starten an Block	eax-1
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 31
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1711	    0AC3  66| B8 00000004			 mov	 eax, 4
+   1712	    0AC9  66| 50				 push	 eax			 ; Startpos merken
+   1713	    0ACB  56					 push	 si
+   1714	    0ACC				 @@Cpy_Loop:
+   1715	    0ACC  E8 FAA2				 call	 CLR_DATA		 ; Datenbr. lîschen
+   1716
+   1717							 ; Wir Lesen Blockgrî·e
+   1718	    0ACF  5E					 pop	 si
+   1719	    0AD0  56					 push	 si
+   1720							 ; Restliche Byte <= Blockgrî·e?
+   1721	    0AD1  3B 36	0448r				 cmp	 si, word ptr ds:[BYTE_PER_BLOCK]
+   1722	    0AD5  76 3F					 jbe	 @@RestLesen		 ; Letzter Block
+   1723
+   1724							 ; Wir Lesen einen Block aus dem File
+   1725	    0AD7  8B 0E	0448r				 mov	 cx, word ptr ds:[BYTE_PER_BLOCK]
+   1726	    0ADB  5E					 pop	 si
+   1727	    0ADC  2B F1					 sub	 si, cx			 ; vom Rest abziehen
+   1728	    0ADE  56					 push	 si
+   1729
+   1730	    0ADF  B4 3F					 mov	 ah, 3fh		 ; DOS:	Read from File
+   1731	    0AE1  8B 1E	049Ar				 mov	 bx, word ptr ds:[FILE_HANDLE]
+   1732
+   1733							 ASSUME	 ds:BLOCK_DATA
+   1734
+   1735	    0AE5  BA 0000s				 mov	 dx, BLOCK_DATA		 ; Seg.-Addr.
+   1736	    0AE8  8E DA					 mov	 ds, dx
+   1737	    0AEA  33 D2					 xor	 dx, dx			 ; Offset 0
+   1738	    0AEC  CD 21					 int	 21h
+   1739	    0AEE  72 12					 jc	 @@ReadErr
+   1740
+   1741							 ASSUME	 ds:DATA
+   1742	    0AF0  BA 0000s				 mov	 dx, DATA
+   1743	    0AF3  8E DA					 mov	 ds, dx
+   1744
+   1745							 ; Block ist voll. Wir schreiben...
+   1746	    0AF5  5E					 pop	 si
+   1747	    0AF6  66| 58				 pop	 eax
+   1748	    0AF8  66| 40				 inc	 eax
+   1749	    0AFA  66| 50				 push	 eax
+   1750	    0AFC  56					 push	 si
+   1751	    0AFD  E8 FB32				 call	 WRITE_DATA
+   1752	    0B00  EB CA					 jmp	 short @@Cpy_Loop
+   1753
+   1754	    0B02				 @@ReadErr:
+   1755							 ASSUME	 ds:DATA
+   1756	    0B02  BA 0000s				 mov	 dx, DATA
+   1757	    0B05  8E DA					 mov	 ds, dx
+   1758
+   1759	    0B07  5E					 pop	 si
+   1760	    0B08  66| 58				 pop	 eax
+   1761	    0B0A  BA 0321r				 lea	 dx, ds:MSG_0039
+   1762	    0B0D  B4 09					 mov	 ah, 9
+   1763	    0B0F  CD 21					 int	 21h
+   1764	    0B11  B8 4C00				 mov	 ax, 4c00h		 ; DOS:	Terminate Process
+   1765	    0B14  CD 21					 int	 21h
+   1766
+   1767	    0B16				 @@RestLesen:
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 32
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1768							 ; Wir Lesen einen Block aus dem File
+   1769	    0B16  5E					 pop	 si
+   1770	    0B17  8B CE					 mov	 cx, si			 ; Rest	aus dem	File
+   1771	    0B19  2B F6					 sub	 si, si			 ; vom Rest abziehen=0
+   1772	    0B1B  56					 push	 si
+   1773
+   1774	    0B1C  B4 3F					 mov	 ah, 3fh		 ; DOS:	Read from File
+   1775	    0B1E  8B 1E	049Ar				 mov	 bx, word ptr ds:[FILE_HANDLE]
+   1776
+   1777							 ASSUME	 ds:BLOCK_DATA
+   1778
+   1779	    0B22  BA 0000s				 mov	 dx, BLOCK_DATA		 ; Seg.-Addr.
+   1780	    0B25  8E DA					 mov	 ds, dx
+   1781	    0B27  33 D2					 xor	 dx, dx			 ; Offset 0
+   1782	    0B29  CD 21					 int	 21h
+   1783	    0B2B  72 D5					 jc	 @@ReadErr
+   1784
+   1785							 ASSUME	 ds:DATA
+   1786	    0B2D  BA 0000s				 mov	 dx, DATA
+   1787	    0B30  8E DA					 mov	 ds, dx
+   1788
+   1789							 ; Block ist voll. Wir schreiben...
+   1790	    0B32  5E					 pop	 si
+   1791	    0B33  66| 58				 pop	 eax
+   1792	    0B35  66| 40				 inc	 eax
+   1793	    0B37  E8 FAF8				 call	 WRITE_DATA
+   1794
+   1795							 ; Nun wird die	StartPosition und die Grî·e im
+   1796							 ; Code	des Bootstrap-Loaders eingetragen...
+   1797
+   1798							 assume	 gs:boot_code
+   1799	    0B3A  B8 0000s				 mov	 ax, boot_code
+   1800	    0B3D  8E E8					 mov	 gs, ax
+   1801	    0B3F  66| BB 00000005			 mov	 ebx, 5
+   1802	    0B45  E8 FA4D				 call	 GET_PHYSICAL
+   1803
+   1804	    0B48  65: 89 0E 01F9r			 mov	 word ptr gs:[BOOT_SEKZYL], cx
+   1805	    0B4D  65: 88 36 01FBr			 mov	 byte ptr gs:[BOOT_HEADZYL], dh
+   1806
+   1807							 ; Nun brauchen	wir noch die Grî·e in Sektoren!
+   1808	    0B52  66| A1 047Cr				 mov	 eax, dword ptr	ds:[BOOTCODE_TOTAL]
+   1809	    0B56  0F B6	1E 0447r			 movzx	 bx, byte ptr ds:[SEKS_PER_BLOCK]
+   1810	    0B5B  66| 33 D2				 xor	 edx, edx
+   1811	    0B5E  F7 E3					 mul	 bx
+   1812	    0B60  65: A3 01FCr				 mov	 word ptr gs:[BOOT_SEKSIZE], ax
+   1813
+   1814							 ; Die Datei mu· nun im	SYSTEM-Directory eingetragen werden...
+   1815	    0B64  E8 FA0A				 call	 CLR_DATA
+   1816							 ; Das Dir befindet sich an Addr. 4
+   1817							 ; Dessenn Inode Block an Addr.	3
+   1818
+   1819							 ; ZunÑchst holen wir den INODE...
+   1820	    0B67  66| B8 00000003			 mov	 eax, 3
+   1821	    0B6D  E8 FAF3				 call	 READ_BLOCK
+   1822							 ; Dort	dÅrfte eigentlich nix vorhanden	sein. Wir tragen
+   1823							 ; dort	die Daten Åber die Datei ein...
+   1824
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 33
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1825	    0B70  E8 FC98				 call	 CLR_INODE
+   1826
+   1827	    0B73  B8 0098				 mov	 ax, BootCodeFlags
+   1828	    0B76  26: A3 0400r				 mov	 word ptr es:[FLAGS_TYPE], ax
+   1829	    0B7A  66| A1 0476r				 mov	 eax, dword ptr	ds:[BOOTCODE_BLOCKS]
+   1830	    0B7E  8B 1E	047Ar				 mov	 bx, word ptr ds:[BOOTCODE_SIZE]
+   1831	    0B82  66| 26: A3 0404r			 mov	 dword ptr es:[OBJECT_BLOCKS], eax
+   1832	    0B87  26: 89 1E 0408r			 mov	 word ptr es:[OBJECT_SIZE], bx
+   1833
+   1834	    0B8C  E8 FC97				 call	 GET_SYSTIME
+   1835	    0B8F  66| 26: A3 040Ar			 mov	 dword ptr es:[CREATION_TIME], eax
+   1836	    0B94  66| 26: A3 0410r			 mov	 dword ptr es:[MODIFY_TIME], eax
+   1837	    0B99  66| 26: A3 0416r			 mov	 dword ptr es:[ACCESS_TIME], eax
+   1838	    0B9E  66| 26: A3 041Cr			 mov	 dword ptr es:[ARCHIVE_TIME], eax
+   1839
+   1840							 ; EIGENTÅMER ist das SYSTEM-Dir (Eintrag 0)
+   1841							 ; INODE 1 (0=RootDir) in Block	1
+   1842	    0BA3  66| B8 00000001			 mov	 eax, 1		 ; Block des Sys-Dir INODE
+   1843	    0BA9  BB 0001				 mov	 bx, 1
+   1844	    0BAC  66| 26: A3 0422r			 mov	 dword ptr es:[OWNER_BLOCK], eax
+   1845	    0BB1  26: 89 1E 0426r			 mov	 word ptr es:[OWNER_SELECT], bx
+   1846
+   1847							 ; Der erste Block ist Block 5 und da hier noch
+   1848							 ; nix defrag ist sind eventuelle weitere direkt dahinter
+   1849							 ; und kînnen daher in einem Block gelesen werden!
+   1850	    0BB6  66| B8 00000005			 mov	 eax, 5
+   1851	    0BBC  66| 8B 1E 047Cr			 mov	 ebx, dword ptr	ds:[BOOTCODE_TOTAL]
+   1852	    0BC1  66| 26: A3 0438r			 mov	 dword ptr es:[STARTPOS_1], eax
+   1853	    0BC6  26: 89 1E 043Cr			 mov	 word ptr es:[BLOCKS_1], bx
+   1854	    0BCB  66| 26: 89 1E	047Cr			 mov	 dword ptr es:[TOTAL_BLOCKS], ebx
+   1855
+   1856	    0BD1  66| 33 C0				 xor	 eax, eax
+   1857	    0BD4  E8 FCAC				 call	 SET_INODEPOS
+   1858
+   1859							 ; Und das ganze an Position 3 schreiben...
+   1860	    0BD7  66| B8 00000003			 mov	 eax, 3
+   1861	    0BDD  E8 FA52				 call	 WRITE_DATA
+   1862
+   1863							 ; Nun wird der	klimbatch noch mit Namen im Dir	eingetragen...
+   1864
+   1865							 ; Dir befindet	sich in	Block 4
+   1866	    0BE0  66| B8 00000004			 mov	 eax, 4
+   1867	    0BE6  E8 FA7A				 call	 READ_BLOCK
+   1868
+   1869	    0BE9  E8 FCBD				 call	 CLR_DIR
+   1870
+   1871	    0BEC  66| B8 00000003			 mov	 eax, 3		 ; INODE in Block 3
+   1872	    0BF2  33 DB					 xor	 bx, bx		 ; Nr. 0
+   1873	    0BF4  66| 26: A3 0480r			 mov	 dword ptr es:[DATA_BLOCK], eax
+   1874	    0BF9  26: 89 1E 0484r			 mov	 word ptr es:[DATA_SELECT], bx
+   1875
+   1876	    0BFE  B0 01					 mov	 al, OBJECT_NAME
+   1877	    0C00  26: A2 0486r				 mov	 byte ptr es:[DATA_TYPE], al
+   1878
+   1879							 ; Wie nennen wir das?...
+   1880	    0C04  26: C6 06 0487r 56			 mov	 byte ptr es:[DESCRIPTION   ], 'V'
+   1881	    0C0A  26: C6 06 0488r 4F			 mov	 byte ptr es:[DESCRIPTION+ 1], 'O'
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 34
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1882	    0C10  26: C6 06 0489r 53			 mov	 byte ptr es:[DESCRIPTION+ 2], 'S'
+   1883	    0C16  26: C6 06 048Ar 20			 mov	 byte ptr es:[DESCRIPTION+ 3], ' '
+   1884	    0C1C  26: C6 06 048Br 42			 mov	 byte ptr es:[DESCRIPTION+ 4], 'B'
+   1885	    0C22  26: C6 06 048Cr 4F			 mov	 byte ptr es:[DESCRIPTION+ 5], 'O'
+   1886	    0C28  26: C6 06 048Dr 4F			 mov	 byte ptr es:[DESCRIPTION+ 6], 'O'
+   1887	    0C2E  26: C6 06 048Er 54			 mov	 byte ptr es:[DESCRIPTION+ 7], 'T'
+   1888	    0C34  26: C6 06 048Fr 24			 mov	 byte ptr es:[DESCRIPTION+ 8], '$'
+   1889
+   1890	    0C3A  66| 33 C0				 xor	 eax, eax
+   1891	    0C3D  E8 FDBD				 call	 SET_DIRPOS
+   1892
+   1893	    0C40  66| B8 00000004			 mov	 eax, 4
+   1894	    0C46  E8 F9E9				 call	 WRITE_DATA
+   1895
+   1896	    0C49  C3					 ret
+   1897	    0C4A				 COPY_BOOT ENDP
+   1898
+   1899						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   1900						 ; COPY_SYSSELECT: Kopiert SYSSELECT (Bootmanager...)
+   1901						 ;		   BOOTCODE mu·	geschrieben sein!
+   1902						 ; Input : -
+   1903						 ; Output: -
+   1904						 ;
+   1905	    0C4A				 COPY_SYSSELECT	PROC NEAR
+   1906							 ; Der Code wandert zwar auch auf Diskette, ist	jedoch von
+   1907							 ; dort	nicht Startbar da dort kein MBR	existiert!
+   1908							 ; Bisher ist folgendes	Vorhanden/Vorbereitet:
+   1909							 ; Addr. Objekt
+   1910							 ; -	 BOOTSTRAP LOADER
+   1911							 ; -	 VIS
+   1912							 ; 0	 BITMAP	BLOCK 1
+   1913							 ; 1	 INODE (fÅr ROOT-DIR)
+   1914							 ; 2	 ROOT-DIR
+   1915							 ; 3	 INODE (fÅr SYSTEM-DIR)
+   1916							 ; 4	 SYSTEM-DIR
+   1917							 ; 5 ... BOOTCODE
+   1918
+   1919							 ; ZunÑchst kopieren wir den Datenbereich...
+   1920							 ; Wir holen eine DOS-Handle fÅr das File
+   1921
+   1922	    0C4A  BA 04A8r				 lea	 dx, SYSSELECT_FILE	 ; Dateiname BootCode
+   1923	    0C4D  32 C0					 xor	 al, al			 ; Zugriffsmodus: Nur Lesen
+   1924	    0C4F  B4 3D					 mov	 ah, 3Dh		 ; DOS:	Datei ôffnen
+   1925	    0C51  CD 21					 int	 21h
+   1926	    0C53  73 0C					 jnc	 @@DOSHandleOK
+   1927	    0C55  BA 0379r				 lea	 dx, MSG_0042
+   1928	    0C58  B4 09					 mov	 ah, 9
+   1929	    0C5A  CD 21					 int	 21h
+   1930	    0C5C  B8 4C00				 mov	 ax, 4c00h
+   1931	    0C5F  CD 21					 int	 21h
+   1932	    0C61				 @@DosHandleOK:
+   1933							 ; Wir haben nun in AX das Handle fÅr die Datei
+   1934
+   1935	    0C61  A3 049Ar				 mov	 word ptr ds:[FILE_HANDLE], ax
+   1936							 ; Nun brauchen	wir die	File-Grî·e!
+   1937	    0C64  8B D8					 mov	 bx, ax
+   1938	    0C66  B0 02					 mov	 al, 2		 ; Seekmodus 2
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 35
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1939	    0C68  33 C9					 xor	 cx, cx		 ; SeekOffset 0	= Dateiende
+   1940	    0C6A  33 D2					 xor	 dx, dx
+   1941	    0C6C  B4 42					 mov	 ah, 42h	 ; DOS:	Seek
+   1942	    0C6E  CD 21					 int	 21h
+   1943							 ; AX=LO-WORD, DX=Hi-Word
+   1944	    0C70  A3 048Cr				 mov	 word ptr ds:[SYSSEL_BYTES], ax
+   1945							 ; ZunÑchst Seek an Anfang der Datei
+   1946	    0C73  8B 1E	049Ar				 mov	 bx, word ptr ds:[FILE_HANDLE]
+   1947	    0C77  33 C9					 xor	 cx, cx		 ; Hi-Position 0
+   1948	    0C79  33 D2					 xor	 dx, dx		 ; Lo-Position 0
+   1949	    0C7B  32 C0					 xor	 al, al		 ; Position absolut
+   1950	    0C7D  B4 42					 mov	 ah, 42h
+   1951	    0C7F  CD 21					 int	 21h
+   1952
+   1953							 ; Als erstes mal sehen	wieviele Blîcke	fÅr den	Code
+   1954							 ; benîtigt werden...
+   1955	    0C81  8B 1E	0448r				 mov	 bx, word ptr ds:[BYTE_PER_BLOCK]
+   1956	    0C85  66| 33 C0				 xor	 eax, eax
+   1957	    0C88  66| 33 D2				 xor	 edx, edx
+   1958	    0C8B  A1 048Cr				 mov	 ax, word ptr ds:[SYSSEL_BYTES]
+   1959	    0C8E  F7 F3					 div	 bx
+   1960							 ; AX enthÑlt nun die benîtigten Blîcke
+   1961							 ; ist DX>0 mu·	noch ein Block Addiert werden...
+   1962
+   1963	    0C90  66| A3 0482r				 mov	 dword ptr ds:[SYSSEL_BLOCKS], eax
+   1964	    0C94  89 16	0486r				 mov	 word ptr ds:[SYSSEL_SIZE], dx
+   1965	    0C98  83 FA	00				 cmp	 dx, 0
+   1966	    0C9B  74 02					 jz	 @@SIZE_OK
+   1967	    0C9D  66| 40				 inc	 eax
+   1968	    0C9F				 @@SIZE_OK:
+   1969	    0C9F  66| A3 0488r				 mov	 dword ptr ds:[SYSSEL_TOTAL], eax
+   1970
+   1971	    0CA3  BA 0365r				 lea	 dx, MSG_0041
+   1972	    0CA6  B4 09					 mov	 ah, 9
+   1973	    0CA8  CD 21					 int	 21h
+   1974	    0CAA  A1 048Cr				 mov	 ax, word ptr ds:[SYSSEL_BYTES]
+   1975	    0CAD  33 D2					 xor	 dx, dx
+   1976	    0CAF  E8 F39A				 call	 print32
+   1977	    0CB2  BA 02F1r				 lea	 dx, MSG_0037
+   1978	    0CB5  B4 09					 mov	 ah, 9
+   1979	    0CB7  CD 21					 int	 21h
+   1980	    0CB9  BA 0102r				 lea	 dx, MSG_0011
+   1981	    0CBC  B4 09					 mov	 ah, 9
+   1982	    0CBE  CD 21					 int	 21h
+   1983	    0CC0  66| A1 0488r				 mov	 eax, dword ptr	ds:[SYSSEL_TOTAL]
+   1984	    0CC4  33 D2					 xor	 dx, dx
+   1985	    0CC6  E8 F383				 call	 print32
+   1986	    0CC9  BA 01DDr				 lea	 dx, MSG_0024
+   1987	    0CCC  B4 09					 mov	 ah, 9
+   1988	    0CCE  CD 21					 int	 21h
+   1989	    0CD0  BA 034Br				 lea	 dx, MSG_0040
+   1990	    0CD3  B4 09					 mov	 ah, 9
+   1991	    0CD5  CD 21					 int	 21h
+   1992
+   1993							 ; Insgesamt sind si Bytes zu schreiben
+   1994	    0CD7  8B 36	048Cr				 mov	 si, word ptr ds:[SYSSEL_BYTES]
+   1995							 ; Wir starten an Block	eax-1
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 36
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   1996	    0CDB  66| B8 00000004			 mov	 eax, 4
+   1997							 ; Das ganze kommt hinter den BOOTCODE!
+   1998
+   1999	    0CE1  66| 03 06 047Cr			 add	 eax, dword ptr	ds:[BOOTCODE_TOTAL]
+   2000
+   2001	    0CE6  66| 50				 push	 eax			 ; Startpos merken
+   2002	    0CE8  56					 push	 si
+   2003	    0CE9				 @@Cpy_Loop:
+   2004	    0CE9  E8 F885				 call	 CLR_DATA		 ; Datenbr. lîschen
+   2005
+   2006							 ; Wir Lesen Blockgrî·e
+   2007	    0CEC  5E					 pop	 si
+   2008	    0CED  56					 push	 si
+   2009							 ; Restliche Byte <= Blockgrî·e?
+   2010	    0CEE  3B 36	0448r				 cmp	 si, word ptr ds:[BYTE_PER_BLOCK]
+   2011	    0CF2  76 3F					 jbe	 @@RestLesen		 ; Letzter Block
+   2012
+   2013							 ; Wir Lesen einen Block aus dem File
+   2014	    0CF4  8B 0E	0448r				 mov	 cx, word ptr ds:[BYTE_PER_BLOCK]
+   2015	    0CF8  5E					 pop	 si
+   2016	    0CF9  2B F1					 sub	 si, cx			 ; vom Rest abziehen
+   2017	    0CFB  56					 push	 si
+   2018
+   2019	    0CFC  B4 3F					 mov	 ah, 3fh		 ; DOS:	Read from File
+   2020	    0CFE  8B 1E	049Ar				 mov	 bx, word ptr ds:[FILE_HANDLE]
+   2021
+   2022							 ASSUME	 ds:BLOCK_DATA
+   2023
+   2024	    0D02  BA 0000s				 mov	 dx, BLOCK_DATA		 ; Seg.-Addr.
+   2025	    0D05  8E DA					 mov	 ds, dx
+   2026	    0D07  33 D2					 xor	 dx, dx			 ; Offset 0
+   2027	    0D09  CD 21					 int	 21h
+   2028	    0D0B  72 12					 jc	 @@ReadErr
+   2029
+   2030							 ASSUME	 ds:DATA
+   2031	    0D0D  BA 0000s				 mov	 dx, DATA
+   2032	    0D10  8E DA					 mov	 ds, dx
+   2033
+   2034							 ; Block ist voll. Wir schreiben...
+   2035	    0D12  5E					 pop	 si
+   2036	    0D13  66| 58				 pop	 eax
+   2037	    0D15  66| 40				 inc	 eax
+   2038	    0D17  66| 50				 push	 eax
+   2039	    0D19  56					 push	 si
+   2040	    0D1A  E8 F915				 call	 WRITE_DATA
+   2041	    0D1D  EB CA					 jmp	 short @@Cpy_Loop
+   2042
+   2043	    0D1F				 @@ReadErr:
+   2044							 ASSUME	 ds:DATA
+   2045	    0D1F  BA 0000s				 mov	 dx, DATA
+   2046	    0D22  8E DA					 mov	 ds, dx
+   2047
+   2048	    0D24  5E					 pop	 si
+   2049	    0D25  66| 58				 pop	 eax
+   2050	    0D27  BA 03A3r				 lea	 dx, ds:MSG_0043
+   2051	    0D2A  B4 09					 mov	 ah, 9
+   2052	    0D2C  CD 21					 int	 21h
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 37
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2053	    0D2E  B8 4C00				 mov	 ax, 4c00h		 ; DOS:	Terminate Process
+   2054	    0D31  CD 21					 int	 21h
+   2055
+   2056	    0D33				 @@RestLesen:
+   2057							 ; Wir Lesen einen Block aus dem File
+   2058	    0D33  5E					 pop	 si
+   2059	    0D34  8B CE					 mov	 cx, si			 ; Rest	aus dem	File
+   2060	    0D36  2B F6					 sub	 si, si			 ; vom Rest abziehen=0
+   2061	    0D38  56					 push	 si
+   2062
+   2063	    0D39  B4 3F					 mov	 ah, 3fh		 ; DOS:	Read from File
+   2064	    0D3B  8B 1E	049Ar				 mov	 bx, word ptr ds:[FILE_HANDLE]
+   2065
+   2066							 ASSUME	 ds:BLOCK_DATA
+   2067
+   2068	    0D3F  BA 0000s				 mov	 dx, BLOCK_DATA		 ; Seg.-Addr.
+   2069	    0D42  8E DA					 mov	 ds, dx
+   2070	    0D44  33 D2					 xor	 dx, dx			 ; Offset 0
+   2071	    0D46  CD 21					 int	 21h
+   2072	    0D48  72 D5					 jc	 @@ReadErr
+   2073
+   2074							 ASSUME	 ds:DATA
+   2075	    0D4A  BA 0000s				 mov	 dx, DATA
+   2076	    0D4D  8E DA					 mov	 ds, dx
+   2077
+   2078							 ; Block ist voll. Wir schreiben...
+   2079	    0D4F  5E					 pop	 si
+   2080	    0D50  66| 58				 pop	 eax
+   2081	    0D52  66| 40				 inc	 eax
+   2082	    0D54  E8 F8DB				 call	 WRITE_DATA
+   2083
+   2084							 ; Die Datei mu· nun im	SYSTEM-Directory eingetragen werden...
+   2085	    0D57  E8 F817				 call	 CLR_DATA
+   2086							 ; Das Dir befindet sich an Addr. 4
+   2087							 ; Dessenn Inode Block an Addr.	3
+   2088
+   2089							 ; ZunÑchst holen wir den INODE...
+   2090	    0D5A  66| B8 00000003			 mov	 eax, 3
+   2091	    0D60  E8 F900				 call	 READ_BLOCK
+   2092							 ; Dort	dÅrfte eigentlich nix vorhanden	sein. Wir tragen
+   2093							 ; dort	die Daten Åber die Datei ein...
+   2094
+   2095	    0D63  E8 FAA5				 call	 CLR_INODE
+   2096
+   2097	    0D66  B8 0098				 mov	 ax, BootCodeFlags
+   2098	    0D69  26: A3 0400r				 mov	 word ptr es:[FLAGS_TYPE], ax
+   2099	    0D6D  66| A1 0482r				 mov	 eax, dword ptr	ds:[SYSSEL_BLOCKS]
+   2100	    0D71  8B 1E	0486r				 mov	 bx, word ptr ds:[SYSSEL_SIZE]
+   2101	    0D75  66| 26: A3 0404r			 mov	 dword ptr es:[OBJECT_BLOCKS], eax
+   2102	    0D7A  26: 89 1E 0408r			 mov	 word ptr es:[OBJECT_SIZE], bx
+   2103
+   2104	    0D7F  E8 FAA4				 call	 GET_SYSTIME
+   2105	    0D82  66| 26: A3 040Ar			 mov	 dword ptr es:[CREATION_TIME], eax
+   2106	    0D87  66| 26: A3 0410r			 mov	 dword ptr es:[MODIFY_TIME], eax
+   2107	    0D8C  66| 26: A3 0416r			 mov	 dword ptr es:[ACCESS_TIME], eax
+   2108	    0D91  66| 26: A3 041Cr			 mov	 dword ptr es:[ARCHIVE_TIME], eax
+   2109
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 38
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2110							 ; EIGENTÅMER ist das SYSTEM-Dir (Eintrag 0)
+   2111							 ; INODE 1 (0=RootDir) in Block	1
+   2112	    0D96  66| B8 00000001			 mov	 eax, 1		 ; Block des Sys-Dir INODE
+   2113	    0D9C  BB 0001				 mov	 bx, 1
+   2114	    0D9F  66| 26: A3 0422r			 mov	 dword ptr es:[OWNER_BLOCK], eax
+   2115	    0DA4  26: 89 1E 0426r			 mov	 word ptr es:[OWNER_SELECT], bx
+   2116
+   2117							 ; Erste Block ist Block 5+ BOOTCODE_TOTAL
+   2118
+   2119	    0DA9  66| B8 00000005			 mov	 eax, 5
+   2120	    0DAF  66| 03 06 047Cr			 add	 eax, dword ptr	ds:[BOOTCODE_TOTAL]
+   2121	    0DB4  66| 8B 1E 0488r			 mov	 ebx, dword ptr	ds:[SYSSEL_TOTAL]
+   2122
+   2123	    0DB9  66| 26: A3 0438r			 mov	 dword ptr es:[STARTPOS_1], eax
+   2124	    0DBE  26: 89 1E 043Cr			 mov	 word ptr es:[BLOCKS_1], bx
+   2125	    0DC3  66| 26: 89 1E	047Cr			 mov	 dword ptr es:[TOTAL_BLOCKS], ebx
+   2126
+   2127	    0DC9  66| B8 00000001			 mov	 eax, 1		 ; Ist Node 1 im Sysdir
+   2128	    0DCF  E8 FAB1				 call	 SET_INODEPOS
+   2129
+   2130							 ; Und das ganze an Position 3 schreiben...
+   2131	    0DD2  66| B8 00000003			 mov	 eax, 3
+   2132	    0DD8  E8 F857				 call	 WRITE_DATA
+   2133
+   2134							 ; Nun wird der	klimbatch noch mit Namen im Dir	eingetragen...
+   2135
+   2136							 ; Dir befindet	sich in	Block 4
+   2137	    0DDB  66| B8 00000004			 mov	 eax, 4
+   2138	    0DE1  E8 F87F				 call	 READ_BLOCK
+   2139
+   2140	    0DE4  E8 FAC2				 call	 CLR_DIR
+   2141
+   2142	    0DE7  66| B8 00000003			 mov	 eax, 3		 ; INODE in Block 3
+   2143	    0DED  BB 0001				 mov	 bx, 1		 ; Nr. 1
+   2144	    0DF0  66| 26: A3 0480r			 mov	 dword ptr es:[DATA_BLOCK], eax
+   2145	    0DF5  26: 89 1E 0484r			 mov	 word ptr es:[DATA_SELECT], bx
+   2146
+   2147	    0DFA  B0 01					 mov	 al, OBJECT_NAME
+   2148	    0DFC  26: A2 0486r				 mov	 byte ptr es:[DATA_TYPE], al
+   2149
+   2150							 ; Wie nennen wir das?...
+   2151	    0E00  26: C6 06 0487r 53			 mov	 byte ptr es:[DESCRIPTION   ], 'S'
+   2152	    0E06  26: C6 06 0488r 59			 mov	 byte ptr es:[DESCRIPTION+ 1], 'Y'
+   2153	    0E0C  26: C6 06 0489r 53			 mov	 byte ptr es:[DESCRIPTION+ 2], 'S'
+   2154	    0E12  26: C6 06 048Ar 54			 mov	 byte ptr es:[DESCRIPTION+ 3], 'T'
+   2155	    0E18  26: C6 06 048Br 45			 mov	 byte ptr es:[DESCRIPTION+ 4], 'E'
+   2156	    0E1E  26: C6 06 048Cr 4D			 mov	 byte ptr es:[DESCRIPTION+ 5], 'M'
+   2157	    0E24  26: C6 06 048Dr 20			 mov	 byte ptr es:[DESCRIPTION+ 6], ' '
+   2158	    0E2A  26: C6 06 048Er 53			 mov	 byte ptr es:[DESCRIPTION+ 7], 'S'
+   2159	    0E30  26: C6 06 048Fr 45			 mov	 byte ptr es:[DESCRIPTION+ 8], 'E'
+   2160	    0E36  26: C6 06 0490r 4C			 mov	 byte ptr es:[DESCRIPTION+ 9], 'L'
+   2161	    0E3C  26: C6 06 0491r 45			 mov	 byte ptr es:[DESCRIPTION+10], 'E'
+   2162	    0E42  26: C6 06 0492r 43			 mov	 byte ptr es:[DESCRIPTION+11], 'C'
+   2163	    0E48  26: C6 06 0493r 54			 mov	 byte ptr es:[DESCRIPTION+12], 'T'
+   2164	    0E4E  26: C6 06 0494r 24			 mov	 byte ptr es:[DESCRIPTION+13], '$'
+   2165
+   2166	    0E54  66| B8 00000001			 mov	 eax, 1
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 39
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2167	    0E5A  E8 FBA0				 call	 SET_DIRPOS
+   2168
+   2169	    0E5D  66| B8 00000004			 mov	 eax, 4
+   2170	    0E63  E8 F7CC				 call	 WRITE_DATA
+   2171
+   2172							 ; Der Klimbatsch mu· nun noch im VIS eingetragen werden!
+   2173	    0E66  B8 0000s				 mov	 ax, SEKTOR_DATA
+   2174	    0E69  8E C0					 mov	 es, ax
+   2175	    0E6B  66| B8 00000003			 mov	 eax, 3
+   2176	    0E71  BB 0001				 mov	 bx, 1
+   2177	    0E74  66| 26: A3 04BFr			 mov	 dword ptr es:[BOOT_INODE], eax
+   2178	    0E79  26: 89 1E 04C3r			 mov	 word ptr es:[BOOT_INODE_SELECT], bx
+   2179	    0E7E  C3					 ret
+   2180	    0E7F				 COPY_SYSSELECT	ENDP
+   2181
+   2182						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   2183						 include MKR2.INC	 ; Alles was hier fehlt!
+1  2184						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+1  2185						 ; COPY_KERNEL : Kopiert VOS9 (Kernel!)
+1  2186						 ;		 BOOTCODE und SYSSELECT	mu· geschrieben	sein!
+1  2187						 ; Input : -
+1  2188						 ; Output: -
+1  2189						 ;
+1  2190	    0E7F				 COPY_KERNEL PROC NEAR
+1  2191	    0E7F  BA 04B4r				 lea	 dx, KERNEL_FILE ; Dateiname BootCode
+1  2192	    0E82  32 C0					 xor	 al, al			 ; Zugriffsmodus: Nur Lesen
+1  2193	    0E84  B4 3D					 mov	 ah, 3Dh		 ; DOS:	Datei ôffnen
+1  2194	    0E86  CD 21					 int	 21h
+1  2195	    0E88  73 0C					 jnc	 @@DOSHandleOK
+1  2196	    0E8A  BA 03CDr				 lea	 dx, MSG_0044
+1  2197	    0E8D  B4 09					 mov	 ah, 9
+1  2198	    0E8F  CD 21					 int	 21h
+1  2199	    0E91  B8 4C00				 mov	 ax, 4c00h
+1  2200	    0E94  CD 21					 int	 21h
+1  2201	    0E96				 @@DosHandleOK:
+1  2202							 ; Wir haben nun in AX das Handle fÅr die Datei
+1  2203
+1  2204	    0E96  A3 049Ar				 mov	 word ptr ds:[FILE_HANDLE], ax
+1  2205							 ; Nun brauchen	wir die	File-Grî·e!
+1  2206	    0E99  8B D8					 mov	 bx, ax
+1  2207	    0E9B  B0 02					 mov	 al, 2		 ; Seekmodus 2
+1  2208	    0E9D  33 C9					 xor	 cx, cx		 ; SeekOffset 0	= Dateiende
+1  2209	    0E9F  33 D2					 xor	 dx, dx
+1  2210	    0EA1  B4 42					 mov	 ah, 42h	 ; DOS:	Seek
+1  2211	    0EA3  CD 21					 int	 21h
+1  2212							 ; AX=LO-WORD, DX=Hi-Word
+1  2213	    0EA5  A3 0498r				 mov	 word ptr ds:[KERNEL_BYTES], ax
+1  2214							 ; ZunÑchst Seek an Anfang der Datei
+1  2215	    0EA8  8B 1E	049Ar				 mov	 bx, word ptr ds:[FILE_HANDLE]
+1  2216	    0EAC  33 C9					 xor	 cx, cx		 ; Hi-Position 0
+1  2217	    0EAE  33 D2					 xor	 dx, dx		 ; Lo-Position 0
+1  2218	    0EB0  32 C0					 xor	 al, al		 ; Position absolut
+1  2219	    0EB2  B4 42					 mov	 ah, 42h
+1  2220	    0EB4  CD 21					 int	 21h
+1  2221
+1  2222							 ; Als erstes mal sehen	wieviele Blîcke	fÅr den	Code
+1  2223							 ; benîtigt werden...
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 40
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+1  2224	    0EB6  8B 1E	0448r				 mov	 bx, word ptr ds:[BYTE_PER_BLOCK]
+1  2225	    0EBA  66| 33 C0				 xor	 eax, eax
+1  2226	    0EBD  66| 33 D2				 xor	 edx, edx
+1  2227	    0EC0  A1 0498r				 mov	 ax, word ptr ds:[KERNEL_BYTES]
+1  2228	    0EC3  F7 F3					 div	 bx
+1  2229							 ; AX enthÑlt nun die benîtigten Blîcke
+1  2230							 ; ist DX>0 mu·	noch ein Block Addiert werden...
+1  2231
+1  2232	    0EC5  66| A3 048Er				 mov	 dword ptr ds:[KERNEL_BLOCKS], eax
+1  2233	    0EC9  89 16	0492r				 mov	 word ptr ds:[KERNEL_SIZE], dx
+1  2234	    0ECD  83 FA	00				 cmp	 dx, 0
+1  2235	    0ED0  74 02					 jz	 @@SIZE_OK
+1  2236	    0ED2  66| 40				 inc	 eax
+1  2237	    0ED4				 @@SIZE_OK:
+1  2238	    0ED4  66| A3 0494r				 mov	 dword ptr ds:[KERNEL_TOTAL], eax
+1  2239
+1  2240	    0ED8  BA 041Br				 lea	 dx, MSG_0046
+1  2241	    0EDB  B4 09					 mov	 ah, 9
+1  2242	    0EDD  CD 21					 int	 21h
+1  2243
+1  2244	    0EDF  A1 0498r				 mov	 ax, word ptr ds:[KERNEL_BYTES]
+1  2245	    0EE2  33 D2					 xor	 dx, dx
+1  2246	    0EE4  E8 F165				 call	 print32
+1  2247	    0EE7  BA 02F1r				 lea	 dx, MSG_0037
+1  2248	    0EEA  B4 09					 mov	 ah, 9
+1  2249	    0EEC  CD 21					 int	 21h
+1  2250	    0EEE  BA 0102r				 lea	 dx, MSG_0011
+1  2251	    0EF1  B4 09					 mov	 ah, 9
+1  2252	    0EF3  CD 21					 int	 21h
+1  2253	    0EF5  66| A1 0494r				 mov	 eax, dword ptr	ds:[KERNEL_TOTAL]
+1  2254	    0EF9  33 D2					 xor	 dx, dx
+1  2255	    0EFB  E8 F14E				 call	 print32
+1  2256	    0EFE  BA 01DDr				 lea	 dx, MSG_0024
+1  2257	    0F01  B4 09					 mov	 ah, 9
+1  2258	    0F03  CD 21					 int	 21h
+1  2259	    0F05  BA 042Er				 lea	 dx, MSG_0047
+1  2260	    0F08  B4 09					 mov	 ah, 9
+1  2261	    0F0A  CD 21					 int	 21h
+1  2262
+1  2263							 ; Insgesamt sind si Bytes zu schreiben
+1  2264	    0F0C  8B 36	0498r				 mov	 si, word ptr ds:[KERNEL_BYTES]
+1  2265							 ; Wir starten an Block	eax-1
+1  2266	    0F10  66| B8 00000004			 mov	 eax, 4
+1  2267							 ; Das ganze kommt hinter den BOOTCODE und SYSTEM SELECT!
+1  2268	    0F16  66| 03 06 047Cr			 add	 eax, dword ptr	ds:[BOOTCODE_TOTAL]
+1  2269	    0F1B  66| 03 06 0488r			 add	 eax, dword ptr	ds:[SYSSEL_TOTAL]
+1  2270
+1  2271	    0F20  66| 50				 push	 eax			 ; Startpos merken
+1  2272	    0F22  56					 push	 si
+1  2273	    0F23				 @@Cpy_Loop:
+1  2274	    0F23  E8 F64B				 call	 CLR_DATA		 ; Datenbr. lîschen
+1  2275
+1  2276							 ; Wir Lesen Blockgrî·e
+1  2277	    0F26  5E					 pop	 si
+1  2278	    0F27  56					 push	 si
+1  2279							 ; Restliche Byte <= Blockgrî·e?
+1  2280	    0F28  3B 36	0448r				 cmp	 si, word ptr ds:[BYTE_PER_BLOCK]
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 41
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+1  2281	    0F2C  76 3F					 jbe	 @@RestLesen		 ; Letzter Block
+1  2282
+1  2283							 ; Wir Lesen einen Block aus dem File
+1  2284	    0F2E  8B 0E	0448r				 mov	 cx, word ptr ds:[BYTE_PER_BLOCK]
+1  2285	    0F32  5E					 pop	 si
+1  2286	    0F33  2B F1					 sub	 si, cx			 ; vom Rest abziehen
+1  2287	    0F35  56					 push	 si
+1  2288
+1  2289	    0F36  B4 3F					 mov	 ah, 3fh		 ; DOS:	Read from File
+1  2290	    0F38  8B 1E	049Ar				 mov	 bx, word ptr ds:[FILE_HANDLE]
+1  2291
+1  2292							 ASSUME	 ds:BLOCK_DATA
+1  2293
+1  2294	    0F3C  BA 0000s				 mov	 dx, BLOCK_DATA		 ; Seg.-Addr.
+1  2295	    0F3F  8E DA					 mov	 ds, dx
+1  2296	    0F41  33 D2					 xor	 dx, dx			 ; Offset 0
+1  2297	    0F43  CD 21					 int	 21h
+1  2298	    0F45  72 12					 jc	 @@ReadErr
+1  2299
+1  2300							 ASSUME	 ds:DATA
+1  2301	    0F47  BA 0000s				 mov	 dx, DATA
+1  2302	    0F4A  8E DA					 mov	 ds, dx
+1  2303
+1  2304							 ; Block ist voll. Wir schreiben...
+1  2305	    0F4C  5E					 pop	 si
+1  2306	    0F4D  66| 58				 pop	 eax
+1  2307	    0F4F  66| 40				 inc	 eax
+1  2308	    0F51  66| 50				 push	 eax
+1  2309	    0F53  56					 push	 si
+1  2310	    0F54  E8 F6DB				 call	 WRITE_DATA
+1  2311	    0F57  EB CA					 jmp	 short @@Cpy_Loop
+1  2312
+1  2313	    0F59				 @@ReadErr:
+1  2314							 ASSUME	 ds:DATA
+1  2315	    0F59  BA 0000s				 mov	 dx, DATA
+1  2316	    0F5C  8E DA					 mov	 ds, dx
+1  2317
+1  2318	    0F5E  5E					 pop	 si
+1  2319	    0F5F  66| 58				 pop	 eax
+1  2320	    0F61  BA 03F4r				 lea	 dx, ds:MSG_0045
+1  2321	    0F64  B4 09					 mov	 ah, 9
+1  2322	    0F66  CD 21					 int	 21h
+1  2323	    0F68  B8 4C00				 mov	 ax, 4c00h		 ; DOS:	Terminate Process
+1  2324	    0F6B  CD 21					 int	 21h
+1  2325
+1  2326	    0F6D				 @@RestLesen:
+1  2327							 ; Wir Lesen einen Block aus dem File
+1  2328	    0F6D  5E					 pop	 si
+1  2329	    0F6E  8B CE					 mov	 cx, si			 ; Rest	aus dem	File
+1  2330	    0F70  2B F6					 sub	 si, si			 ; vom Rest abziehen=0
+1  2331	    0F72  56					 push	 si
+1  2332
+1  2333	    0F73  B4 3F					 mov	 ah, 3fh		 ; DOS:	Read from File
+1  2334	    0F75  8B 1E	049Ar				 mov	 bx, word ptr ds:[FILE_HANDLE]
+1  2335
+1  2336							 ASSUME	 ds:BLOCK_DATA
+1  2337
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 42
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+1  2338	    0F79  BA 0000s				 mov	 dx, BLOCK_DATA		 ; Seg.-Addr.
+1  2339	    0F7C  8E DA					 mov	 ds, dx
+1  2340	    0F7E  33 D2					 xor	 dx, dx			 ; Offset 0
+1  2341	    0F80  CD 21					 int	 21h
+1  2342	    0F82  72 D5					 jc	 @@ReadErr
+1  2343
+1  2344							 ASSUME	 ds:DATA
+1  2345	    0F84  BA 0000s				 mov	 dx, DATA
+1  2346	    0F87  8E DA					 mov	 ds, dx
+1  2347
+1  2348							 ; Block ist voll. Wir schreiben...
+1  2349	    0F89  5E					 pop	 si
+1  2350	    0F8A  66| 58				 pop	 eax
+1  2351	    0F8C  66| 40				 inc	 eax
+1  2352	    0F8E  E8 F6A1				 call	 WRITE_DATA
+1  2353
+1  2354							 ; Die Datei mu· nun im	SYSTEM-Directory eingetragen werden...
+1  2355	    0F91  E8 F5DD				 call	 CLR_DATA
+1  2356							 ; Das Dir befindet sich an Addr. 4
+1  2357							 ; Dessenn Inode Block an Addr.	3
+1  2358
+1  2359							 ; ZunÑchst holen wir den INODE...
+1  2360	    0F94  66| B8 00000003			 mov	 eax, 3
+1  2361	    0F9A  E8 F6C6				 call	 READ_BLOCK
+1  2362							 ; Dort	dÅrfte eigentlich nix vorhanden	sein. Wir tragen
+1  2363							 ; dort	die Daten Åber die Datei ein...
+1  2364
+1  2365	    0F9D  E8 F86B				 call	 CLR_INODE
+1  2366
+1  2367	    0FA0  B8 0098				 mov	 ax, BootCodeFlags
+1  2368	    0FA3  26: A3 0400r				 mov	 word ptr es:[FLAGS_TYPE], ax
+1  2369	    0FA7  66| A1 048Er				 mov	 eax, dword ptr	ds:[KERNEL_BLOCKS]
+1  2370	    0FAB  8B 1E	0492r				 mov	 bx, word ptr ds:[KERNEL_SIZE]
+1  2371	    0FAF  66| 26: A3 0404r			 mov	 dword ptr es:[OBJECT_BLOCKS], eax
+1  2372	    0FB4  26: 89 1E 0408r			 mov	 word ptr es:[OBJECT_SIZE], bx
+1  2373
+1  2374	    0FB9  E8 F86A				 call	 GET_SYSTIME
+1  2375	    0FBC  66| 26: A3 040Ar			 mov	 dword ptr es:[CREATION_TIME], eax
+1  2376	    0FC1  66| 26: A3 0410r			 mov	 dword ptr es:[MODIFY_TIME], eax
+1  2377	    0FC6  66| 26: A3 0416r			 mov	 dword ptr es:[ACCESS_TIME], eax
+1  2378	    0FCB  66| 26: A3 041Cr			 mov	 dword ptr es:[ARCHIVE_TIME], eax
+1  2379
+1  2380							 ; EIGENTÅMER ist das SYSTEM-Dir (Eintrag 0)
+1  2381							 ; INODE 1 (0=RootDir) in Block	1
+1  2382	    0FD0  66| B8 00000001			 mov	 eax, 1		 ; Block des Sys-Dir INODE
+1  2383	    0FD6  BB 0001				 mov	 bx, 1
+1  2384	    0FD9  66| 26: A3 0422r			 mov	 dword ptr es:[OWNER_BLOCK], eax
+1  2385	    0FDE  26: 89 1E 0426r			 mov	 word ptr es:[OWNER_SELECT], bx
+1  2386
+1  2387							 ; Erste Block ist Block 5+ BOOTCODE_TOTAL+SYSSEL_TOTAL
+1  2388
+1  2389	    0FE3  66| B8 00000005			 mov	 eax, 5
+1  2390	    0FE9  66| 03 06 047Cr			 add	 eax, dword ptr	ds:[BOOTCODE_TOTAL]
+1  2391	    0FEE  66| 03 06 0488r			 add	 eax, dword ptr	ds:[SYSSEL_TOTAL]
+1  2392	    0FF3  66| 8B 1E 0494r			 mov	 ebx, dword ptr	ds:[KERNEL_TOTAL]
+1  2393
+1  2394	    0FF8  66| 26: A3 0438r			 mov	 dword ptr es:[STARTPOS_1], eax
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 43
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+1  2395	    0FFD  26: 89 1E 043Cr			 mov	 word ptr es:[BLOCKS_1], bx
+1  2396	    1002  66| 26: 89 1E	047Cr			 mov	 dword ptr es:[TOTAL_BLOCKS], ebx
+1  2397
+1  2398	    1008  66| B8 00000002			 mov	 eax, 2		 ; Ist Node 2 im Sysdir
+1  2399	    100E  E8 F872				 call	 SET_INODEPOS
+1  2400
+1  2401							 ; Und das ganze an Position 3 schreiben...
+1  2402	    1011  66| B8 00000003			 mov	 eax, 3
+1  2403	    1017  E8 F618				 call	 WRITE_DATA
+1  2404
+1  2405							 ; Nun wird der	klimbatch noch mit Namen im Dir	eingetragen...
+1  2406
+1  2407							 ; Dir befindet	sich in	Block 4
+1  2408	    101A  66| B8 00000004			 mov	 eax, 4
+1  2409	    1020  E8 F640				 call	 READ_BLOCK
+1  2410
+1  2411	    1023  E8 F883				 call	 CLR_DIR
+1  2412
+1  2413	    1026  66| B8 00000003			 mov	 eax, 3		 ; INODE in Block 3
+1  2414	    102C  BB 0002				 mov	 bx, 2		 ; Nr. 2
+1  2415	    102F  66| 26: A3 0480r			 mov	 dword ptr es:[DATA_BLOCK], eax
+1  2416	    1034  26: 89 1E 0484r			 mov	 word ptr es:[DATA_SELECT], bx
+1  2417
+1  2418	    1039  B0 01					 mov	 al, OBJECT_NAME
+1  2419	    103B  26: A2 0486r				 mov	 byte ptr es:[DATA_TYPE], al
+1  2420
+1  2421							 ; Wie nennen wir das?...
+1  2422	    103F  26: C6 06 0487r 4B			 mov	 byte ptr es:[DESCRIPTION   ], 'K'
+1  2423	    1045  26: C6 06 0488r 45			 mov	 byte ptr es:[DESCRIPTION+ 1], 'E'
+1  2424	    104B  26: C6 06 0489r 52			 mov	 byte ptr es:[DESCRIPTION+ 2], 'R'
+1  2425	    1051  26: C6 06 048Ar 4E			 mov	 byte ptr es:[DESCRIPTION+ 3], 'N'
+1  2426	    1057  26: C6 06 048Br 45			 mov	 byte ptr es:[DESCRIPTION+ 4], 'E'
+1  2427	    105D  26: C6 06 048Cr 4C			 mov	 byte ptr es:[DESCRIPTION+ 5], 'L'
+1  2428	    1063  26: C6 06 048Dr 20			 mov	 byte ptr es:[DESCRIPTION+ 6], ' '
+1  2429	    1069  26: C6 06 048Er 49			 mov	 byte ptr es:[DESCRIPTION+ 7], 'I'
+1  2430	    106F  26: C6 06 048Fr 4D			 mov	 byte ptr es:[DESCRIPTION+ 8], 'M'
+1  2431	    1075  26: C6 06 0490r 41			 mov	 byte ptr es:[DESCRIPTION+ 9], 'A'
+1  2432	    107B  26: C6 06 0491r 47			 mov	 byte ptr es:[DESCRIPTION+10], 'G'
+1  2433	    1081  26: C6 06 0492r 45			 mov	 byte ptr es:[DESCRIPTION+11], 'E'
+1  2434	    1087  26: C6 06 0493r 24			 mov	 byte ptr es:[DESCRIPTION+12], '$'
+1  2435
+1  2436	    108D  66| B8 00000002			 mov	 eax, 2
+1  2437	    1093  E8 F967				 call	 SET_DIRPOS
+1  2438
+1  2439	    1096  66| B8 00000004			 mov	 eax, 4
+1  2440	    109C  E8 F593				 call	 WRITE_DATA
+1  2441
+1  2442							 ; Der Klimbatsch mu· nun noch im VIS eingetragen werden!
+1  2443	    109F  B8 0000s				 mov	 ax, SEKTOR_DATA
+1  2444	    10A2  8E C0					 mov	 es, ax
+1  2445	    10A4  66| B8 00000003			 mov	 eax, 3
+1  2446	    10AA  BB 0002				 mov	 bx, 2
+1  2447	    10AD  66| 26: A3 04C5r			 mov	 dword ptr es:[KERNEL_INODE], eax
+1  2448	    10B2  26: 89 1E 04C9r			 mov	 word ptr es:[KERNEL_INODE_SELECT], bx
+1  2449	    10B7  C3					 ret
+1  2450	    10B8				 COPY_KERNEL ENDP
+1  2451
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 44
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2452
+   2453						 ;ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ
+   2454						 ; MAKE_SYSDIR:	Erstellt ein Direcory auf dem Volume
+   2455						 ; Input : -
+   2456						 ; Output: - (abbruch bei Fehler)
+   2457						 ;
+   2458	    10B8				 MAKE_SYSDIR PROC NEAR
+   2459	    10B8  BA 02A3r				 lea	 dx, MSG_0034
+   2460	    10BB  B4 09					 mov	 ah, 9
+   2461	    10BD  CD 21					 int	 21h
+   2462
+   2463							 ; ZunÑchst wir	der INODE des Root-Dirs	(Addr. 1) geladen!
+   2464	    10BF  66| B8 00000001			 mov	 eax, 1
+   2465	    10C5  E8 F59B				 call	 READ_BLOCK
+   2466							 ; der erste INode ist nun das Root-Directory
+   2467							 ; Das System Directory	kommt als 2. INODE...
+   2468	    10C8  E8 F740				 call	 CLR_INODE
+   2469
+   2470	    10CB  B8 0051				 mov	 ax, SystemDirFlags		 ; Dir Flags
+   2471	    10CE  26: A3 0400r				 mov	 es:[FLAGS_TYPE], ax
+   2472	    10D2  66| B8 00000001			 mov	 eax, 1
+   2473	    10D8  66| 26: A3 047Cr			 mov	 es:[TOTAL_BLOCKS], eax
+   2474
+   2475							 ; EigentÅmer ist der INODE des	ROOT-Dirs
+   2476							 ; BLOCK 1 INODE 0
+   2477	    10DD  66| B8 00000001			 mov	 eax, 1
+   2478	    10E3  33 DB					 xor	 bx, bx
+   2479	    10E5  66| 26: A3 0422r			 mov	 dword ptr es:[OWNER_BLOCK], eax
+   2480	    10EA  26: 89 1E 0426r			 mov	 word ptr es:[OWNER_SELECT], bx
+   2481
+   2482	    10EF  E8 F734				 call	 GET_SYSTIME
+   2483	    10F2  66| 26: A3 040Ar			 mov	 dword ptr es:[CREATION_TIME], eax
+   2484	    10F7  66| 26: A3 0416r			 mov	 dword ptr es:[ACCESS_TIME], eax
+   2485	    10FC  66| 26: A3 0410r			 mov	 dword ptr es:[MODIFY_TIME], eax
+   2486	    1101  66| 26: A3 041Cr			 mov	 dword ptr es:[ARCHIVE_TIME], eax
+   2487							 ; An Addr. 2 befindet sich das	Root-Directory
+   2488							 ; Addr. 4 wird	das System Dir erhalten
+   2489							 ; Addr. 3 ein INODE fÅr dieses	Dir
+   2490	    1106  66| B8 00000004			 mov	 eax, 4
+   2491	    110C  66| 26: A3 0438r			 mov	 es:[STARTPOS_1], eax
+   2492	    1111  B8 0001				 mov	 ax, 1
+   2493	    1114  26: A3 043Cr				 mov	 es:[BLOCKS_1],	ax
+   2494
+   2495	    1118  B8 0001				 mov	 ax, 1
+   2496	    111B  E8 F765				 call	 SET_INODEPOS
+   2497
+   2498	    111E  66| B8 00000001			 mov	 eax, 1
+   2499	    1124  E8 F50B				 call	 WRITE_DATA
+   2500
+   2501							 ; Nun mu· noch	der Eintrag im Root-Dir	an Position 2
+   2502							 ; erstellt werden...
+   2503
+   2504	    1127  66| B8 00000002			 mov	 eax, 2
+   2505	    112D  E8 F533				 call	 READ_BLOCK
+   2506
+   2507	    1130  E8 F776				 call	 CLR_DIR
+   2508	    1133  26: C6 06 0486r 01			 mov	 byte ptr es:[DATA_TYPE], OBJECT_NAME
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 45
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2509	    1139  66| B8 00000001			 mov	 eax, 1		 ; INODE Block welcher das Dir beschr.
+   2510	    113F  BB 0001				 mov	 bx, 1		 ; Eintrag 1
+   2511	    1142  66| 26: A3 0480r			 mov	 dword ptr es:[DATA_BLOCK], eax
+   2512	    1147  26: 89 1E 0484r			 mov	 word ptr es:[DATA_SELECT], bx
+   2513	    114C  26: C6 06 0487r 53			 mov	 byte ptr es:[DESCRIPTION    ],	'S'
+   2514	    1152  26: C6 06 0488r 59			 mov	 byte ptr es:[DESCRIPTION+  1],	'Y'
+   2515	    1158  26: C6 06 0489r 53			 mov	 byte ptr es:[DESCRIPTION+  2],	'S'
+   2516	    115E  26: C6 06 048Ar 54			 mov	 byte ptr es:[DESCRIPTION+  3],	'T'
+   2517	    1164  26: C6 06 048Br 45			 mov	 byte ptr es:[DESCRIPTION+  4],	'E'
+   2518	    116A  26: C6 06 048Cr 4D			 mov	 byte ptr es:[DESCRIPTION+  5],	'M'
+   2519	    1170  26: C6 06 048Dr 24			 mov	 byte ptr es:[DESCRIPTION+  6],	'$'
+   2520
+   2521	    1176  66| 33 C0				 xor	 eax, eax		 ; 1. Eintrag im ROOT-DIR
+   2522	    1179  E8 F881				 call	 SET_DIRPOS
+   2523
+   2524							 ; Dies	ist der	letzte Eintrag fÅr das Root-Dir!
+   2525							 ; Die restlichen freien INODEs	an Adresse 1 werden
+   2526							 ; nun in die folgenden	Dir-EintrÑge geschrieben.
+   2527							 ; Dies	zeigt spÑter, da· noch INODEs frei sind
+   2528							 ; und somit keine erstellt werden mÅssen.
+   2529
+   2530							 ; ZunÑchst mal	sehen wieviele INODEs den in den Block
+   2531							 ; an Addr. 1 passen (abhÑngig von der Blockgrî·e!)
+   2532
+   2533	    117C  B8 0200				 mov	 ax, 512		 ; Grî·e eines Sektors
+   2534	    117F  0F B6	1E 0447r			 movzx	 bx, byte ptr [SEKS_PER_BLOCK]
+   2535	    1184  F7 E3					 mul	 bx
+   2536	    1186  33 D2					 xor	 dx, dx
+   2537	    1188  BB 0080				 mov	 bx, 128		 ; Grî·e eines INODEs
+   2538	    118B  F7 F3					 div	 bx
+   2539	    118D  33 D2					 xor	 dx, dx
+   2540							 ; => AX = anz.	INODEs in Block	1
+   2541							 ; 2 INODEs haben wir schon fÅr	das ROOT-DIR und das
+   2542							 ; SYSTEM-DIR verbraucht!
+   2543	    118F  2D 0002				 sub	 ax, 2
+   2544	    1192  8B C8					 mov	 cx, ax
+   2545							 ; Es geht bei dem 2. Eintrag im ROOT-DIR lo·!
+   2546	    1194  BF 0001				 mov	 di, 1
+   2547	    1197  BE 0002				 mov	 si, 2	 ; AB INODE 3 ist frei
+   2548	    119A				   @@Rest_Loop:
+   2549	    119A  E8 F70C				 call	 CLR_DIR
+   2550	    119D  66| B8 00000001			 mov	 eax, 1
+   2551	    11A3  66| 26: A3 0480r			 mov	 dword ptr es:[DATA_BLOCK], eax
+   2552	    11A8  26: 89 36 0484r			 mov	 word ptr es:[DATA_SELECT], si
+   2553	    11AD  8B C7					 mov	 ax, di
+   2554	    11AF  66| 57				 push	 edi
+   2555	    11B1  66| 56				 push	 esi
+   2556	    11B3  66| 51				 push	 ecx
+   2557	    11B5  E8 F845				 call	 SET_DIRPOS
+   2558	    11B8  66| 59				 pop	 ecx
+   2559	    11BA  66| 5E				 pop	 esi
+   2560	    11BC  66| 5F				 pop	 edi
+   2561	    11BE  47					 inc	 di
+   2562	    11BF  46					 inc	 si
+   2563	    11C0  E2 D8					 loop	 @@Rest_Loop
+   2564
+   2565							 ; Der ganze MÅll wird nun auf das Drive verfrachtet
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 46
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2566	    11C2  66| B8 00000002			 mov	 eax, 2
+   2567	    11C8  E8 F467				 call	 WRITE_DATA
+   2568
+   2569							 ; Nun fehlt noch das eigentliche SYSTEM-Directory und
+   2570							 ; ein INODE-Block dazu....
+   2571							 ; Das System DIR kommt	an Addr. 4 und ein INODE-Block
+   2572							 ; dafÅr an Addr. 3...
+   2573
+   2574							 ; ZunÑchst der	INODE...
+   2575	    11CB  E8 F3A3				 call	 CLR_DATA
+   2576	    11CE  66| B8 00000003			 mov	 eax, 3
+   2577	    11D4  E8 F45B				 call	 WRITE_DATA
+   2578
+   2579							 ; Und das Directory...
+   2580	    11D7  E8 F397				 call	 CLR_DATA
+   2581	    11DA  66| B8 00000004			 mov	 eax, 4
+   2582	    11E0  E8 F44F				 call	 WRITE_DATA
+   2583
+   2584	    11E3  C3					 ret
+   2585	    11E4				 MAKE_SYSDIR ENDP
+   2586
+   2587
+   2588	    11E4			 MAKEROOT ENDS
+   2589
+   2590					 ;ÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕ
+   2591
+   2592	    0000			 DATA SEGMENT PARA USE16 'DATA'
+   2593
+   2594						 ; Standard MSGs
+   2595	    0000  0A 0D	4D 41 4B 45 52+		 MSG_0000	 db	 CR,LF,	'MAKEROOT V1.0 R0 - Internal Only'
+   2596		  4F 4F	54 20 56 31 2E+
+   2597		  30 20	52 30 20 2D 20+
+   2598		  49 6E	74 65 72 6E 61+
+   2599		  6C 20	4F 6E 6C 79
+   2600	    0022  0A 0D	28 63 29 28 72+				 db	 CR,LF,	'(c)(r)	1995 by	MZ Computer Systems'
+   2601		  29 20	31 39 39 35 20+
+   2602		  62 79	20 4D 5A 20 43+
+   2603		  6F 6D	70 75 74 65 72+
+   2604		  20 53	79 73 74 65 6D+
+   2605		  73
+   2606	    0046  0A 0D	24					 db	 CR,LF,	'$'
+   2607	    0049  0A 0D	30 30 30 31 3A+		 MSG_0001	 db	 CR,LF,	'0001: READ ERROR-CODE:	$'
+   2608		  20 52	45 41 44 20 45+
+   2609		  52 52	4F 52 2D 43 4F+
+   2610		  44 45	3A 20 24
+   2611	    0063  0A 0D	30 30 30 32 3A+		 MSG_0002	 db	 CR,LF,	'0002: WRITE ERROR-CODE: $'
+   2612		  20 57	52 49 54 45 20+
+   2613		  45 52	52 4F 52 2D 43+
+   2614		  4F 44	45 3A 20 24
+   2615	    007E  0A 0D	44 52 49 56 45+		 MSG_0003	 db	 CR,LF,	'DRIVE	  : $'
+   2616		  20 20	20 20 3A 20 24
+   2617	    008C  0A 0D	42 4C 4F 43 4B+		 MSG_0004	 db	 CR,LF,	'BLOCKSIZE: $'
+   2618		  53 49	5A 45 3A 20 24
+   2619	    009A  0A 0D	30 30 30 35 3A+		 MSG_0005	 db	 CR,LF,	'0005: BLOCKSIZE OUT OF	RANGE (1-32)!$'
+   2620		  20 42	4C 4F 43 4B 53+
+   2621		  49 5A	45 20 4F 55 54+
+   2622		  20 4F	46 20 52 41 4E+
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 47
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2623		  47 45	20 28 31 2D 33+
+   2624		  32 29	21 24
+   2625	    00C1  0A 0D	30 30 30 36 3A+		 MSG_0006	 db	 CR,LF,	'0006: DRIVE DOESN''T EXIST!$'
+   2626		  20 44	52 49 56 45 20+
+   2627		  44 4F	45 53 4E 27 54+
+   2628		  20 45	58 49 53 54 21+
+   2629		  24
+   2630	    00DE  20 53	65 63 74 6F 72+		 MSG_0007	 db	 ' Sectors, $'
+   2631		  73 2C	20 24
+   2632	    00E9  20 43	79 6C 69 6E 64+		 MSG_0008	 db	 ' Cylinder, $'
+   2633		  65 72	2C 20 24
+   2634	    00F5  20 48	65 61 64 73 20+		 MSG_0009	 db	 ' Heads $'
+   2635		  24
+   2636	    00FD  20 4D	42 20 24		 MSG_0010	 db	 ' MB $'
+   2637	    0102  20 3D	3E 20 24		 MSG_0011	 db	 ' => $'
+   2638	    0107  0A 0D	50 48 59 53 49+		 MSG_0012	 db	 CR,LF,	'PHYSICAL DATA	: $'
+   2639		  43 41	4C 20 44 41 54+
+   2640		  41 20	20 3A 20 24
+   2641	    011B  0A 0D	4E 4F 20 56 4F+		 MSG_0013	 db	 CR,LF,	'NO VOS/9 PARTITION ON THE SELECTED DRIVE!$'
+   2642		  53 2F	39 20 50 41 52+
+   2643		  54 49	54 49 4F 4E 20+
+   2644		  4F 4E	20 54 48 45 20+
+   2645		  53 45	4C 45 43 54 45+
+   2646		  44 20	44 52 49 56 45+
+   2647		  21 24
+   2648	    0147  0A 0D	50 41 52 54 49+		 MSG_0014	 db	 CR,LF,	'PARTITION START: $'
+   2649		  54 49	4F 4E 20 53 54+
+   2650		  41 52	54 3A 20 24
+   2651	    015B  43 79	6C 69 6E 64 65+		 MSG_0015	 db	 'Cylinder $'
+   2652		  72 20	24
+   2653	    0165  2C 20	53 65 63 74 6F+		 MSG_0016	 db	 ', Sector $'
+   2654		  72 20	24
+   2655	    016F  2C 20	48 65 61 64 20+		 MSG_0017	 db	 ', Head $'
+   2656		  24
+   2657	    0177  20 53	65 63 74 6F 72+		 MSG_0018	 db	 ' Sectors $'
+   2658		  73 20	24
+   2659	    0181  0A 0D	50 41 52 54 49+		 MSG_0019	 db	 CR,LF,	'PARTITION END	: $'
+   2660		  54 49	4F 4E 20 45 4E+
+   2661		  44 20	20 3A 20 24
+   2662	    0195  0A 0D	50 41 52 54 49+		 MSG_0020	 db	 CR,LF,	'PARTITION DATA	: $'
+   2663		  54 49	4F 4E 20 44 41+
+   2664		  54 41	20 3A 20 24
+   2665	    01A9  0A 0D	56 4F 4C 55 4D+		 MSG_0021	 db	 CR,LF,	'VOLUME	SIZING	: $'
+   2666		  45 20	53 49 5A 49 4E+
+   2667		  47 20	20 3A 20 24
+   2668	    01BD  20 53	65 63 73 20 6C+		 MSG_0022	 db	 ' Secs	lost $'
+   2669		  6F 73	74 20 24
+   2670	    01C9  0A 0D	56 4F 4C 55 4D+		 MSG_0023	 db	 CR,LF,	'VOLUME	DATA	: $'
+   2671		  45 20	44 41 54 41 20+
+   2672		  20 20	20 3A 20 24
+   2673	    01DD  20 42	6C 6F 63 6B 28+		 MSG_0024	 db	 ' Block(s) $'
+   2674		  73 29	20 24
+   2675	    01E8  20 4B	42 20 24		 MSG_0025	 db	 ' KB $'
+   2676	    01ED  0A 0D	42 49 54 4D 41+		 MSG_0026	 db	 CR,LF,	'BITMAP	BLOCKS	: $'
+   2677		  50 20	42 4C 4F 43 4B+
+   2678		  53 20	20 3A 20 24
+   2679	    0201  20 42	6C 6F 63 6B 73+		 MSG_0027	 db	 ' Blocks/Bitmap $'
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 48
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2680		  2F 42	69 74 6D 61 70+
+   2681		  20 24
+   2682	    0211  20 42	69 74 6D 61 70+		 MSG_0028	 db	 ' Bitmap(s) $'
+   2683		  28 73	29 20 24
+   2684	    021D  0A 0D	57 72 69 74 69+		 MSG_0029	 db	 CR,LF,	'Writing bitmap	blocks...',CR,LF,'$'
+   2685		  6E 67	20 62 69 74 6D+
+   2686		  61 70	20 62 6C 6F 63+
+   2687		  6B 73	2E 2E 2E 0A 0D+
+   2688		  24
+   2689	    023A  0D 57	52 49 54 45 20+		 MSG_0030	 db	 LF,	'WRITE		: Zylinder $'
+   2690		  20 20	20 20 20 20 20+
+   2691		  20 20	3A 20 5A 79 6C+
+   2692		  69 6E	64 65 72 20 24
+   2693	    0256  0A 0D	57 72 69 74 69+		 MSG_0031	 db	 CR,LF,	'Writing bootstrap-code...',CR,LF,'$'
+   2694		  6E 67	20 62 6F 6F 74+
+   2695		  73 74	72 61 70 2D 63+
+   2696		  6F 64	65 2E 2E 2E 0A+
+   2697		  0D 24
+   2698	    0274  0A 0D	57 72 69 74 69+		 MSG_0032	 db	 CR,LF,	'Writing ROOT directory...',CR,LF,'$'
+   2699		  6E 67	20 52 4F 4F 54+
+   2700		  20 64	69 72 65 63 74+
+   2701		  6F 72	79 2E 2E 2E 0A+
+   2702		  0D 24
+   2703	    0292  0A 0D	57 72 69 74 69+		 MSG_0033	 db	 CR,LF,	'Writing VIS...','$'
+   2704		  6E 67	20 56 49 53 2E+
+   2705		  2E 2E	24
+   2706	    02A3  0A 0D	43 72 65 61 74+		 MSG_0034	 db	 CR,LF,	'Creating SYSTEM directory...',CR,LF,'$'
+   2707		  69 6E	67 20 53 59 53+
+   2708		  54 45	4D 20 64 69 72+
+   2709		  65 63	74 6F 72 79 2E+
+   2710		  2E 2E	0A 0D 24
+   2711	    02C4  0A 0D	43 6F 70 79 20+		 MSG_0035	 db	 CR,LF,	'Copy VOS/9 LOADER...',CR,LF,'$'
+   2712		  56 4F	53 2F 39 20 4C+
+   2713		  4F 41	44 45 52 2E 2E+
+   2714		  2E 0A	0D 24
+   2715	    02DD  0A 0D	4B 45 52 4E 45+		 MSG_0036	 db	 CR,LF,	'KERNEL	BOOTCODE: $'
+   2716		  4C 20	42 4F 4F 54 43+
+   2717		  4F 44	45 3A 20 24
+   2718	    02F1  20 42	79 74 65 24		 MSG_0037	 db	 ' Byte$'
+   2719	    02F7  0A 0D	30 30 33 38 3A+		 MSG_0038	 db	 CR,LF,	'0038: Error opening file: VOSBOOT.BIN',CR,LF,'$'
+   2720		  20 45	72 72 6F 72 20+
+   2721		  6F 70	65 6E 69 6E 67+
+   2722		  20 66	69 6C 65 3A 20+
+   2723		  56 4F	53 42 4F 4F 54+
+   2724		  2E 42	49 4E 0A 0D 24
+   2725	    0321  0A 0D	30 30 33 39 3A+		 MSG_0039	 db	 CR,LF,	'0039: Error reading file: VOSBOOT.BIN',CR,LF,'$'
+   2726		  20 45	72 72 6F 72 20+
+   2727		  72 65	61 64 69 6E 67+
+   2728		  20 66	69 6C 65 3A 20+
+   2729		  56 4F	53 42 4F 4F 54+
+   2730		  2E 42	49 4E 0A 0D 24
+   2731	    034B  0A 0D	43 6F 70 79 20+		 MSG_0040	 db	 CR,LF,	'Copy SYSTEM SELECT...',CR,LF,'$'
+   2732		  53 59	53 54 45 4D 20+
+   2733		  53 45	4C 45 43 54 2E+
+   2734		  2E 2E	0A 0D 24
+   2735	    0365  0A 0D	53 59 53 54 45+		 MSG_0041	 db	 CR,LF,	'SYSTEM	SELECT	: $'
+   2736		  4D 20	53 45 4C 45 43+
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 49
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2737		  54 20	20 3A 20 24
+   2738	    0379  0A 0D	30 30 34 32 3A+		 MSG_0042	 db	 CR,LF,	'0042: Error opening file: SYS_SEL.BIN',CR,LF,'$'
+   2739		  20 45	72 72 6F 72 20+
+   2740		  6F 70	65 6E 69 6E 67+
+   2741		  20 66	69 6C 65 3A 20+
+   2742		  53 59	53 5F 53 45 4C+
+   2743		  2E 42	49 4E 0A 0D 24
+   2744	    03A3  0A 0D	30 30 34 33 3A+		 MSG_0043	 db	 CR,LF,	'0043: Error reading file: SYS_SEL.BIN',CR,LF,'$'
+   2745		  20 45	72 72 6F 72 20+
+   2746		  72 65	61 64 69 6E 67+
+   2747		  20 66	69 6C 65 3A 20+
+   2748		  53 59	53 5F 53 45 4C+
+   2749		  2E 42	49 4E 0A 0D 24
+   2750	    03CD  0A 0D	30 30 34 34 3A+		 MSG_0044	 db	 CR,LF,	'0044: Error opening file: VOS9.BIN',CR,LF,'$'
+   2751		  20 45	72 72 6F 72 20+
+   2752		  6F 70	65 6E 69 6E 67+
+   2753		  20 66	69 6C 65 3A 20+
+   2754		  56 4F	53 39 2E 42 49+
+   2755		  4E 0A	0D 24
+   2756	    03F4  0A 0D	30 30 34 35 3A+		 MSG_0045	 db	 CR,LF,	'0045: Error reading file: VOS9.BIN',CR,LF,'$'
+   2757		  20 45	72 72 6F 72 20+
+   2758		  72 65	61 64 69 6E 67+
+   2759		  20 66	69 6C 65 3A 20+
+   2760		  56 4F	53 39 2E 42 49+
+   2761		  4E 0A	0D 24
+   2762	    041B  0A 0D	4B 45 52 4E 45+		 MSG_0046	 db	 CR,LF,	'KERNEL	IMAGE  : $'
+   2763		  4C 20	49 4D 41 47 45+
+   2764		  20 20	3A 20 24
+   2765	    042E  0A 0D	43 6F 70 79 20+		 MSG_0047	 db	 CR,LF,	'Copy KERNEL...',CR,LF,'$'
+   2766		  4B 45	52 4E 45 4C 2E+
+   2767		  2E 2E	0A 0D 24
+   2768
+   2769						 ; Laufwerks Daten
+   2770	    0441  00				 HDD_DRIVE		 db	 0	 ; Bios	Laufwerks Code
+   2771
+   2772	    0442  0000				 HDD_ZYLINDER		 dw	 0
+   2773	    0444  00				 HDD_SEKTOREN		 db	 0
+   2774	    0445  00				 HDD_KOEPFE		 db	 0
+   2775
+   2776	    0446  00				 HDD_BLOCKSIZE		 db	 0	 ; Blockgrî·e
+   2777	    0447  00				 SEKS_PER_BLOCK		 db	 0	 ; Sektoren je Block
+   2778	    0448  0000				 BYTE_PER_BLOCK		 dw	 0
+   2779
+   2780	    044A  0000				 VOLUME_START_ZYL	 dw	 0
+   2781	    044C  00				 VOLUME_START_SEK	 db	 0
+   2782	    044D  00				 VOLUME_START_HEAD	 db	 0
+   2783	    044E  00000000			 VOLUME_START_SEKS	 dd	 0	 ; Anz.	Seks bis PartStart
+   2784
+   2785	    0452  0000				 VOLUME_START_SEKZYL	 dw	 0	 ; Phys. PartStart
+   2786	    0454  00				 VOLUME_START_HEADZYL	 db	 0
+   2787
+   2788	    0455  0000				 VOLUME_END_ZYL		 dw	 0
+   2789	    0457  00				 VOLUME_END_SEK		 db	 0
+   2790	    0458  00				 VOLUME_END_HEAD	 db	 0
+   2791	    0459  00000000			 VOLUME_END_SEKS	 dd	 0	 ; Anz.	Seks bis PartEnd
+   2792
+   2793
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 50
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2794	    045D  00000000			 VOLUME_SEKS		 dd	 0	 ; Anz.	Seks im	Volume ohne
+   2795											 ; den LostSeks
+   2796	    0461  00000000			 VOLUME_SIZE		 dd	 0	 ; Grî·e des Vol in KB ohne
+   2797											 ; den LostSeks
+   2798	    0465  00000000			 VOLUME_BLOCKS		 dd	 0	 ; Anz.	Blîcke in Part
+   2799	    0469  00				 VOLUME_LOST_SEKS	 db	 0	 ; Verlorene Seks in Part
+   2800
+   2801	    046A  0000				 PART_SIZE		 dw	 0	 ; Grî·e der Part in MB
+   2802	    046C  00000000			 PART_SEKS		 dd	 0	 ; Anz.	Seks in	Part
+   2803
+   2804	    0470  00000000			 BITMAP_ENTRYS		 dd	 0	 ; Anz.	der EintrÑge je	Bitmap
+   2805	    0474  0000				 BITMAP_NODES		 dw	 0	 ; Anz.	der Bitmap Blocks im
+   2806											 ; Volume
+   2807	    0476  00000000			 BOOTCODE_BLOCKS	 dd	 0
+   2808	    047A  0000				 BOOTCODE_SIZE		 dw	 0
+   2809	    047C  00000000			 BOOTCODE_TOTAL		 dd	 0
+   2810	    0480  0000				 BOOTCODE_BYTES		 dw	 0
+   2811	    0482  00000000			 SYSSEL_BLOCKS		 dd	 0
+   2812	    0486  0000				 SYSSEL_SIZE		 dw	 0
+   2813	    0488  00000000			 SYSSEL_TOTAL		 dd	 0
+   2814	    048C  0000				 SYSSEL_BYTES		 dw	 0
+   2815	    048E  00000000			 KERNEL_BLOCKS		 dd	 0
+   2816	    0492  0000				 KERNEL_SIZE		 dw	 0
+   2817	    0494  00000000			 KERNEL_TOTAL		 dd	 0
+   2818	    0498  0000				 KERNEL_BYTES		 dw	 0
+   2819
+   2820	    049A  0000				 FILE_HANDLE		 dw	 0	 ; DOS FileHandles zum merken
+   2821
+   2822	    049C  56 4F	53 42 4F 4F 54+		 VOSBOOT_File	 db	 'VOSBOOT.BIN',0h	 ; Vos Bootcode	Image
+   2823		  2E 42	49 4E 00
+   2824	    04A8  53 59	53 5F 53 45 4C+		 SYSSELECT_File	 db	 'SYS_SEL.BIN',0h	 ; System Select Image
+   2825		  2E 42	49 4E 00
+   2826	    04B4  56 4F	53 39 2E 42 49+		 KERNEL_FILE	 db	 'VOS9.BIN',0h		 ; Kernel Image
+   2827		  4E 00
+   2828
+   2829	    04BD			 DATA ENDS
+   2830
+   2831					 ;ÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕ
+   2832
+   2833	    0000			 BOOT_CODE SEGMENT PARA	USE16 'CODE'
+   2834						 ; Dies	ist die	VOS/9 Bootstrap-routine. Sie befindet sich im
+   2835						 ; ersten Block	des Volumes und	wird vom Bios/Master an	7c00h
+   2836						 ; geladen. Die	max. Grî·e btrÑgt 512 Bytes da dies die	kleinste
+   2837						 ; Blockgrî·e ist (FDD).
+   2838
+   2839
+   2840						 ; 10.11.1995: Wir bewegen uns nichtmehr nach 600h sondern an 800h
+   2841						 ; um den eventuell vorhandenen	MASTER nicht zu	Åberschreiben...
+   2842						 ; Wir brauchen	dessen Daten!
+   2843
+   2844						 ASSUME	CS:BOOT_CODE, DS:BOOT_CODE
+   2845						 ORG 0h
+   2846	    0000  8B D9					 mov	 bx, cx			 ; SekZyl sichern!
+   2847	    0002  FA					 cli				 ; Mal Ruhe hier
+   2848	    0003  33 C0					 xor	 ax, ax			 ; Segment Adr.	0
+   2849	    0005  8E D0					 mov	 ss, ax
+   2850	    0007  8E C0					 mov	 es, ax
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 51
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2851	    0009  8E D8					 mov	 ds, ax
+   2852	    000B  B8 7C00				 mov	 ax, 7c00h
+   2853	    000E  8B E0					 mov	 sp, ax
+   2854	    0010  FB					 sti
+   2855	    0011  FC					 cld
+   2856	    0012  BE 7C00				 mov	 si, 7c00h		 ; Quell-Adresse
+   2857	    0015  B8 0080				 mov	 ax, 0080h		 ; Ziel	Seg 80h
+   2858	    0018  8E C0					 mov	 es, ax
+   2859	    001A  33 FF					 xor	 di, di			 ; Ziel	Offset 0
+   2860	    001C  B9 0100				 mov	 cx, 100h		 ; Wir Kopieren	alles!
+   2861	    001F  F3> A5				 rep	 movsw
+   2862
+   2863							 ; Der Compiler	erzeugt	den Code nicht richtig!	Warum- Bitte Borland
+   2864							 ; Fragen, ...
+   2865
+   2866	    0021  EA 26	00 80 00			 db	 0EAh,26h,00h,80h,00h
+   2867
+   2868	    0026				 andup:
+   2869	    0026  B8 0080				 mov	 ax, 80h	 ; Unsere Seg.-Addr.
+   2870	    0029  FA					 cli
+   2871	    002A  8E D8					 mov	 ds, ax
+   2872	    002C  8E C0					 mov	 es, ax
+   2873	    002E  33 C0					 xor	 ax, ax
+   2874	    0030  8E D0					 mov	 ss, ax
+   2875	    0032  B8 0600				 mov	 ax, 600h
+   2876	    0035  8B E0					 mov	 sp, ax
+   2877	    0037  FB					 sti
+   2878
+   2879							 ; PHOENIX BIOS	BUG: Das Laufwerk wird bei FDs
+   2880							 ; ebenfalls nicht Åbergeben! Wir sehen	nun
+   2881							 ; nach	ob es eine Platte ist und nicht	ob FD
+   2882
+   2883	    0038  80 FA	80				 cmp	 dl, 80h
+   2884	    003B  73 05					 jae	 @@SeemsHDD
+   2885	    003D  33 D2					 xor	 dx, dx
+   2886	    003F  BB 0001				 mov	 bx, 1
+   2887	    0042				 @@SeemsHDD:
+   2888	    0042  80 FA	87				 cmp	 dl, 87h
+   2889	    0045  76 05					 jbe	 @@IsHDD
+   2890	    0047  33 D2					 xor	 dx, dx
+   2891	    0049  BB 0001				 mov	 bx, 1
+   2892	    004C				 @@ISHDD:
+   2893	    004C  88 16	0178r				 mov	 byte ptr ds:[DRIVE], dl
+   2894	    0050  89 1E	0175r				 mov	 word ptr ds:[SEKZYL], bx
+   2895	    0054  88 36	0177r				 mov	 byte ptr ds:[HEADZYL],	dh
+   2896
+   2897	    0058  B4 08					 mov	 ah, 8h				 ; Get Disk Param
+   2898	    005A  CD 13					 int	 13h
+   2899
+   2900	    005C  E8 00DC				 call	 GetSek
+   2901	    005F  A2 017Ar				 mov	 byte ptr ds:[SEKTOREN], al
+   2902	    0062  88 16	0179r				 mov	 byte ptr ds:[HEADS], dl
+   2903
+   2904							 ; MAKEROOT hat	die Position und die Anzahl des	KernelLoaders
+   2905							 ; am Ende des Codes eingetragen! Wir sehen also ob die	Werte
+   2906							 ; gÅltig sind und Laden den ganzen Klimbatsch!
+   2907
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 52
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2908	    0066  8B 0E	01F9r				 mov	 cx, word ptr ds:[BOOT_SEKZYL]
+   2909	    006A  8A 16	01FBr				 mov	 dl, byte ptr ds:[BOOT_HEADZYL]
+   2910	    006E  8B 36	01FCr				 mov	 si, word ptr ds:[BOOT_SEKSIZE]
+   2911	    0072  83 FE	00				 cmp	 si, 0
+   2912	    0075  75 12					 jnz	 @@GetAllTracks
+   2913
+   2914	    0077  BE 007Cr				 mov	 si, offset ds:kein_sys_msg
+   2915	    007A  EB 33					 jmp	 short @@Endless
+   2916
+   2917	    007C  4B 45	49 4E 20 53 59+			 kein_sys_msg	 db 'KEIN SYSTEM!$'
+   2918		  53 54	45 4D 21 24
+   2919
+   2920	    0089				 @@GetAllTracks:
+   2921	    0089  E8 0028				 call	 GetBootCode
+   2922	    008C  72 11					 jc	 @@ReadFailed
+   2923
+   2924	    008E  8A 16	0178r				 mov	 dl, byte ptr ds:[DRIVE]
+   2925	    0092  8B 0E	0175r				 mov	 cx, word ptr ds:[SEKZYL]
+   2926	    0096  8A 36	0177r				 mov	 dh, byte ptr ds:[HEADZYL]
+   2927
+   2928	    009A  EA 00	7C 00 00			 db	 0eah,00h,7ch,00h,00h
+   2929
+   2930	    009F				 @@ReadFailed:
+   2931	    009F  BE 00A4r				 lea	 si, ds:read_failed
+   2932	    00A2  EB 0B					 jmp	 short @@Endless
+   2933
+   2934	    00A4  52 65	61 64 65 72 72+			 read_failed	 db	 'Readerror!$'
+   2935		  6F 72	21 24
+   2936
+   2937	    00AF				 @@Endless:
+   2938	    00AF  E8 0079				 call	 Print_boot
+   2939	    00B2  EB FB					 jmp	 @@Endless
+   2940
+   2941	    00B4				 GetBootCode proc near
+   2942	    00B4  B8 07C0				 mov	 ax, 7c0h
+   2943	    00B7  8E C0					 mov	 es, ax
+   2944	    00B9  33 DB					 xor	 bx, bx
+   2945	    00BB  8A 36	01FBr				 mov	 dh, byte ptr ds:[BOOT_HEADZYL]	; Kopf Part start
+   2946	    00BF  8B 0E	01F9r				 mov	 cx, word ptr ds:[BOOT_SEKZYL]	; Zylinder/Sektor Part start
+   2947
+   2948	    00C3  8B 3E	01FCr				 mov	 di, word ptr ds:[BOOT_SEKSIZE]	; Anzal	zu les.	Sektoren
+   2949	    00C7  BE 0014				 mov	 si, 20
+   2950
+   2951	    00CA				 @@BootLoop:
+   2952	    00CA  8A 16	0178r				 mov	 dl, byte ptr ds:[DRIVE]
+   2953	    00CE  F8					 clc
+   2954	    00CF  B8 0201				 mov	 ax, 0201h		 ; 1 Sektor lesen
+   2955	    00D2  CD 13					 int	 13h
+   2956	    00D4  72 34					 jc	 @@LoadFail
+   2957
+   2958	    00D6  4F					 dec	 di
+   2959	    00D7  83 FF	00				 cmp	 di, 0
+   2960	    00DA  74 2C					 je	 @@Fertig
+   2961
+   2962	    00DC  53					 push	 bx
+   2963	    00DD  57					 push	 di
+   2964
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 53
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   2965	    00DE  E8 005A				 call	 getsek
+   2966
+   2967	    00E1  3A 16	0179r				 cmp	 dl, byte ptr ds:[HEADS]
+   2968	    00E5  74 04					 je	 @@NextSek
+   2969	    00E7  FE C2					 inc	 dl
+   2970	    00E9  EB 0F					 jmp	 short @@IsOK
+   2971	    00EB				 @@NextSek:
+   2972	    00EB  B2 00					 mov	 dl, 0
+   2973	    00ED  3A 06	017Ar				 cmp	 al, byte ptr ds:[SEKTOREN]
+   2974	    00F1  74 04					 je	 @@NextZyl
+   2975	    00F3  FE C0					 inc	 al
+   2976	    00F5  EB 03					 jmp	 short @@IsOK
+   2977	    00F7				 @@NextZyl:
+   2978	    00F7  B0 01					 mov	 al, 1
+   2979	    00F9  43					 inc	 bx
+   2980	    00FA				 @@IsOK:
+   2981	    00FA  E8 0060				 call	 setsek
+   2982	    00FD  5F					 pop	 di
+   2983	    00FE  5B					 pop	 bx
+   2984
+   2985	    00FF  81 C3	0200				 add	 bx, 200h		 ; Die nÑchsten	512 Bytes bitte!
+   2986	    0103  BE 0014				 mov	 si, 20
+   2987	    0106  EB C2					 jmp	 short @@BootLoop
+   2988
+   2989	    0108				 @@Fertig:
+   2990	    0108  F8					 clc
+   2991	    0109  C3					 ret
+   2992
+   2993	    010A				 @@LoadFail:
+   2994	    010A  4E					 dec	 si
+   2995	    010B  83 FE	00				 cmp	 si, 0
+   2996	    010E  74 0C					 je	 @@Adiosio
+   2997	    0110  33 C0					 xor	 ax, ax
+   2998	    0112  8A 16	0178r				 mov	 dl, byte ptr ds:[DRIVE]
+   2999	    0116  CD 13					 int	 13h
+   3000	    0118  72 02					 jc	 @@Adiosio
+   3001	    011A  EB AE					 jmp	 @@BootLoop
+   3002
+   3003	    011C				 @@Adiosio:
+   3004	    011C  8A CC					 mov	 cl, ah
+   3005	    011E  32 ED					 xor	 ch, ch
+   3006	    0120				  @@ERR:
+   3007	    0120  B8 0E2E				 mov	 ax, 0E2Eh
+   3008	    0123  32 FF					 xor	 bh, bh
+   3009	    0125  CD 10					 int	 10h
+   3010	    0127  E2 F7					 loop	 @@ERR
+   3011	    0129  F9					 stc
+   3012	    012A  C3					 ret
+   3013	    012B				 GETBOOTCODE ENDP
+   3014
+   3015	    012B				 PRINT_BOOT PROC NEAR
+   3016						 ; Wir erwarten	die Text-Offset	in si!
+   3017	    012B				 @@msg_01:
+   3018	    012B  8A 04					 mov	 al, byte ptr ds:[si]
+   3019	    012D  3C 24					 cmp	 al, '$'
+   3020	    012F  74 09					 je	 @@Fertig
+   3021	    0131  B4 0E					 mov	 ah, 0eh
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 54
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   3022	    0133  B3 07					 mov	 bl, 07h
+   3023	    0135  CD 10					 int	 10h			 ; Video Int
+   3024	    0137  46					 inc	 si
+   3025	    0138  EB F1					 jmp	 short @@msg_01
+   3026	    013A				 @@Fertig:
+   3027	    013A  C3					 ret
+   3028	    013B				 PRINT_BOOT ENDP
+   3029
+   3030	    013B				 GETSEK	PROC NEAR
+   3031							 ; CX	 = SekZyl
+   3032							 ; DH	 = HeadZyl
+   3033							 ; RÅckgabe:
+   3034							 ; AL	 = Sektor
+   3035							 ; BX	 = Zylind
+   3036							 ; DL	 = Kopf
+   3037
+   3038	    013B  8A C5					 mov	 al, ch
+   3039	    013D  8A E1					 mov	 ah, cl
+   3040	    013F  C0 EC	06				 shr	 ah, 6
+   3041	    0142  33 DB					 xor	 bx, bx
+   3042	    0144  8A DE					 mov	 bl, dh
+   3043	    0146  C0 EB	06				 shr	 bl, 6
+   3044	    0149  C0 E3	08				 shl	 bl, 8
+   3045	    014C  02 E7					 add	 ah, bh
+   3046	    014E  8B D8					 mov	 bx, ax			 ; => anz. Zylinder
+   3047
+   3048	    0150  8B C1					 mov	 ax, cx
+   3049	    0152  25 003F				 and	 ax, 63			 ; => anz. Sektoren
+   3050
+   3051	    0155  86 F2					 xchg	 dh, dl
+   3052	    0157  32 F6					 xor	 dh, dh
+   3053	    0159  83 E2	3F				 and	 dx, 63			 ; => anz. Kîpfe
+   3054	    015C  C3					 ret
+   3055	    015D				 GETSEK	ENDP
+   3056
+   3057	    015D				 SETSEK	PROC NEAR
+   3058							 ; AL =	Sektor
+   3059							 ; BX =	Zylinder
+   3060							 ; DL =	Kopf
+   3061							 ; RÅckgabe:
+   3062							 ; CX =	Sekzyl
+   3063							 ; Dh =	HeadZyl
+   3064
+   3065	    015D  8A EB					 mov	 ch, bl
+   3066	    015F  8A C8					 mov	 cl, al			 ; Sektor dazu
+   3067	    0161  8A C7					 mov	 al, bh
+   3068	    0163  C0 E0	06				 shl	 al, 6
+   3069	    0166  02 C8					 add	 cl, al			 ; Rest	Zyl dazu
+   3070	    0168  C0 EF	02				 shr	 bh, 2
+   3071	    016B  8A C7					 mov	 al, bh
+   3072	    016D  C0 E0	06				 shl	 al, 6
+   3073	    0170  8A F2					 mov	 dh, dl
+   3074	    0172  02 F0					 add	 dh, al
+   3075	    0174  C3					 ret
+   3076	    0175				 SETSEK	ENDP
+   3077
+   3078						 ; Diese Daten werden vom BIOS/MASTER Åbergeben!
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 55
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   3079
+   3080	    0175  0000				 sekzyl		 dw	 0
+   3081	    0177  00				 headzyl	 db	 0
+   3082	    0178  00				 drive		 db	 0
+   3083
+   3084	    0179  00				 heads		 db	 0
+   3085	    017A  00				 sektoren	 db	 0
+   3086
+   3087						 ; Diese DATEN werden von MAKEROOT Eingetragen!
+   3088
+   3089						 ORG	 1F9h		 ; !!!!! Never change or die!
+   3090
+   3091	    01F9  0000				 BOOT_SEKZYL	 dw	 0		 ; BootCode Start Sektor/Zylinder
+   3092	    01FB  00				 BOOT_HEADZYL	 db	 0		 ; BootCode Start Kopf
+   3093	    01FC  0000				 BOOT_SEKSIZE	 dw	 0		 ; Grî·e des Bootcodes in Sektoren
+   3094
+   3095	    01FE  55 AA				 ID		 db	 055h, 0AAh
+   3096	    0200			 BOOT_CODE ENDS
+   3097
+   3098					 ;ÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕ
+   3099
+   3100	    0000			 SEKTOR_DATA SEGMENT PARA USE16	'DATA'
+   3101
+   3102	    0000  0200*(??)			 READ_DATA	 db	 512 dup (?)
+   3103
+   3104	    0200  0200*(??)			 PART_TABEL	 db	 512 dup (?)
+   3105
+   3106		  =SEKTOR_DATA:0400		 INODE_START	 = $
+   3107	    0400  0000					 FLAGS_TYPE		 dw	 0
+   3108	    0402  0000					 RESERVED_TYPE		 dw	 0
+   3109
+   3110	    0404  00000000				 OBJECT_BLOCKS		 dd	 0
+   3111	    0408  0000					 OBJECT_SIZE		 dw	 0
+   3112
+   3113	    040A  00000000				 CREATION_TIME		 dd	 0
+   3114	    040E  0000					 OWNER_ID		 dw	 0
+   3115	    0410  00000000				 MODIFY_TIME		 dd	 0
+   3116	    0414  0000					 MODIFY_ID		 dw	 0
+   3117	    0416  00000000				 ACCESS_TIME		 dd	 0
+   3118	    041A  0000					 ACCESS_ID		 dw	 0
+   3119	    041C  00000000				 ARCHIVE_TIME		 dd	 0
+   3120	    0420  0000					 ARCHIVE_ID		 dw	 0
+   3121
+   3122	    0422  00000000				 OWNER_BLOCK		 dd	 0
+   3123	    0426  0000					 OWNER_SELECT		 dw	 0
+   3124	    0428  00000000				 LINK_BLOCK		 dd	 0
+   3125	    042C  0000					 LINK_SELECT		 dw	 0
+   3126	    042E  00000000				 GROUP_BLOCK		 dd	 0
+   3127	    0432  0000					 GROUP_SELECT		 dw	 0
+   3128
+   3129	    0434  00000000				 INDIRECT_BLOCK		 dd	 0
+   3130
+   3131	    0438  00000000				 STARTPOS_1		 dd	 0
+   3132	    043C  0000					 BLOCKS_1		 dw	 0
+   3133	    043E  00000000				 STARTPOS_2		 dd	 0
+   3134	    0442  0000					 BLOCKS_2		 dw	 0
+   3135	    0444  00000000				 STARTPOS_3		 dd	 0
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 56
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   3136	    0448  0000					 BLOCKS_3		 dw	 0
+   3137	    044A  00000000				 STARTPOS_4		 dd	 0
+   3138	    044E  0000					 BLOCKS_4		 dw	 0
+   3139	    0450  00000000				 STARTPOS_5		 dd	 0
+   3140	    0454  0000					 BLOCKS_5		 dw	 0
+   3141	    0456  00000000				 STARTPOS_6		 dd	 0
+   3142	    045A  0000					 BLOCKS_6		 dw	 0
+   3143	    045C  00000000				 STARTPOS_7		 dd	 0
+   3144	    0460  0000					 BLOCKS_7		 dw	 0
+   3145	    0462  00000000				 STARTPOS_8		 dd	 0
+   3146	    0466  0000					 BLOCKS_8		 dw	 0
+   3147	    0468  00000000				 STARTPOS_9		 dd	 0
+   3148	    046C  0000					 BLOCKS_9		 dw	 0
+   3149	    046E  00000000				 STARTPOS_10		 dd	 0
+   3150	    0472  0000					 BLOCKS_10		 dw	 0
+   3151	    0474  00000000				 STARTPOS_11		 dd	 0
+   3152	    0478  0000					 BLOCK_11		 dw	 0
+   3153
+   3154	    047A  0000					 RESERVED_INODE_DATA	 dw	 0
+   3155
+   3156	    047C  00000000				 TOTAL_BLOCKS		 dd	 0
+   3157		  =0080				 INODE_SIZE	 = $ - INODE_START		 ; 128 Byte Total
+   3158
+   3159		  =SEKTOR_DATA:0480		 DIR_START	 = $
+   3160	    0480  00000000				 DATA_BLOCK		 dd	 0
+   3161	    0484  0000					 DATA_SELECT		 dw	 0
+   3162	    0486  00					 DATA_TYPE		 db	 0
+   3163	    0487  19*(??)				 DESCRIPTION		 db	 25 dup	(?)
+   3164		  =0020				 DIR_SIZE	 = $ - DIR_START		 ; 32 Byte Total
+   3165
+   3166		  =SEKTOR_DATA:04A0		 VOLUME_INFO_START	 = $
+   3167	    04A0  00					 VOL_BLOCKSIZE		 db	 0
+   3168	    04A1  0000					 VOL_MAGIC_ID		 dw	 0
+   3169	    04A3  00					 VOL_FLAGS_1		 db	 0
+   3170							 ; Bit	    Description	(High)
+   3171							 ;  7	    Volume Mounted/Added
+   3172							 ;  6	    Volume Write Protected
+   3173							 ;  5	    Auto-Check Enabled
+   3174							 ;  4	    Removable Media
+   3175							 ;  3	    Volume Defective
+   3176							 ;  2..0    Volume Type
+   3177							 ;	    0 =	Unknown
+   3178							 ;	    1 =	Root
+   3179							 ;	    2 =	Add-On Root
+   3180							 ;	    3 =	Mount
+   3181							 ;	    4..7 = reserved
+   3182	    04A4  00					 VOL_FLAGS_2		 db	 0
+   3183							 ; Reserved!
+   3184	    04A5  00					 VOL_MOUNTS		 db	 0
+   3185							 ; Wird	bei jedem Mount	erhîht wenn Auto-Check Enabled
+   3186	    04A6  00					 VOL_CHECKMOUNTS	 db	 0
+   3187							 ; Nach	wieviel	mount check lÑuft (nur bei Auto-Check)
+   3188	    04A7  00000000				 VOL_MOUNT_TIME		 dd	 0
+   3189	    04AB  0000					 VOL_MOUNT_ID		 dw	 0
+   3190	    04AD  00000000				 VOL_DISMOUNT_TIME	 dd	 0
+   3191	    04B1  0000					 VOL_DISMOUNT_ID	 dw	 0
+   3192	    04B3  00000000				 VOL_CHECK_TIME		 dd	 0
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 57
+\PROJECT\VOS9\FILESYS\MAKEROOT.ASM
+
+
+
+   3193	    04B7  0000					 VOL_CHECK_ID		 dw	 0
+   3194	    04B9  00000000				 VOL_CREATE_TIME	 dd	 0
+   3195	    04BD  0000					 VOL_CREATED_ID		 dw	 0
+   3196
+   3197	    04BF  00000000				 BOOT_INODE		 dd	 0
+   3198	    04C3  0000					 BOOT_INODE_SELECT	 dw	 0
+   3199							 ; Inode des SYSTEM-SELECT Codes (NUR ROOT-VOLUME!)
+   3200	    04C5  00000000				 KERNEL_INODE		 dd	 0
+   3201	    04C9  0000					 KERNEL_INODE_SELECT	 dw	 0
+   3202							 ; Inode des Kernel-Images fÅr den BootCode.
+   3203							 ; NUR BEI ROOT-VOLUME!
+   3204	    04CB  00000000				 DEVICE_INODE		 dd	 0
+   3205	    04CF  0000					 DEVICE_INODE_SELECT	 dw	 0
+   3206							 ; Inode des GerÑtetreibers fÅr	ProtMode Zugriffe auf das
+   3207							 ; Volume. NUR BEI ROOT-VOLUME!
+   3208
+   3209	    04D1  FF*(??)				 VOL_LABEL		 db	 255 dup (?)
+   3210
+   3211							 ; Volume Info Sektor (VIS) mu·	insgemsat 512 Byte grî·e
+   3212							 ; haben! Bisher = 304 Byte
+   3213
+   3214	    05D0  D0*(00)				 VIS_RESERVED		 db	 208 dup (0)
+   3215
+   3216		  =0200				 VOLUME_INFO_SIZE	 = $ - VOLUME_INFO_START
+   3217	    06A0			 SEKTOR_DATA ENDS
+   3218
+   3219					 ;ÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕ
+   3220
+   3221	    0000			 BLOCK_DATA SEGMENT PARA USE16 'DATA'
+   3222	    0000  FFFF*(??)			 BLOCK_SIZE	 db	 65535 dup (?)
+   3223	    FFFF			 BLOCK_DATA ENDS
+   3224
+   3225					 ;ÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕ
+   3226
+   3227	    0000			 STACK_SEG SEGMENT PARA	USE16 'STACK'
+   3228	    0000  0100*(??)			 SS_SIZE db 256	dup (?)
+   3229		  =STACK_SEG:0100		 TOS	 = this	byte
+   3230	    0100			 STACK_SEG ENDS
+   3231
+   3232					 ;ÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕÕ
+   3233					 END INIT_IP
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 58
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "10/29/20"
+??FILENAME			  Text	 "MAKEROOT"
+??TIME				  Text	 "04:41:22"
+??VERSION			  Number 040A
+@@ADIOSIO			  Near	 BOOT_CODE:011C
+@@ASKBLOCK			  Near	 MAKEROOT:012A
+@@ASKDRIVE			  Near	 MAKEROOT:0114
+@@BLOCKKNOWN			  Near	 MAKEROOT:013D
+@@BOOTLOOP			  Near	 BOOT_CODE:00CA
+@@CALCSEKS			  Near	 MAKEROOT:02BA
+@@CHECK				  Near	 MAKEROOT:0225
+@@CHECKNEXT			  Near	 MAKEROOT:068C
+@@CHECKNEXT			  Near	 MAKEROOT:0716
+@@CLR_LOOP			  Near	 MAKEROOT:00C7
+@@CPYLOOP			  Near	 MAKEROOT:07F6
+@@CPY_LOOP			  Near	 MAKEROOT:089E
+@@CPY_LOOP			  Near	 MAKEROOT:09DE
+@@CPY_LOOP			  Near	 MAKEROOT:0A18
+@@CPY_LOOP			  Near	 MAKEROOT:0ACC
+@@CPY_LOOP			  Near	 MAKEROOT:0CE9
+@@CPY_LOOP			  Near	 MAKEROOT:0F23
+@@CREATELOOP			  Near	 MAKEROOT:053F
+@@DOSHANDLEOK			  Near	 MAKEROOT:0A3A
+@@DOSHANDLEOK			  Near	 MAKEROOT:0C61
+@@DOSHANDLEOK			  Near	 MAKEROOT:0E96
+@@EDITADDR			  Near	 MAKEROOT:0797
+@@ENDLESS			  Near	 BOOT_CODE:00AF
+@@ERR				  Near	 BOOT_CODE:0120
+@@FAILURE			  Near	 MAKEROOT:06A6
+@@FAILURE			  Near	 MAKEROOT:0735
+@@FERTIG			  Near	 BOOT_CODE:0108
+@@FERTIG			  Near	 BOOT_CODE:013A
+@@FERTISCH			  Near	 MAKEROOT:06A5
+@@FERTISCH			  Near	 MAKEROOT:072F
+@@FIRSTNODE			  Near	 MAKEROOT:0564
+@@FLAGSOK			  Near	 MAKEROOT:09D1
+@@GETALLTRACKS			  Near	 BOOT_CODE:0089
+@@INCLOOP			  Near	 MAKEROOT:0644
+@@ISFDD				  Near	 MAKEROOT:0284
+@@ISHDD				  Near	 BOOT_CODE:004C
+@@ISOK				  Near	 MAKEROOT:065D
+@@ISOK				  Near	 BOOT_CODE:00FA
+@@LOADFAIL			  Near	 BOOT_CODE:010A
+@@MSG_01			  Near	 BOOT_CODE:012B
+@@NEWSEK			  Near	 MAKEROOT:0676
+@@NEWSEK			  Near	 MAKEROOT:06C5
+@@NEXTSEK			  Near	 MAKEROOT:064E
+@@NEXTSEK			  Near	 BOOT_CODE:00EB
+@@NEXTZYL			  Near	 MAKEROOT:065A
+@@NEXTZYL			  Near	 BOOT_CODE:00F7
+@@NIXADD			  Near	 MAKEROOT:07C8
+@@NIXBLOCK			  Near	 MAKEROOT:015D
+@@NIXDRV			  Near	 MAKEROOT:01FE
+@@PARTERR			  Near	 MAKEROOT:0237
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 59
+Symbol Table
+
+
+
+@@PARTFOUND			  Near	 MAKEROOT:0243
+@@READERR			  Near	 MAKEROOT:0B02
+@@READERR			  Near	 MAKEROOT:0D1F
+@@READERR			  Near	 MAKEROOT:0F59
+@@READFAILED			  Near	 BOOT_CODE:009F
+@@READLOOP			  Near	 MAKEROOT:0063
+@@READLOOP			  Near	 MAKEROOT:0679
+@@READOK			  Near	 MAKEROOT:0084
+@@RESTLESEN			  Near	 MAKEROOT:0B16
+@@RESTLESEN			  Near	 MAKEROOT:0D33
+@@RESTLESEN			  Near	 MAKEROOT:0F6D
+@@REST_LOOP			  Near	 MAKEROOT:119A
+@@SEEMSHDD			  Near	 BOOT_CODE:0042
+@@SETBLOCKDATA			  Near	 MAKEROOT:0148
+@@SETREQ			  Near	 MAKEROOT:03D2
+@@SETSEKS1			  Near	 MAKEROOT:0157
+@@SIZE_OK			  Near	 MAKEROOT:0A87
+@@SIZE_OK			  Near	 MAKEROOT:0C9F
+@@SIZE_OK			  Near	 MAKEROOT:0ED4
+@@SUCHEPART			  Near	 MAKEROOT:021E
+@@WRITELOOP			  Near	 MAKEROOT:0091
+@@WRITELOOP			  Near	 MAKEROOT:0703
+@@WRITEOK			  Near	 MAKEROOT:00B7
+@CPU				  Text	 0F0FH
+@CURSEG				  Text	 STACK_SEG
+@FILENAME			  Text	 MAKEROOT
+@WORDSIZE			  Text	 2
+ACCESS_ID			  Word	 SEKTOR_DATA:041A
+ACCESS_TIME			  Dword	 SEKTOR_DATA:0416
+ADD_SEKTOR			  Near	 MAKEROOT:063D
+ANDUP				  Near	 BOOT_CODE:0026
+ARCHIVE_ID			  Word	 SEKTOR_DATA:0420
+ARCHIVE_TIME			  Dword	 SEKTOR_DATA:041C
+AUTO_CHECK			  Number 0020
+BITMAP_ENTRYS			  Dword	 DATA:0470
+BITMAP_NODES			  Word	 DATA:0474
+BLOCKS_1			  Word	 SEKTOR_DATA:043C
+BLOCKS_10			  Word	 SEKTOR_DATA:0472
+BLOCKS_2			  Word	 SEKTOR_DATA:0442
+BLOCKS_3			  Word	 SEKTOR_DATA:0448
+BLOCKS_4			  Word	 SEKTOR_DATA:044E
+BLOCKS_5			  Word	 SEKTOR_DATA:0454
+BLOCKS_6			  Word	 SEKTOR_DATA:045A
+BLOCKS_7			  Word	 SEKTOR_DATA:0460
+BLOCKS_8			  Word	 SEKTOR_DATA:0466
+BLOCKS_9			  Word	 SEKTOR_DATA:046C
+BLOCK_11			  Word	 SEKTOR_DATA:0478
+BLOCK_SIZE			  Byte	 BLOCK_DATA:0000
+BOOTCODEFLAGS			  Number 0098
+BOOTCODE_BLOCKS			  Dword	 DATA:0476
+BOOTCODE_BYTES			  Word	 DATA:0480
+BOOTCODE_SIZE			  Word	 DATA:047A
+BOOTCODE_TOTAL			  Dword	 DATA:047C
+BOOT_HEADZYL			  Byte	 BOOT_CODE:01FB
+BOOT_INODE			  Dword	 SEKTOR_DATA:04BF
+BOOT_INODE_SELECT		  Word	 SEKTOR_DATA:04C3
+BOOT_SEKSIZE			  Word	 BOOT_CODE:01FC
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 60
+Symbol Table
+
+
+
+BOOT_SEKZYL			  Word	 BOOT_CODE:01F9
+BYTE_PER_BLOCK			  Word	 DATA:0448
+CALC_BITMAPPOS			  Near	 MAKEROOT:074C
+CLEAR_BLOCK			  Near	 MAKEROOT:081B
+CLR_DATA			  Near	 MAKEROOT:0571
+CLR_DIR				  Near	 MAKEROOT:08A9
+CLR_INODE			  Near	 MAKEROOT:080B
+CLR_SEK				  Near	 MAKEROOT:00BB
+COPY_BOOT			  Near	 MAKEROOT:0A23
+COPY_KERNEL			  Near	 MAKEROOT:0E7F
+COPY_SYSSELECT			  Near	 MAKEROOT:0C4A
+CR				  Number 000A
+CREATE_ROOT			  Near	 MAKEROOT:08C5
+CREATE_VIS			  Near	 MAKEROOT:092C
+CREATION_TIME			  Dword	 SEKTOR_DATA:040A
+DATA_BLOCK			  Dword	 SEKTOR_DATA:0480
+DATA_SELECT			  Word	 SEKTOR_DATA:0484
+DATA_TYPE			  Byte	 SEKTOR_DATA:0486
+DEBUG				  Text
+DEFECTIVE			  Number 0008
+DESCRIPTION			  Byte	 SEKTOR_DATA:0487
+DEVICE_INODE			  Dword	 SEKTOR_DATA:04CB
+DEVICE_INODE_SELECT		  Word	 SEKTOR_DATA:04CF
+DIR_SIZE			  Number 0020
+DIR_START			  Number SEKTOR_DATA:0480
+DRIVE				  Byte	 BOOT_CODE:0178
+EMPTY_INODE			  Number 0000
+EXTENDED_COMMENT		  Number 0004
+EXTENDED_NAME			  Number 0002
+FILE_HANDLE			  Word	 DATA:049A
+FLAGS_TYPE			  Word	 SEKTOR_DATA:0400
+FLAG_A				  Number 0080
+FLAG_AO				  Number 0020
+FLAG_C				  Number 0040
+FLAG_CI				  Number 0020
+FLAG_D				  Number 0008
+FLAG_DD				  Number 0040
+FLAG_DI				  Number 0010
+FLAG_DIR			  Number 0001
+FLAG_E				  Number 0004
+FLAG_EO				  Number 0004
+FLAG_F				  Number 0002
+FLAG_FILE			  Number 0000
+FLAG_GROUP			  Number 0002
+FLAG_H				  Number 0001
+FLAG_LI				  Number 0080
+FLAG_LINK			  Number 0004
+FLAG_LO				  Number 0002
+FLAG_M				  Number 0010
+FLAG_MI				  Number 0040
+FLAG_RI				  Number 0001
+FLAG_RO				  Number 0008
+FLAG_S				  Number 0020
+FLAG_SH				  Number 0008
+FLAG_SI				  Number 0080
+FLAG_WO				  Number 0010
+GETBOOTCODE			  Near	 BOOT_CODE:00B4
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 61
+Symbol Table
+
+
+
+GETSEK				  Near	 BOOT_CODE:013B
+GETSEKZYL			  Near	 MAKEROOT:00CB
+GET_DRIVEDATA			  Near	 MAKEROOT:0169
+GET_PHYSICAL			  Near	 MAKEROOT:0595
+GET_SYSTIME			  Near	 MAKEROOT:0826
+GET_USERDATA			  Near	 MAKEROOT:010D
+GET_VOLUMEDATA			  Near	 MAKEROOT:020A
+GROUP_BLOCK			  Dword	 SEKTOR_DATA:042E
+GROUP_SELECT			  Word	 SEKTOR_DATA:0432
+HDD_BLOCKSIZE			  Byte	 DATA:0446
+HDD_DRIVE			  Byte	 DATA:0441
+HDD_KOEPFE			  Byte	 DATA:0445
+HDD_SEKTOREN			  Byte	 DATA:0444
+HDD_ZYLINDER			  Word	 DATA:0442
+HEADS				  Byte	 BOOT_CODE:0179
+HEADZYL				  Byte	 BOOT_CODE:0177
+ID				  Byte	 BOOT_CODE:01FE
+INDIRECT_BLOCK			  Dword	 SEKTOR_DATA:0434
+INIT_IP				  Near	 MAKEROOT:0000
+INODE_SIZE			  Number 0080
+INODE_START			  Number SEKTOR_DATA:0400
+KEIN_SYS_MSG			  Byte	 BOOT_CODE:007C
+KERNEL_BLOCKS			  Dword	 DATA:048E
+KERNEL_BYTES			  Word	 DATA:0498
+KERNEL_FILE			  Byte	 DATA:04B4
+KERNEL_INODE			  Dword	 SEKTOR_DATA:04C5
+KERNEL_INODE_SELECT		  Word	 SEKTOR_DATA:04C9
+KERNEL_SIZE			  Word	 DATA:0492
+KERNEL_TOTAL			  Dword	 DATA:0494
+LF				  Number 000D
+LINK_BLOCK			  Dword	 SEKTOR_DATA:0428
+LINK_SELECT			  Word	 SEKTOR_DATA:042C
+MAKE_SYSDIR			  Near	 MAKEROOT:10B8
+MARK_BLOCK			  Near	 MAKEROOT:079E
+MODIFY_ID			  Word	 SEKTOR_DATA:0414
+MODIFY_TIME			  Dword	 SEKTOR_DATA:0410
+MOUNTED_ADDED			  Number 0080
+MSG_0000			  Byte	 DATA:0000
+MSG_0001			  Byte	 DATA:0049
+MSG_0002			  Byte	 DATA:0063
+MSG_0003			  Byte	 DATA:007E
+MSG_0004			  Byte	 DATA:008C
+MSG_0005			  Byte	 DATA:009A
+MSG_0006			  Byte	 DATA:00C1
+MSG_0007			  Byte	 DATA:00DE
+MSG_0008			  Byte	 DATA:00E9
+MSG_0009			  Byte	 DATA:00F5
+MSG_0010			  Byte	 DATA:00FD
+MSG_0011			  Byte	 DATA:0102
+MSG_0012			  Byte	 DATA:0107
+MSG_0013			  Byte	 DATA:011B
+MSG_0014			  Byte	 DATA:0147
+MSG_0015			  Byte	 DATA:015B
+MSG_0016			  Byte	 DATA:0165
+MSG_0017			  Byte	 DATA:016F
+MSG_0018			  Byte	 DATA:0177
+MSG_0019			  Byte	 DATA:0181
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 62
+Symbol Table
+
+
+
+MSG_0020			  Byte	 DATA:0195
+MSG_0021			  Byte	 DATA:01A9
+MSG_0022			  Byte	 DATA:01BD
+MSG_0023			  Byte	 DATA:01C9
+MSG_0024			  Byte	 DATA:01DD
+MSG_0025			  Byte	 DATA:01E8
+MSG_0026			  Byte	 DATA:01ED
+MSG_0027			  Byte	 DATA:0201
+MSG_0028			  Byte	 DATA:0211
+MSG_0029			  Byte	 DATA:021D
+MSG_0030			  Byte	 DATA:023A
+MSG_0031			  Byte	 DATA:0256
+MSG_0032			  Byte	 DATA:0274
+MSG_0033			  Byte	 DATA:0292
+MSG_0034			  Byte	 DATA:02A3
+MSG_0035			  Byte	 DATA:02C4
+MSG_0036			  Byte	 DATA:02DD
+MSG_0037			  Byte	 DATA:02F1
+MSG_0038			  Byte	 DATA:02F7
+MSG_0039			  Byte	 DATA:0321
+MSG_0040			  Byte	 DATA:034B
+MSG_0041			  Byte	 DATA:0365
+MSG_0042			  Byte	 DATA:0379
+MSG_0043			  Byte	 DATA:03A3
+MSG_0044			  Byte	 DATA:03CD
+MSG_0045			  Byte	 DATA:03F4
+MSG_0046			  Byte	 DATA:041B
+MSG_0047			  Byte	 DATA:042E
+OBJECT_BLOCKS			  Dword	 SEKTOR_DATA:0404
+OBJECT_COMMENT			  Number 0003
+OBJECT_NAME			  Number 0001
+OBJECT_SIZE			  Word	 SEKTOR_DATA:0408
+OWNER_BLOCK			  Dword	 SEKTOR_DATA:0422
+OWNER_ID			  Word	 SEKTOR_DATA:040E
+OWNER_SELECT			  Word	 SEKTOR_DATA:0426
+PART_SEKS			  Dword	 DATA:046C
+PART_SIZE			  Word	 DATA:046A
+PART_TABEL			  Byte	 SEKTOR_DATA:0200
+PRINT32				  Near	 MAKEROOT:004C
+PRINT32BIT			  Near	 MAKEROOT:---- Extern
+PRINT_BOOT			  Near	 BOOT_CODE:012B
+READ32				  Near	 MAKEROOT:0056
+READ32BIT			  Near	 MAKEROOT:---- Extern
+READ_BLOCK			  Near	 MAKEROOT:0663
+READ_DATA			  Byte	 SEKTOR_DATA:0000
+READ_FAILED			  Byte	 BOOT_CODE:00A4
+READ_SEK			  Near	 MAKEROOT:005E
+REMOVEABLE			  Number 0010
+RESERVED_INODE_DATA		  Word	 SEKTOR_DATA:047A
+RESERVED_TYPE			  Word	 SEKTOR_DATA:0402
+ROOTDIRFLAGS			  Number 0094
+ROOTVISFLAGS			  Number 0001
+SEKS_PER_BLOCK			  Byte	 DATA:0447
+SEKTOREN			  Byte	 BOOT_CODE:017A
+SEKZYL				  Word	 BOOT_CODE:0175
+SETSEK				  Near	 BOOT_CODE:015D
+SETSEKZYL			  Near	 MAKEROOT:00F3
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 63
+Symbol Table
+
+
+
+SET_BITMAPBLOCKS		  Near	 MAKEROOT:0532
+SET_DIRPOS			  Near	 MAKEROOT:09FD
+SET_INODEPOS			  Near	 MAKEROOT:0883
+SS_SIZE				  Byte	 STACK_SEG:0000
+STARTPOS_1			  Dword	 SEKTOR_DATA:0438
+STARTPOS_10			  Dword	 SEKTOR_DATA:046E
+STARTPOS_11			  Dword	 SEKTOR_DATA:0474
+STARTPOS_2			  Dword	 SEKTOR_DATA:043E
+STARTPOS_3			  Dword	 SEKTOR_DATA:0444
+STARTPOS_4			  Dword	 SEKTOR_DATA:044A
+STARTPOS_5			  Dword	 SEKTOR_DATA:0450
+STARTPOS_6			  Dword	 SEKTOR_DATA:0456
+STARTPOS_7			  Dword	 SEKTOR_DATA:045C
+STARTPOS_8			  Dword	 SEKTOR_DATA:0462
+STARTPOS_9			  Dword	 SEKTOR_DATA:0468
+SYSSELECT_FILE			  Byte	 DATA:04A8
+SYSSEL_BLOCKS			  Dword	 DATA:0482
+SYSSEL_BYTES			  Word	 DATA:048C
+SYSSEL_SIZE			  Word	 DATA:0486
+SYSSEL_TOTAL			  Dword	 DATA:0488
+SYSTEMDIRFLAGS			  Number 0051
+TOS				  Number STACK_SEG:0100
+TOTAL_BLOCKS			  Dword	 SEKTOR_DATA:047C
+TYPE_ADD			  Number 0002
+TYPE_MOUNT			  Number 0003
+TYPE_ROOT			  Number 0001
+TYPE_UNKNOWN			  Number 0000
+VIS_RESERVED			  Byte	 SEKTOR_DATA:05D0
+VOLUME_BLOCKS			  Dword	 DATA:0465
+VOLUME_END_HEAD			  Byte	 DATA:0458
+VOLUME_END_SEK			  Byte	 DATA:0457
+VOLUME_END_SEKS			  Dword	 DATA:0459
+VOLUME_END_ZYL			  Word	 DATA:0455
+VOLUME_INFO_SIZE		  Number 0200
+VOLUME_INFO_START		  Number SEKTOR_DATA:04A0
+VOLUME_LOST_SEKS		  Byte	 DATA:0469
+VOLUME_SEKS			  Dword	 DATA:045D
+VOLUME_SIZE			  Dword	 DATA:0461
+VOLUME_START_HEAD		  Byte	 DATA:044D
+VOLUME_START_HEADZYL		  Byte	 DATA:0454
+VOLUME_START_SEK		  Byte	 DATA:044C
+VOLUME_START_SEKS		  Dword	 DATA:044E
+VOLUME_START_SEKZYL		  Word	 DATA:0452
+VOLUME_START_ZYL		  Word	 DATA:044A
+VOL_BLOCKSIZE			  Byte	 SEKTOR_DATA:04A0
+VOL_CHECKMOUNTS			  Byte	 SEKTOR_DATA:04A6
+VOL_CHECK_ID			  Word	 SEKTOR_DATA:04B7
+VOL_CHECK_TIME			  Dword	 SEKTOR_DATA:04B3
+VOL_CREATED_ID			  Word	 SEKTOR_DATA:04BD
+VOL_CREATE_TIME			  Dword	 SEKTOR_DATA:04B9
+VOL_DISMOUNT_ID			  Word	 SEKTOR_DATA:04B1
+VOL_DISMOUNT_TIME		  Dword	 SEKTOR_DATA:04AD
+VOL_FLAGS_1			  Byte	 SEKTOR_DATA:04A3
+VOL_FLAGS_2			  Byte	 SEKTOR_DATA:04A4
+VOL_LABEL			  Byte	 SEKTOR_DATA:04D1
+VOL_MAGIC_ID			  Word	 SEKTOR_DATA:04A1
+VOL_MOUNTS			  Byte	 SEKTOR_DATA:04A5
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 64
+Symbol Table
+
+
+
+VOL_MOUNT_ID			  Word	 SEKTOR_DATA:04AB
+VOL_MOUNT_TIME			  Dword	 SEKTOR_DATA:04A7
+VOSBOOT_FILE			  Byte	 DATA:049C
+WRITE_BLOCK			  Near	 MAKEROOT:06B2
+WRITE_BOOTSTRAP			  Near	 MAKEROOT:07D1
+WRITE_DATA			  Near	 MAKEROOT:0632
+WRITE_PROTECT			  Number 0040
+WRITE_SEK			  Near	 MAKEROOT:0087
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+BLOCK_DATA			  16  FFFF Para	  none	  DATA
+BOOT_CODE			  16  0200 Para	  none	  CODE
+DATA				  16  04BD Para	  none	  DATA
+MAKEROOT			  16  11E4 Para	  none	  CODE
+SEKTOR_DATA			  16  06A0 Para	  none	  DATA
+STACK_SEG			  16  0100 Para	  none	  STACK
+

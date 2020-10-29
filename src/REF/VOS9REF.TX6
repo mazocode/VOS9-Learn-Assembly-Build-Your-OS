@@ -1,0 +1,562 @@
+            VOS/9 Programing Reference - 05.04.1996
+
+
+© ® 1996 by MZ Computer Systems
+Page 7
+                               
+                               
+                             VOS/9
+
+                     Programing Reference
+                               
+             © ® 1995-1996 by MZ Computer Systems
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                          I n h a l t
+
+Plattformspezifische Daten, Formate, Register              3
+Volume Information Sector (VIS)                            5
+Inode Struktur                                             6
+Object Data Table (ODT) Entrys                             7
+Inode Object Attributes                                    7
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+Plattformspezifische Daten, Formate (Intel)
+
+
+Programmsegmentdeskriptor:
+31                                              0
+
+
+
+
+Datensegmentdeskriptor:
+31                                              0
+
+
+
+
+Task-Gate-Deskriptor:
+31                                              0
+
+
+
+
+Interrupt Gate / Trap Gate Deskriptor:
+31                                              0
+
+
+
+
+Call-Gate-Deskriptor
+31                                              0
+
+
+
+
+(anzahl doppelworte)
+
+TSS-Deskriptor
+31                                              0
+
+
+
+
+LDT-Deskriptor
+31                                              0
+
+
+
+
+
+Kur Name       Beschreibung
+z
+               
+G   Granulari  G=0: Längenangabe in Byte (max. 1 Mbyte)
+    ty         G=1: Längenangabe in Seiten zu je 4K (max.
+               4GByte)
+A   Accessed   A=0: Zum Segment wurde nicht zugegriffen
+               A=1: Zum Segment wurde zugegriffen
+W   Write      W=0: Read Only Segment
+    Enabled    W=1: Read & Write possible
+B   Stackpoin  B=0: SP wird verwendet (max. 64K Stack)
+    ter (Big)  B=1: ESP wird verwendet (max. 4GB)
+E   Expansion  E=0: Aufwärtserweiterung,
+    Direction  Basisadresse=niedrigste Byte des Segmentes
+               E=1: Abwärtserweiterung,
+               Basisadresse=höchstwertiges Byte des Segmentes
+R   Readable   R=0: Execute Only Codesegment
+               R=1 Execute/Read
+C   Conformin  C=0 Non Conforming CPL=DPL!
+    g          C=1 Conforming DPL<=CPL!
+               
+Kur Name       Beschreibung
+z
+               
+D   Default    D=0: Operandengröße und Adreßlänge von 16 Bit
+    Operand    D=1: Operandengröße und Adreßlänge von 32 Bit
+    Size
+               
+
+TSS-Aufbau:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EFLAGS
+31                             19  18  17   16  15   14  13
+12  11   10    9     8     7    6     5    4     3     2     1
+0
+
+
+
+CR0
+    31    30   29  28                 19  18   17  16   15
+6    5    4     3    2     1     0
+
+
+
+
+
+                Volume Information Sektor (VIS)
+                               
+Byt Größe     Funktion
+e   (Byte)
+              
+0   1         VOLUME_BLOCK_SIZE
+              Anzahl der Sektoren, welche einen Block bilden.
+              1 Block besteht aus 2 Sektoren (0=1 Block = 1
+              Sektor) => max. Blockgröße von 64 KByte
+1   2         VOLUME_MAGIC_ID
+              Eindeutige Identifizierung des Datenträgers
+3   1         VOLUME_FLAGS
+              Bit Description
+              7    Volume Added/Mounted
+              6    Volume Write Protected
+              5    Auto-check-enabled
+              4    Removeable Media
+              3    Volume Defective
+              2..0 Volume Type
+                     0=unknown/unformated
+                     1=Root
+                     2=Add-On Root
+                     3=Mount
+                     4..7=reserved
+4   1         RESERVED_FLAGS
+5   1         VOL_MOUNTS
+              Anzahl der seit der letzten Prüfung vergangenen
+              mounts
+6   1         VOL_CHECKMOUNTS
+              Nach wieviel mounts eine autom. prüfung
+              stattfindet
+7   4         VOL_MOUNT_TIME (TIMEMARK)
+              Zeitpunkt letzter mount
+11  2         VOL_MOUNT_ID
+              Letzter mount von User x
+13  4         VOL_DISMOUNT_TIME (TIMEMARK)
+              Zeitpunkt letzter dismount
+17  2         VOL_DISMOUNT_ID
+              Letzter dismount durch User xx
+19  4         VOLUME_CHECK_TIME (TIMEMARK)
+              Zeitpunkt letzte Prüfung
+23  2         VOLUME_CHECK_ID
+              Letzte prüfung durch
+25  4         VOL_CREATE_TIME (TIMEMARK)
+              Zeitpunkt erstellung des Volumes
+29  2         VOL_CREATE_ID
+              Erstellt duch User x
+31  4         BOOT_INODE
+              INODE_BLOCK des SYSTEM-SELECT Managers
+35  2         BOOT_INODE_SELECT
+              Auswahl INODE
+37  4         KERNEL_INODE
+              INODE_BLOCK des KERNEL-Images
+41  2         KERNEL_INODE_SELECT
+              Auswahl INODE
+43  4         DEVICE_INODE
+              INODE_BLOCK des BOOT-Gerätetreiber
+47  2         DEVICE_INODE_SELECT
+              Auswahl INODE
+49  255       VOLUME_LABEL
+              Name des Datenträgers. Maximal 254 Zeichen +
+              Terminierung
+                               
+                               
+                               
+                               
+                               
+                               
+                               
+                               
+                               
+                               
+                     I N O D E - E n t r y
+
+Byt Größe     Funktion
+e   (Byte)
+              
+0   2         FLAGS_TYPE
+              Typ des INODES und Attribute
+2   2         RESERVED_FLAGS
+4   4         OBJECT_BLOCKS
+              Größe des Beschriebenen Objektes in BLOCKS
+              => max. Dateigröße bei Blockgröße von 64K = 256
+              TerraByte!
+8   2         OBJECT_SIZE
+              Restlicher Byte-Wert des Objektes
+10  4         CREATION_TIME
+              Zeitpunkt erstellung des objektes
+14  2         OWNER_ID
+              Eigentümer des objektes
+16  4         MODIFY_TIME
+              Zeitpunkt letzte änderung
+20  2         MODIFY_ID
+              Letzte Änderung durch Benutzer x
+22  4         ACCESS_TIME
+              Zeitpunkt letzter zugriff
+26  2         ACCESS_ID
+              Letzter Zugriff durch benutzer x
+28  4         ARCHIVE_TIME
+              Zeitpunkt letzte sicherung
+32  2         ARCHIVE_ID
+              Letzte sicherung durch User x
+34  4         OWNER_BLOCK
+              INODE_BLOCK des Eigentümer INODES (Falls
+              indirekter Block)
+              Zeigt im ersten Inode auf den INODE des
+              Directory-Eintrages
+38  2         OWNER_SELECT
+              Nummer des INODE-Eintrages. Zeigt im ersten
+              Inode auf den INODE des Directory-Eintrages
+40  4         LINK_BLOCK
+              INODE_BLOCK, welcher den INODE für die Link-
+              Liste auf das Objekt enthält
+44  2         LINK_SELECT
+              Nummer des INODE-Eintrages
+46  4         GROUP_BLOCK
+              Block, welcher den INODE für die Liste der
+              Gruppenzugehörigkeit dieses Objektes enthält
+50  2         GROUP_SELECT
+              Auswahl des INODEs (der Gruppe), welcher dieses
+              Objekt angehört
+52  4         INDIRECT_BLOCK
+              Zeiger auf indirekten (erweiterten) Inode
+56  4         STARTPOS_1
+              Position des ersten Datenblocks dieses Objektes
+60  2         BLOCKS_1
+              Länge des ertsten Datenblocks in Blocks
+62  4         STARTPOS_2
+66  2         BLOCKS_2
+68  4         STARTPOS_3
+72  2         BLOCKS_3
+74  4         STARTPOS_4
+78  2         BLOCKS_4
+80  4         STARTPOS_5
+84  2         BLOCKS_5
+86  4         STARTPOS_6
+90  2         BLOCKS_6
+92  4         STARTPOS_7
+96  2         BLOCKS_7
+98  4         STARTPOS_8
+102 2         BLOCKS_8
+104 4         STARTPOS_9
+108 2         BLOCKS_9
+110 4         STARTPOS_10
+114 2         BLOCKS_10
+116 4         STARTPOS_11
+120 2         BLOCKS_11
+122 2         RESERVED_INODE_DATA
+124 4         TOTAL_BLOCKS
+              Anzahl Datenblocks
+128           
+              
+
+
+
+                 OBJECT-DATA-TABEL (ODT) Entry
+
+Byt Größe     Funktion
+e   (Byte)
+              
+0   4         DATA_BLOCK
+              Block, welcher den INODE der zu Beschreibenden
+              Daten enthält
+4   2         DATA_SELECT
+              Auswahl des INODES für die zu Beschreibenden
+              Daten
+6   1         DATA_TYPE
+              Typ des Beschriebenen Objektes
+              0h: EMPTY_ODT
+                    Eintrag ist verfügbar (frei)
+              1h: OBJECT_NAME
+                    Eintrag enthält den Namen zu einem Objekt
+                    DATA_BLOCK & DATA_SELECT zeigen auf den
+              INODE des
+                    Beschriebenen Objektes. Der Name/Restliche
+              Objekt-Name ist nicht
+                    länger als DESCRIPTION-Terminierung.
+              2h: EXTENDED_NAME
+                    Eintrag enthält den Namen zu einem Objekt.
+                    DATA_BLOCK & DATA_SELECT zeigen auf einen
+              weiteren Namens-
+                    bestandteil (ein weiterer Eintrag vom Typ
+              ODT- 2h oder 1h) oder auf
+                    einen Kommentar (3h, 4h) zu diesem Objekt.
+              Im Falle eines Kommentares
+                    endet hier die Objektbezeichnung durch das
+              Term-Zeichen.
+              3h: OBJECT_COMMENT
+                    Eintrag enthält einen Kommentar zu dem
+              Objekt
+                    DATA_BLOCK & DATA_SELECT zeigen auf den
+              INODE des
+                    Beschriebenen Objektes. Der Kommentar
+              endet an DESCRIPTION-Term.
+              4h: EXTENDED_COMMENT
+                    Eintrag enthält Kommentar zu einem Objekt.
+                    DATA_BLOCK & DATA_SELECT zeigen auf einen
+              weiteren Kommentar-
+                    bestandteil (ein weiterer Eintrag vom Typ
+              ODT 3h, 4h).
+              ...   reserviert (z.B. für Object_Data - Daten
+              zu einem Object wie z.B. ein Icon, ... )
+7   25        DESCRIPTION
+              Beschreibung/Erweiterte Daten zu dem Objekt
+31            
+
+                               
+         I N O D E - O b j e k t - A t t r i b u t e s
+
+Att We  Name      Beschreibung
+r.  rt
+    he            
+    x
+Fil 0   Datei     Objekt beschreibt eine Datei
+e
+Dir 1   Directory Objekt beschreibt ein Directory
+Gro 2   Gruppe    Objekt beschreibt eine Gruppe von Dateien
+up                oder Verzeichnissen
+Lin 4   Link      Objekt beschreibt ein Link auf eine andere
+k                 Datei/Verzeichnis
+                  
+D   8   Deleted   Das Objekt wurde gelöscht
+M   10  Moved     Das Objekt wurde ausgelagert un muß vor dem
+                  zugriff wieder eingelagert werden
+S   20  System    Das Objekt gehört dem System und unterliegt
+                  dessen Kontrolle
+C   40  Compresse Das Objekt wurde komprimiert
+        d
+A   80  Archived  Das Objekt ist seit seiner letzten Änderung
+                  nicht mehr archiviert worden
+H   1   Hidden    Das Objekt ist im Directory versteckt
+F   2   Fixed     Das Objekt darf vom System nicht auf der
+                  Platte umbewegt werden
+E   4   Executabl Das Objekt ist eine Ausführbare Datei
+        e
+Sh  8   Shareable Das Objekt unterliegt dem Record-Locking
+                  verfahren
+Di  10  Delete    Das Löschen des Objektes ist verboten
+        Inhibit
+Ci  20  Compress  Das Komprimieren des Objektes durch das
+        Inhibit   System ist verboten
+Mi  40  Move      Das Auslagern der Datei durch das System ist
+        Inhibit   verboten
+Li  80  Link      Von diesem Objekt darf kein Link erstellt
+        Inhibit   werden
+Ri  1   Rename    Das Umbenennen des Objektes ist verboten
+        Inhibit
+Lo  2   Local     Das Objekt ist nur für lokale Benutzer
+        Only      zugänglich
+Eo  4   Execute   Das Objekt darf ausschließlich ausgeführt
+        Only      werden.
+Ro  8   Read Only Das Objekt kann nur gelesen werden
+Wo  10  Write     Das Objekt kann nur beschrieben werden
+        only
+Ao  20  Add only  An das Objekt können nur Daten angefügt
+                  werden
+Dd  40  Delete    Wird das Objekt gelöscht, werden die
+        data by   Datenblocks mit Zufallswerten überschrieben
+        over.
+Si  80  Subdirs   Unterverzeichnisse sind verboten
+        Inhibit
+                  
+                  
+                  
+                  
+
+                VOS/9 Master-Boot-Record (MBR)
+
+Kompatibilitäts-Fragen:
+
+VOS/9 kann von jedem beliebigen MBR oder Boot-Manager gestartet
+werden. Dazu muß VOS/9 jedoch eine aktive Partition auf der 1.
+Festplatte sein. Der MBR ermöglich folgende Möglichkeiten:
+
+    - Starten von VOS/9 bis von der 8. Festplatte
+      (Auch bei SCSI-Festplatten wenn das Adapter-Bios aktiv
+ist.)
+    - Aufrufen des VOS/9 System-Select Programms mit frei
+wählbarer Tastenkombination
+
+Bootstrap:
+
+Nach dem Laden des MBR an die Adresse 7c00h kopiert sich der
+Code an die Adresse 60h um selbst den BootStrap Code des zu
+startenden Betriebssystems an 7c00h laden zu können. Zunächst
+werden ab dem Laufwerk 80h (1. HD) alle Partitionstabellen nach
+einer gültigen (aktiven) Startpartition durchsucht. Zuvor wird
+geprüft ob die Aktivierungstaste für den BootManager gedrückt
+wurde. Ist dies der Fall wird ausschließlich nach einer aktiven
+Partition vom Typ 0Dh (VOS/9) gesucht. Beim starten des
+Bootstrap-Codes werden dem Betriebssystem Laufwerk, Cylinder,
+Sektor und Kopf übergeben.
+
+Registerinhalte nach dem Laden des Bootstrap-Codes:
+
+DL      =       Laufwerk, von welchem der BootstrapCode
+geladen wurde
+ES      =       700h
+BX      =       0C000h
+DS      =       60h
+DH      =       Kopf Partitionsstart
+CX      =       Sektor/Zylinder Partitionsstart
+
+rest    =       undefiniert
+
+Änderbare Parameter des MBRs durch SYSTEM-SELECT:
+
+VOS     db      Offset 1bbh
+                0     = Regulärer Boot
+                0ffh = Suche nach VOS/9 wurde angefordert
+(Aktivierungstaste
+                gedrückt)
+BOOTKEY  dw      Offset 1bch
+                0ffh = Bootmanager immer starten
+                Ansonsten = Bios Extended Key Data Bits
+(ALT Left, Right, ...)
+
+
+

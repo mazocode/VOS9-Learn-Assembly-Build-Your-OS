@@ -1,0 +1,3 @@
+vos_welcome 	db '旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커'
+        	db '� Virtual Operating System / 9  Ver. A0.00  (c)(r) 1995 by MZ Computer Systems �'
+		db '읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸$'

@@ -1,0 +1,19 @@
+; Standard AT COMMAND/DATA Ports
+;
+
+	CMD_8042	=	064h	; 8042 Command Port
+	DATA_8042	=	060h	; 8042 Data Port
+	SERIAL_1	=	3f8h	; First Serial Port
+	SERIAL_2	=	2f8h	; Second Serial Port
+	SERIAL_3	=	3e8h	; Third Serial Port
+	SERIAL_4	=	2e8h	; Fourth Serial Port
+	CTR_COLOR	=	3d4h	; Video Contr. Farb Port
+	CTR_MONO	=	3b4h	; Video Contr. Mono Port
+	NMI_CONTROL	=	070h	; NMIs an/aus Port
+	ISR_8259_A	=	020h	; 1. Int Contr. Cmd/IntRequests
+	ISR_8259_B	=	0A0h	; 2. "
+	MSK_8259_A	=	021h	; 1. Int Contr. Int Mask Reg.
+	MSK_8259_B	=	0A1h	; 2. "
+	MISC_CONTROL	=	061h	; Speaker/Parity check, I/O Check,...
+	TIMER_0		=	040h	; System Timer 0
+	

@@ -1,0 +1,4 @@
+; VGA und komp. Port Adressen
+
+	VGA_CRT_COLOR	=	3d4h	; Video Contr. Farb Port
+	VGA_CRT_MONO	=	3b4h	; Video Contr. Mono Port

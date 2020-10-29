@@ -1,0 +1,161 @@
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 1
+\PROJECT\VOS9\FILESYS\ZAHLEN.ASM
+
+
+
+      1				     ;---------------------------------------------------------------
+      2				     ; ZAHLEN.ASM
+      3				     ;
+      4				     ; Modul untersttzt Ein- und Ausgabe von 32-Bit-Zahlen
+      5				     ; ist nicht allein	lauff„hig
+      6				     ;
+      7				     ; im Hauptprogramm	deklarieren mittels:
+      8				     ;
+      9				     ; extrn Print32Bit: near
+     10				     ; extrn Read32Bit:	near
+     11				     ;
+     12				     ;---------------------------------------------------------------
+     13
+     14	0000			     model   tiny
+     15				     .286
+     16	0000			     codeseg
+     17				     public  Print32Bit, Read32Bit   ; als ”ffentlich vereinbaren
+     18
+     19	0000			     Print32Bit	     proc    near
+     20	0000  C8 0000 00		     enter   0,0		     ; Stack-Frame
+     21	0004  8B 56 06			     mov     dx, [bp+06]
+     22	0007  8B 46 04			     mov     ax, [bp+04]	     ; Parameter nach DX:AX
+     23	000A  BF 000A			     mov     di, 10		     ; Teiler ist 10
+     24	000D  33 C9			     xor     cx, cx		     ; CX z„hlt	Stack-Operationen
+     25	000F			     @Zahlen1:
+     26	000F  33 DB			     xor     bx, bx
+     27	0011  83 FA 0A			     cmp     dx, 0Ah	     ; LongInt mittels DIV teilbar?
+     28	0014  72 0F			     jc	     @Zahlen2		     ; (Zahl muá kleiner als 100000h sein)
+     29	0016  93			     xchg    ax, bx		     ; AX -> BX, 0 -> AX
+     30	0017  92			     xchg    ax, dx		     ; HI-Word nach AX
+     31	0018  F7 F7			     div     di			     ; teilen -> MODULO	in DX
+     32	001A  8B F0			     mov     si, ax		     ; Ergebnis	merken
+     33	001C  93			     xchg    ax, bx		     ; LO-Word zurck
+     34	001D  F7 F7			     div     di			     ; teilen
+     35	001F  52			     push    dx			     ; Modulo auf Stack
+     36	0020  41			     inc     cx			     ; Stackz„hler erh”hen
+     37	0021  8B D6			     mov     dx, si		     ; Ergebnis	von erster Div.	zurck
+     38	0023  EB EA			     jmp     short @Zahlen1
+     39	0025			     @Zahlen2:
+     40	0025  F7 F7			     div     di			     ; teilen
+     41	0027  52			     push    dx			     ; Modulo auf Stack
+     42	0028  41			     inc     cx			     ; Stackz„hler erh”hen
+     43	0029  0B C0			     or	     ax, ax		     ; schon fertig?
+     44	002B  74 04			     jz	     @Zahlen3
+     45	002D  33 D2			     xor     dx, dx		     ; Hi-Word jetzt Null
+     46	002F  EB F4			     jmp     short @Zahlen2
+     47	0031			     @Zahlen3:
+     48	0031  5A			     pop     dx
+     49	0032  83 CA 30			     or	     dx, 48		     ; Byte -> ASCII
+     50	0035  B4 02			     mov     ah, 02
+     51	0037  CD 21			     int     21h		     ; Zeichen ausgeben
+     52	0039  E2 F6			     loop    @Zahlen3		     ; CXmal nach @Zahlen3
+     53
+     54	003B  C9			     leave			     ; Stack-Frame aufl”sen
+     55	003C  C2 0004			     retn    0004		     ; Parameter vom Stack
+     56	003F			     Print32Bit	     endp
+     57
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 2
+\PROJECT\VOS9\FILESYS\ZAHLEN.ASM
+
+
+
+     58	003F			     Read32Bit	     proc    near
+     59	003F  C8 0018 00		     enter   24,0		     ; Stack-Frame  (20	Bytes Stringpuffer)
+     60	0043  1E			     push    ds
+     61	0044  16			     push    ss
+     62	0045  1F			     pop     ds			     ; DS auf SS umsetzen
+     63	0046  8B D5			     mov     dx, bp		     ; DX = offset String
+     64	0048  83 EA 14			     sub     dx, 20
+     65	004B  C6 46 EC 12		     mov     byte ptr [bp-20], 18    ; 18 Bytes	zulassen
+     66	004F  B4 0A			     mov     ah, 0Ah
+     67	0051  CD 21			     int     21h		     ; Funktion: Stringeingabe
+     68	0053  8A 4E ED			     mov     cl, [bp-19]	     ; Wieviel Bytes eingegeben?
+     69	0056  32 ED			     xor     ch, ch
+     70	0058  8B D9			     mov     bx, cx		     ; in BX merken
+     71	005A  33 F6			     xor     si, si		     ; Register	SI z„hlt Schleifendurchl„ufe
+     72	005C  33 C0			     xor     ax, ax
+     73	005E  33 D2			     xor     dx, dx
+     74	0060  BF 000A			     mov     di, 10		     ; Mulitplikator
+     75	0063  89 46 E8			     mov     [bp-24], ax	     ; bp-24 speichert HI-Wort ab
+     76	0066			     @Zahlen4:
+     77	0066  8A 4A EE			     mov     cl, [bp+si-18]  ; n„chstes	Byte laden
+     78	0069  80 F9 30			     cmp     cl, '0'
+     79	006C  72 2F			     jc	     @Zahlen6		     ; kleiner als Null
+     80	006E  80 F9 39			     cmp     cl, '9'
+     81	0071  7F 30			     jg	     @Zahlen5		     ; gr”áer als Neun
+     82	0073  F7 E7			     mul     di			     ; AX mal 10
+     83	0075  46			     inc     si			     ; Z„hler erh”hen
+     84	0076  80 E9 30			     sub     cl, 48		     ; ASCII->Byte
+     85	0079  02 C1			     add     al, cl		     ; zu AL addieren
+     86	007B  80 D4 00			     adc     ah, 0		     ; Carry bertragen	falls šberlauf
+     87	007E  83 D2 00			     adc     dx, 0
+     88	0081  89 46 EA			     mov     [bp-22], ax	     ; Lo-Wort merken
+     89	0084  8B 46 E8			     mov     ax, [bp-24]	     ; altes Hi-Wort holen
+     90	0087  8B CA			     mov     cx, dx		     ; neues Hi-Wort merken
+     91	0089  F7 E7			     mul     di			     ; ax mal 10
+     92	008B  0B D2			     or	     dx, dx
+     93	008D  75 14			     jnz     @Zahlen5		     ; wenn DX > 0 -> gr”áer als 32 Bit
+     94	008F  03 C1			     add     ax, cx		     ; altes mit neuem Hi-Wort addieren
+     95	0091  72 0A			     jc	     @Zahlen6		     ; Falls šberlauf -> gr”áer	als 32 Bit
+     96	0093  89 46 E8			     mov     [bp-24], ax	     ; Hi-Wort merken
+     97	0096  8B 46 EA			     mov     ax, [bp-22]	     ; Lo-Wort zurckholen
+     98	0099  3B F3			     cmp     si, bx		     ; alle Zahlen bearbeitet
+     99	009B  72 C9			     jc	     @Zahlen4
+    100									     ; Carry ist Null
+    101	009D			     @Zahlen6:
+    102	009D  8B 56 E8			     mov     dx, [bp-24]	     ; Hi-Wort -> DX
+    103	00A0  1F			     pop     ds			     ; Segmentregister restaurieren
+    104	00A1  C9			     leave			     ; Stack-Frame aufl”sen
+    105	00A2  C3			     retn
+    106	00A3			     @Zahlen5:
+    107	00A3  F9			     stc			     ; Carry setzen
+    108	00A4  EB F7			     jmp     short @Zahlen6
+    109	00A6			     Read32Bit	     endp
+    110
+    111					     end
+Turbo Assembler	 Version 4.1	    10/29/20 04:41:22	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "10/29/20"
+??FILENAME			  Text	 "ZAHLEN  "
+??TIME				  Text	 "04:41:22"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0707H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 ZAHLEN
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+@ZAHLEN1			  Near	 DGROUP:000F
+@ZAHLEN2			  Near	 DGROUP:0025
+@ZAHLEN3			  Near	 DGROUP:0031
+@ZAHLEN4			  Near	 DGROUP:0066
+@ZAHLEN5			  Near	 DGROUP:00A3
+@ZAHLEN6			  Near	 DGROUP:009D
+DEBUG				  Text
+PRINT32BIT			  Near	 DGROUP:0000
+READ32BIT			  Near	 DGROUP:003F
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  00A6 Word	  Public  CODE
+
