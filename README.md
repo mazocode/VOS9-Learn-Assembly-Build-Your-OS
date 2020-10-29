@@ -29,7 +29,7 @@ This tool is similar to the fdisk command for partitioning disks but has some ex
 
 ![vdisk_main](doc/images/vdisk_main.png)
 
-The syntax is: VDISK.EXE <DRIVE-LETTER>
+The syntax is: VDISK.EXE &lt;DRIVE-LETTER&gt;
 
 Note that it doesn't matter if DOS recognized the drive. VDISK converts the letter to the corresponding BIOS identifier (A=0x0h, B=0x1h, C=0x80h, D=0x81h, ...).
 
@@ -39,7 +39,7 @@ Point of interest: vdisk\vdisk.pas
 
 ## MBR.EXE
 
-MBR writes a [master boot record](https://en.wikipedia.org/wiki/Master_boot_record) to a disk. The syntax is: MBR.EXE <DRIVE-LETTER> (where drive letter has the same logic as with VDISK). The master boot record is the first sector an a disk and holds the partitioning data as well as a tiny program responsible for locating and loading the operating system.
+MBR writes a [master boot record](https://en.wikipedia.org/wiki/Master_boot_record) to a disk. The syntax is: MBR.EXE &lt;DRIVE-LETTER&gt; (where drive letter has the same logic as with VDISK). The master boot record is the first sector an a disk and holds the partitioning data as well as a tiny program responsible for locating and loading the operating system.
 
 ![mbr_tool](doc/images/mbr_tool.png)
 
